@@ -1,6 +1,29 @@
-assets/*
-!assets/.gitignore
-protected/runtime/*
-!protected/runtime/.gitignore
-protected/data/*.db
-themes/classic/views/
+# Dependencies
+/vendor/
+
+# Runtime files
+/runtime/
+.cache/
+*.log
+
+# Environment files
+.env
+.env.*
+
+# Environment-specific configs
+/config/environments/dev/
+/config/environments/test/
+/config/environments/prod/
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Tests cache
+/.phpunit.result.cache
+
+# Docker (optional)
+/docker/runtime/
