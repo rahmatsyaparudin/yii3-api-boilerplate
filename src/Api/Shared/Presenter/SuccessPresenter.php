@@ -21,7 +21,9 @@ final readonly class SuccessPresenter implements PresenterInterface
         $response = $this->presenter->present($value, $response);
         return $response
             ->withData([
-                'status' => 'success',
+                'code' => $response->getStatusCode(),
+                'success' => true,
+                'message' => $message,
                 'data' => $response->getData(),
             ])
             ->withStatus(Status::OK);

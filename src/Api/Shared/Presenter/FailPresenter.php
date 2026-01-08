@@ -23,14 +23,16 @@ final readonly class FailPresenter implements PresenterInterface
     {
         $response = $this->presenter->present($value, $response);
         $result = [
-            'status' => 'failed',
-            'error_message' => $this->message,
+            'code' => $this->httpCode,
+            'success' => false,
+            'message' => $this->message,
+            'data' => $response->getData(),
         ];
         if ($this->code !== null) {
-            $result['error_code'] = $this->code;
+            $result['code'] = $this->code;
         }
         if ($value !== null) {
-            $result['error_data'] = $response->getData();
+            $result['data'] = $response->getData();
         }
         return $response->withData($result)->withStatus($this->httpCode);
     }

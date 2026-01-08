@@ -31,7 +31,10 @@ return [
                     [
                         FormatDataResponseAsJson::class,
                         static fn() => new ContentNegotiator([
-                            'application/xml' => new XmlDataResponseFormatter(),
+                            /*
+                             * API: Enable XML support when needed
+                             */
+                            // 'application/xml' => new XmlDataResponseFormatter(),
                             'application/json' => new JsonDataResponseFormatter(),
                         ]),
                         ErrorCatcher::class,
