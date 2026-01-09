@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 use App\Api\Shared\ExceptionResponderFactory;
 use App\Api\Shared\NotFoundMiddleware;
+use App\Shared\Middleware\CorsMiddleware;
+use App\Shared\Middleware\JwtMiddleware;
+use App\Shared\Middleware\TrustedHostMiddleware;
 use Yiisoft\DataResponse\Formatter\JsonDataResponseFormatter;
 use Yiisoft\DataResponse\Formatter\XmlDataResponseFormatter;
 use Yiisoft\DataResponse\Middleware\ContentNegotiator;
@@ -39,6 +42,11 @@ return [
                         ]),
                         ErrorCatcher::class,
                         static fn(ExceptionResponderFactory $factory) => $factory->create(),
+                        static fn () => new TrustedHostMiddleware(
+                            $params['app/trusted_hosts']['allowedHosts'] ?? [],
+                        ),
+                        CorsMiddleware::class,
+                        JwtMiddleware::class,
                         RequestBodyParser::class,
                         Router::class,
                         NotFoundMiddleware::class,
