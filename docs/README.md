@@ -12,4 +12,12 @@
 - `10-brand-module.md`
 - `11-audit.md`
 - `12-access-control.md`
+- `13-environment-variables.md`
+- `14-authorization.md`
+- `15-health-checks.md`
+- `16-openapi.md`
+- `17-rate-limiting.md`
+- `18-observability.md`
+- `19-testing.md`
+- `20-deployment-runbook.md`
 - `99-api-readiness-checklist.md`
