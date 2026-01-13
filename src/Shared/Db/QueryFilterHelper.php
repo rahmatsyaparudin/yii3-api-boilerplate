@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Shared\Db;
@@ -15,6 +16,7 @@ final class QueryFilterHelper
                 $query->andWhere([$key => $value]);
             }
         }
+
         return $query;
     }
 
@@ -29,6 +31,7 @@ final class QueryFilterHelper
         if ($or) {
             $query->orWhere($or);
         }
+
         return $query;
     }
 
@@ -40,12 +43,13 @@ final class QueryFilterHelper
                 $query->andWhere([$operator, $key, $value]);
             }
         }
+
         return $query;
     }
 
     public static function orFilterLike(ConnectionInterface $db, Query $query, array $conditions): Query
     {
-        $likes = [];
+        $likes    = [];
         $operator = self::likeOperator($db);
         foreach ($conditions as $key => $value) {
             if ($value !== null && $value !== '') {
@@ -55,13 +59,15 @@ final class QueryFilterHelper
         if ($likes) {
             $query->orWhere($likes);
         }
+
         return $query;
     }
 
     private static function likeOperator(ConnectionInterface $db): string
     {
-        $driverName = strtolower($db->getDriverName());
-        return str_contains($driverName, 'pgsql') || str_contains($driverName, 'postgres')
+        $driverName = \strtolower($db->getDriverName());
+
+        return \str_contains($driverName, 'pgsql') || \str_contains($driverName, 'postgres')
             ? 'ilike'
             : 'like';
     }
@@ -69,10 +75,11 @@ final class QueryFilterHelper
     public static function andFilterIn(Query $query, array $conditions): Query
     {
         foreach ($conditions as $key => $values) {
-            if (!empty($values) && is_array($values)) {
+            if (!empty($values) && \is_array($values)) {
                 $query->andWhere([$key => $values]);
             }
         }
+
         return $query;
     }
 
@@ -80,20 +87,23 @@ final class QueryFilterHelper
     {
         $or = [];
         foreach ($conditions as $key => $values) {
-            if (!empty($values) && is_array($values)) {
+            if (!empty($values) && \is_array($values)) {
                 $or[] = [$key => $values];
             }
         }
         if ($or) {
             $query->orWhere($or);
         }
+
         return $query;
     }
 
     public static function andFilterRange(Query $query, array $ranges): Query
     {
         foreach ($ranges as $key => $range) {
-            if (!is_array($range)) continue;
+            if (!\is_array($range)) {
+                continue;
+            }
             if (isset($range['min'])) {
                 $query->andWhere(['>=', $key, $range['min']]);
             }
@@ -101,6 +111,7 @@ final class QueryFilterHelper
                 $query->andWhere(['<=', $key, $range['max']]);
             }
         }
+
         return $query;
     }
 }

@@ -28,14 +28,14 @@ enum StatusEnum: int
      * $storedValue = StatusEnum::APPROVED->value; // 6
      * ```
      */
-    case INACTIVE = 0;
-    case ACTIVE = 1;
-    case DRAFT = 2;
-    case COMPLETED = 3;
-    case DELETED = 4;
+    case INACTIVE    = 0;
+    case ACTIVE      = 1;
+    case DRAFT       = 2;
+    case COMPLETED   = 3;
+    case DELETED     = 4;
     case MAINTENANCE = 5;
-    case APPROVED = 6;
-    case REJECTED = 7;
+    case APPROVED    = 6;
+    case REJECTED    = 7;
 
     /**
      * Returns a human-readable label for the status.
@@ -54,14 +54,14 @@ enum StatusEnum: int
     public function label(): string
     {
         return match ($this) {
-            self::INACTIVE => 'Inactive',
-            self::ACTIVE => 'Active',
-            self::DRAFT => 'Draft',
-            self::COMPLETED => 'Completed',
-            self::DELETED => 'Deleted',
+            self::INACTIVE    => 'Inactive',
+            self::ACTIVE      => 'Active',
+            self::DRAFT       => 'Draft',
+            self::COMPLETED   => 'Completed',
+            self::DELETED     => 'Deleted',
             self::MAINTENANCE => 'Maintenance',
-            self::APPROVED => 'Approved',
-            self::REJECTED => 'Rejected',
+            self::APPROVED    => 'Approved',
+            self::REJECTED    => 'Rejected',
         };
     }
 
@@ -121,12 +121,12 @@ enum StatusEnum: int
     public function allowedTransitions(): array
     {
         return match ($this) {
-            self::DRAFT => [self::INACTIVE, self::ACTIVE, self::DELETED, self::MAINTENANCE],
-            self::ACTIVE => [self::COMPLETED, self::APPROVED, self::REJECTED],
-            self::INACTIVE => [self::ACTIVE, self::DRAFT, self::DELETED],
+            self::DRAFT       => [self::INACTIVE, self::ACTIVE, self::DELETED, self::MAINTENANCE],
+            self::ACTIVE      => [self::COMPLETED, self::APPROVED, self::REJECTED],
+            self::INACTIVE    => [self::ACTIVE, self::DRAFT, self::DELETED],
             self::MAINTENANCE => [self::INACTIVE, self::ACTIVE, self::DRAFT, self::DELETED],
-            self::APPROVED => [self::COMPLETED, self::APPROVED, self::REJECTED],
-            default => [],
+            self::APPROVED    => [self::COMPLETED, self::APPROVED, self::REJECTED],
+            default           => [],
         };
     }
 
@@ -148,7 +148,7 @@ enum StatusEnum: int
      */
     public function allowedTransitionValues(): array
     {
-        return array_map(
+        return \array_map(
             static fn (self $status) => $status->value,
             $this->allowedTransitions()
         );
@@ -174,7 +174,7 @@ enum StatusEnum: int
      * }
      * ```
      *
-     * @return bool True if the status is locked, false otherwise.
+     * @return bool true if the status is locked, false otherwise
      */
     public function isLocked(): bool
     {
@@ -201,9 +201,9 @@ enum StatusEnum: int
      * $canReopen = $current->canUpdateTo(StatusEnum::ACTIVE);      // false (locked)
      * ```
      *
-     * @param self $target Desired target status.
+     * @param self $target desired target status
      *
-     * @return bool True if a transition to the target status is permitted, false otherwise.
+     * @return bool true if a transition to the target status is permitted, false otherwise
      */
     public function canUpdateTo(self $target): bool
     {
@@ -241,7 +241,7 @@ enum StatusEnum: int
             ],
         ];
 
-        return in_array($target, $map[$this] ?? [], true);
+        return \in_array($target, $map[$this] ?? [], true);
     }
 
     /**
@@ -273,15 +273,15 @@ enum StatusEnum: int
      * $isValid = StatusEnum::isAllowedTransition(999, 1); // false
      * ```
      *
-     * @param int $current Integer value of the current status.
-     * @param int $target  Integer value of the target status.
+     * @param int $current integer value of the current status
+     * @param int $target  integer value of the target status
      *
-     * @return bool True if the transition is allowed, false otherwise.
+     * @return bool true if the transition is allowed, false otherwise
      */
     public static function isAllowedTransition(int $current, int $target): bool
     {
         $currentStatus = self::tryFrom($current);
-        $targetStatus = self::tryFrom($target);
+        $targetStatus  = self::tryFrom($target);
 
         if (!$currentStatus || !$targetStatus) {
             return false;
@@ -310,9 +310,9 @@ enum StatusEnum: int
      * // false, because 999 does not correspond to any known status
      * ```
      *
-     * @param int $value Integer value of the status to check.
+     * @param int $value integer value of the status to check
      *
-     * @return bool True if the value corresponds to a locked status, false otherwise.
+     * @return bool true if the value corresponds to a locked status, false otherwise
      */
     public static function isLockedValue(int $value): bool
     {

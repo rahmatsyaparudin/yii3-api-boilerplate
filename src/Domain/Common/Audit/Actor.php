@@ -11,11 +11,12 @@ final class Actor
         public string $username = 'system',
         public string $dept = '',
         public array $roles = []
-    ) {}
+    ) {
+    }
 
     public function hasRole(string $app, string $role): bool
     {
-        return in_array($role, $this->roles[$app]['roles'] ?? [], true);
+        return \in_array($role, $this->roles[$app]['roles'] ?? [], true);
     }
 
     public function isAdmin(string $app): bool

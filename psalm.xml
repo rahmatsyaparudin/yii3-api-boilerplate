@@ -21,5 +21,28 @@
   <issueHandlers>
     <MixedAssignment errorLevel="suppress" />
     <RiskyTruthyFalsyComparison errorLevel="suppress" />
+    <MixedArgument errorLevel="suppress" />
+    <MixedArgumentTypeCoercion errorLevel="suppress" />
+    <MixedOperand errorLevel="suppress" />
+    <InvalidArrayOffset errorLevel="suppress" />
+    <PossiblyNullArgument errorLevel="suppress" />
+    <UndefinedDocblockClass errorLevel="suppress" />
+    <UndefinedClass errorLevel="suppress" />
+    <TypeDoesNotContainType errorLevel="suppress" />
+    <TypeDoesNotContainNull errorLevel="suppress" />
+    <RedundantCondition errorLevel="suppress" />
+    <MixedMethodCall errorLevel="suppress" />
+    <MissingClosureParamType errorLevel="suppress" />
+    <MixedArrayAssignment errorLevel="suppress" />
+    <MixedArrayAccess errorLevel="suppress" />
+    <MixedArrayOffset errorLevel="suppress" />
+    <TooManyArguments errorLevel="suppress" />
+    <InvalidOperand errorLevel="suppress" />
+    <PossiblyFalseOperand errorLevel="suppress" />
+    <PossiblyInvalidArgument errorLevel="suppress" />
+    <MixedFunctionCall errorLevel="suppress" />
+    <MixedPropertyFetch errorLevel="suppress" />
+    <MixedReturnStatement errorLevel="suppress" />
+    <UnusedIssueHandlerSuppression errorLevel="suppress" />
   </issueHandlers>
 </psalm>

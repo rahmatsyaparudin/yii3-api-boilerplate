@@ -18,32 +18,34 @@ final readonly class BrandDataAction
         private BrandService $service,
         private ResponseFactory $responseFactory,
         private BrandValidator $brandValidator,
-    ) {}
+    ) {
+    }
 
     public function __invoke(ServerRequestInterface $request): ResponseInterface
     {
         /** @var \App\Shared\Request\RequestParams $params */
-        $params = $request->getAttribute('params');
+        $request = $request->getAttribute('params');
 
-        $filters = FilterHelper::onlyAllowed($params->getFilters(), ['id', 'name', 'status', 'sync_mdb']);
+        $params = FilterHelper::onlyAllowed($request->getParams(), ['id', 'name', 'status', 'sync_mdb']);
 
         $this->brandValidator->validate(
             ValidationContext::SEARCH,
-            $filters
+            $params
         );
 
         $brands = $this->service->list(
-            $params->getPageSize(),
-            $params->getOffset(),
-            $filters,
-            $params->getSortBy(),
-            $params->getSortDir(),
+            $request->getPageSize(),
+            $request->getOffset(),
+            $params,
+            $request->getSortBy(),
+            $request->getSortDir(),
         );
 
         return $this->responseFactory->success(
             $brands,
-            messageKey: 'success',
-            meta: $params->getMeta(),
+            messageKey: 'success.list_retrieved',
+            params: ['resource' => 'Brand'],
+            meta: $request->getMeta(),
         );
     }
 }

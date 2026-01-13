@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yii3 API Documentation Portal</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: radial-gradient(circle at top, #1e1b4b, #09090b);
+            color: #f1f5f9;
+        }
+
+        header {
+            padding: 3rem 1.5rem 2rem;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0 0 0.5rem;
+            font-size: clamp(2rem, 4vw, 3rem);
+            letter-spacing: 0.06em;
+        }
+
+        header p {
+            margin: 0;
+            color: #cbd5f5;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 1.5rem 4rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .card {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+            transition: border 0.2s ease, transform 0.2s ease;
+        }
+
+        .card:hover {
+            border-color: #38bdf8;
+            transform: translateY(-4px);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 1.25rem;
+            color: #7dd3fc;
+        }
+
+        .card ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .card li {
+            margin-bottom: 0.4rem;
+        }
+
+        .card a {
+            color: #e0f2fe;
+            text-decoration: none;
+        }
+
+        .card a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: #94a3b8;
+        }
+
+        @media (prefers-color-scheme: light) {
+            body {
+                background: radial-gradient(circle at top, #eef2ff, #f8fafc);
+                color: #0f172a;
+            }
+
+            .card {
+                background: #ffffff;
+                border-color: rgba(2, 6, 23, 0.08);
+                box-shadow: 0 15px 30px rgba(15, 23, 42, 0.08);
+            }
+
+            .card h2 {
+                color: #1d4ed8;
+            }
+
+            .card a {
+                color: #0f172a;
+            }
+
+            header p {
+                color: #475569;
+            }
+
+            footer {
+                color: #475569;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Yii3 API Documentation</h1>
+        <p>Centralized reference for architecture, modules, and operational guides.</p>
+    </header>
+
+    <main>
+        <section class="grid">
+            <article class="card">
+                <h2>Foundations</h2>
+                <ul>
+                    <li><a href="01-architecture.md">Architecture Overview</a></li>
+                    <li><a href="02-api-response-format.md">API Response Format</a></li>
+                    <li><a href="03-error-handling-and-i18n.md">Error Handling &amp; i18n</a></li>
+                    <li><a href="13-environment-variables.md">Environment Variables</a></li>
+                </ul>
+            </article>
+
+            <article class="card">
+                <h2>Middleware &amp; Security</h2>
+                <ul>
+                    <li><a href="04-middleware-pipeline.md">Middleware Pipeline</a></li>
+                    <li><a href="05-auth-jwt.md">Authentication (JWT)</a></li>
+                    <li><a href="08-cors.md">CORS</a></li>
+                    <li><a href="09-trusted-hosts.md">Trusted Hosts</a></li>
+                    <li><a href="14-authorization.md">Authorization</a></li>
+                </ul>
+            </article>
+
+            <article class="card">
+                <h2>Request Handling</h2>
+                <ul>
+                    <li><a href="06-request-params-pagination-sorting-filtering.md">Request Params &amp; Filtering</a></li>
+                    <li><a href="07-validation.md">Validation</a></li>
+                    <li><a href="10-brand-module.md">Brand Module</a></li>
+                    <li><a href="11-audit.md">Audit</a></li>
+                    <li><a href="12-access-control.md">Access Control</a></li>
+                </ul>
+            </article>
+
+            <article class="card">
+                <h2>Operational Guides</h2>
+                <ul>
+                    <li><a href="15-health-checks.md">Health Checks</a></li>
+                    <li><a href="16-openapi.md">OpenAPI Contract</a></li>
+                    <li><a href="17-rate-limiting.md">Rate Limiting</a></li>
+                    <li><a href="18-observability.md">Observability</a></li>
+                    <li><a href="19-testing.md">Testing Strategy</a></li>
+                    <li><a href="20-deployment-runbook.md">Deployment Runbook</a></li>
+                </ul>
+            </article>
+
+            <article class="card">
+                <h2>Readiness Checklist</h2>
+                <ul>
+                    <li><a href="99-api-readiness-checklist.md">API Readiness Checklist</a></li>
+                </ul>
+            </article>
+        </section>
+    </main>
+
+    <footer>
+        <small>Updated: <?php echo date('Y-m-d'); ?> · Source: docs folder</small>
+    </footer>
+</body>
+</html>

@@ -8,8 +8,9 @@ use Yiisoft\Http\Status;
 
 final class ForbiddenException extends HttpException
 {
-    public function __construct(string $message = 'Forbidden', ?array $params = [], ?\Throwable $previous = null)
+    public function __construct(?array $translate = null, ?array $errors = null, ?\Throwable $previous = null)
     {
-        parent::__construct($message, Status::FORBIDDEN, $params, $previous);
+        $translate = $translate ?? ['key' => 'forbidden', 'params' => []];
+        parent::__construct(Status::FORBIDDEN, $translate, $errors, $previous);
     }
 }

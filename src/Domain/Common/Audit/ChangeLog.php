@@ -4,20 +4,19 @@ declare(strict_types=1);
 
 namespace App\Domain\Common\Audit;
 
-use DateTimeImmutable;
-
 final class ChangeLog
 {
     public function __construct(
-        public readonly DateTimeImmutable $createdAt,
+        public readonly \DateTimeImmutable $createdAt,
         public readonly string $createdBy,
-        public readonly ?DateTimeImmutable $updatedAt = null,
+        public readonly ?\DateTimeImmutable $updatedAt = null,
         public readonly ?string $updatedBy = null,
-        public readonly ?DateTimeImmutable $deletedAt = null,
+        public readonly ?\DateTimeImmutable $deletedAt = null,
         public readonly ?string $deletedBy = null,
-    ) {}
+    ) {
+    }
 
-    public static function create(Actor $actor, DateTimeImmutable $now): self
+    public static function create(Actor $actor, \DateTimeImmutable $now): self
     {
         return new self(
             createdAt: $now,
@@ -25,7 +24,7 @@ final class ChangeLog
         );
     }
 
-    public function markUpdated(Actor $actor, DateTimeImmutable $now): self
+    public function markUpdated(Actor $actor, \DateTimeImmutable $now): self
     {
         return new self(
             createdAt: $this->createdAt,
@@ -37,7 +36,7 @@ final class ChangeLog
         );
     }
 
-    public function markDeleted(Actor $actor, DateTimeImmutable $now): self
+    public function markDeleted(Actor $actor, \DateTimeImmutable $now): self
     {
         return new self(
             createdAt: $this->createdAt,

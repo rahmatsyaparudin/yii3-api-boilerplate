@@ -5,18 +5,21 @@ declare(strict_types=1);
 namespace App\Infrastructure\Persistence\Brand;
 
 use App\Domain\Brand\BrandRepositoryInterface;
-use App\Shared\Json\JsonFieldNormalizer;
+use App\Shared\Db\QueryFilterHelper;
 use App\Shared\Exception\NotFoundException;
+use App\Shared\Helper\DetailInfoHelper;
+use App\Shared\Json\JsonFieldNormalizer;
 use Yiisoft\Db\Connection\ConnectionInterface;
 use Yiisoft\Db\Query\Query;
-use App\Shared\Db\QueryFilterHelper;
 
 final readonly class DbBrandRepository implements BrandRepositoryInterface
 {
     public function __construct(
         private ConnectionInterface $db,
         private JsonFieldNormalizer $jsonFieldNormalizer,
-    ) {}
+        private DetailInfoHelper $detailInfoHelper,
+    ) {
+    }
 
     public function list(int $limit, int $offset, array $filters = [], ?string $sortBy = null, string $sortDir = 'asc'): array
     {
@@ -38,8 +41,8 @@ final readonly class DbBrandRepository implements BrandRepositoryInterface
         ]);
 
         $query = QueryFilterHelper::andFilterWhere($query, [
-            'id' => $filters['id'] ?? null,
-            'status' => $filters['status'] ?? null,
+            'id'       => $filters['id'] ?? null,
+            'status'   => $filters['status'] ?? null,
             'sync_mdb' => $filters['sync_mdb'] ?? null,
         ]);
 
@@ -58,8 +61,8 @@ final readonly class DbBrandRepository implements BrandRepositoryInterface
         ]);
 
         $query = QueryFilterHelper::andFilterWhere($query, [
-            'id' => isset($filters['id']) && $filters['id'] !== '' ? (int) $filters['id'] : null,
-            'status' => isset($filters['status']) && $filters['status'] !== '' ? (int) $filters['status'] : null,
+            'id'       => isset($filters['id'])       && $filters['id'] !== '' ? (int) $filters['id'] : null,
+            'status'   => isset($filters['status'])   && $filters['status'] !== '' ? (int) $filters['status'] : null,
             'sync_mdb' => isset($filters['sync_mdb']) && $filters['sync_mdb'] !== '' ? (int) $filters['sync_mdb'] : null,
         ]);
 
@@ -69,13 +72,13 @@ final readonly class DbBrandRepository implements BrandRepositoryInterface
     private function buildOrderBy(?string $sortBy, string $sortDir): array
     {
         $allowedSort = [
-            'id' => 'id',
-            'name' => 'name',
+            'id'     => 'id',
+            'name'   => 'name',
             'status' => 'status',
         ];
 
-        $column = $allowedSort[$sortBy ?? 'id'] ?? 'id';
-        $direction = strtolower($sortDir) === 'desc' ? SORT_DESC : SORT_ASC;
+        $column    = $allowedSort[$sortBy ?? 'id'] ?? 'id';
+        $direction = \strtolower($sortDir) === 'desc' ? SORT_DESC : SORT_ASC;
 
         return [$column => $direction];
     }
@@ -101,14 +104,18 @@ final readonly class DbBrandRepository implements BrandRepositoryInterface
         return $this->jsonFieldNormalizer->normalizeRow($row, ['detail_info']);
     }
 
-    public function create(string $name, int $status, array $detailInfo = [], int|null $syncMdb = null): array
+    public function create(string $name, int $status, array $detailInfo = [], ?int $syncMdb = null): array
     {
+        // $detailInfo = $this->jsonFieldNormalizer->denormalizeArray($detailInfo);
+
+        $changeLog = $this->detailInfoHelper->createChangeLog();
+
         $this->db->createCommand()
             ->insert('brand', [
-                'name' => $name,
-                'status' => $status,
-                'detail_info' => $detailInfo,
-                'sync_mdb' => $syncMdb,
+                'name'        => $name,
+                'status'      => $status,
+                'detail_info' => $changeLog,
+                'sync_mdb'    => $syncMdb,
             ])
             ->execute();
 
@@ -116,30 +123,45 @@ final readonly class DbBrandRepository implements BrandRepositoryInterface
 
         $brand = $this->findById($id);
         if ($brand === null) {
-            throw new NotFoundException('Brand not found');
+            throw new NotFoundException(
+                translate: [
+                    'key' => 'resource.not_found',
+                    'params' => ['resource' => 'Brand']
+                ]
+            );
         }
 
         return $brand;
     }
 
-    public function update(int $id, string $name, int $status, array $detailInfo = [], int|null $syncMdb = null): array
+    public function update(int $id, string $name, int $status, array $detailInfo = [], ?int $syncMdb = null): array
     {
         $affected = $this->db->createCommand()
             ->update('brand', [
-                'name' => $name,
-                'status' => $status,
+                'name'        => $name,
+                'status'      => $status,
                 'detail_info' => $detailInfo,
-                'sync_mdb' => $syncMdb,
+                'sync_mdb'    => $syncMdb,
             ], ['id' => $id])
             ->execute();
 
         if ($affected === 0) {
-            throw new NotFoundException('Brand not found');
+            throw new NotFoundException(
+                translate: [
+                    'key' => 'resource.not_found',
+                    'params' => ['resource' => 'Brand']
+                ]
+            );
         }
 
         $brand = $this->findById($id);
         if ($brand === null) {
-            throw new NotFoundException('Brand not found');
+            throw new NotFoundException(
+                translate: [
+                    'key' => 'resource.not_found',
+                    'params' => ['resource' => 'Brand']
+                ]
+            );
         }
 
         return $brand;
@@ -152,7 +174,12 @@ final readonly class DbBrandRepository implements BrandRepositoryInterface
             ->execute();
 
         if ($affected === 0) {
-            throw new NotFoundException('Brand not found');
+            throw new NotFoundException(
+                translate: [
+                    'key' => 'resource.not_found',
+                    'params' => ['resource' => 'Brand']
+                ]
+            );
         }
     }
 }

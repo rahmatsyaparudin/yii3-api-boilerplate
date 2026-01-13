@@ -8,22 +8,22 @@ final class JsonFieldNormalizer
 {
     /**
      * @param array<string, mixed> $row
-     * @param string[] $jsonFields
+     * @param string[]             $jsonFields
      *
      * @return array<string, mixed>
      */
     public function normalizeRow(array $row, array $jsonFields): array
     {
         foreach ($jsonFields as $field) {
-            if (!array_key_exists($field, $row)) {
+            if (!\array_key_exists($field, $row)) {
                 continue;
             }
 
             $value = $row[$field];
 
-            if (is_string($value)) {
-                $decoded = json_decode($value, true);
-                $row[$field] = is_array($decoded) ? $decoded : [];
+            if (\is_string($value)) {
+                $decoded     = \json_decode($value, true);
+                $row[$field] = \is_array($decoded) ? $decoded : [];
             }
         }
 
@@ -32,15 +32,25 @@ final class JsonFieldNormalizer
 
     /**
      * @param array<int, array<string, mixed>> $rows
-     * @param string[] $jsonFields
+     * @param string[]                         $jsonFields
      *
      * @return array<int, array<string, mixed>>
      */
     public function normalizeRows(array $rows, array $jsonFields): array
     {
-        return array_map(
+        return \array_map(
             fn (array $row) => $this->normalizeRow($row, $jsonFields),
             $rows,
         );
+    }
+
+    /**
+     * @param array<string, mixed> $array
+     *
+     * @return array<string, mixed>
+     */
+    public function denormalizeArray(array $array): array
+    {
+        return $array;
     }
 }

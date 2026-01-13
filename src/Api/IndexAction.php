@@ -15,7 +15,7 @@ final class IndexAction
         ApplicationParams $applicationParams,
     ): ResponseInterface {
         return $responseFactory->success([
-            'name' => $applicationParams->name,
+            'name'    => $applicationParams->name,
             'version' => $applicationParams->version,
         ]);
     }

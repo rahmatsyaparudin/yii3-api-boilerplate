@@ -22,7 +22,12 @@ final class TrustedHostMiddleware implements MiddlewareInterface
         $host = $request->getUri()->getHost();
 
         if ($host === '' || !$this->isAllowedHost($host)) {
-            throw new UnauthorizedException('unauthorized');
+            throw new UnauthorizedException(
+                translate: [
+                    'key' => 'auth.authorization_header_missing',
+                    'params' => []
+                ]
+            );
         }
 
         return $handler->handle($request);
@@ -49,9 +54,10 @@ final class TrustedHostMiddleware implements MiddlewareInterface
             return true;
         }
 
-        if (str_starts_with($allowedHost, '*.')) {
-            $suffix = substr($allowedHost, 1);
-            return $suffix !== '' && str_ends_with($host, $suffix) && $host !== ltrim($suffix, '.');
+        if (\str_starts_with($allowedHost, '*.')) {
+            $suffix = \substr($allowedHost, 1);
+
+            return $suffix !== '' && \str_ends_with($host, $suffix) && $host !== \ltrim($suffix, '.');
         }
 
         return false;

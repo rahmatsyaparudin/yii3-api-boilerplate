@@ -1,0 +1,155 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
+
+class QualityCheckCommand extends Command
+{
+    protected function configure(): void
+    {
+        $this->setName('quality:check')
+            ->setDescription('Run all quality checks (style, static analysis, tests)')
+            ->addOption('fix', 'f', InputOption::VALUE_NONE, 'Fix code style issues')
+            ->addOption('coverage', 'c', InputOption::VALUE_NONE, 'Generate test coverage')
+            ->addOption('report', 'r', InputOption::VALUE_NONE, 'Generate detailed reports');
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $output->writeln('<info>Running Quality Assurance Checks...</info>');
+        
+        $success = true;
+
+        // 1. Code Style Check
+        $output->writeln('<comment>1. Checking code style...</comment>');
+        $styleCmd = $input->getOption('fix') 
+            ? 'vendor/bin/php-cs-fixer fix --diff --verbose --allow-risky=yes'
+            : 'vendor/bin/php-cs-fixer check --diff --verbose --allow-risky=yes';
+            
+        $this->runCommand($styleCmd, $output, $success);
+
+        // 2. Static Analysis
+        $output->writeln('<comment>2. Running static analysis...</comment>');
+        $this->runCommand('vendor/bin/psalm', $output, $success);
+
+        // 3. Unit Tests
+        $output->writeln('<comment>3. Running unit tests...</comment>');
+        $testCmd = 'vendor/bin/phpunit --testdox';
+        
+        if ($input->getOption('coverage')) {
+            $testCmd .= ' --coverage-html=tests/coverage/html --coverage-text=tests/coverage/coverage.txt';
+        }
+        
+        if ($input->getOption('report')) {
+            $testCmd .= ' --coverage-clover=tests/coverage/clover.xml';
+        }
+        
+        $this->runCommand($testCmd, $output, $success);
+
+        // 4. Security Audit
+        $output->writeln('<comment>4. Running security audit...</comment>');
+        $this->runCommand('composer audit', $output, $success);
+
+        // Summary
+        if ($success) {
+            $output->writeln('<info>✅ All quality checks passed!</info>');
+            return Command::SUCCESS;
+        } else {
+            $output->writeln('<error>❌ Some quality checks failed!</error>');
+            return Command::FAILURE;
+        }
+    }
+
+    private function runCommand(string $command, OutputInterface $output, bool &$success): void
+    {
+        // Handle Windows vs Unix paths and add php prefix for PHP scripts
+        if (strpos($command, 'vendor/bin/') === 0) {
+            $command = 'php ' . str_replace('vendor/bin/', 'vendor\\bin\\', $command);
+        }
+        
+        $output->writeln("<info>Running: {$command}</info>");
+        
+        $process = proc_open($command, [
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ], $pipes);
+
+        if (is_resource($process)) {
+            $stdout = stream_get_contents($pipes[1]);
+            $stderr = stream_get_contents($pipes[2]);
+            
+            fclose($pipes[1]);
+            fclose($pipes[2]);
+            
+            $exitCode = proc_close($process);
+            
+            if ($stdout) {
+                $output->write($stdout);
+            }
+            
+            if ($stderr) {
+                $output->write("<error>{$stderr}</error>");
+            }
+            
+            if ($exitCode !== 0) {
+                $success = false;
+            }
+        }
+    }
+}
+
+class TestCommand extends Command
+{
+    protected function configure(): void
+    {
+        $this->setName('test:run')
+            ->setDescription('Run tests with specific options')
+            ->addOption('unit', 'u', InputOption::VALUE_NONE, 'Run only unit tests')
+            ->addOption('integration', 'i', InputOption::VALUE_NONE, 'Run only integration tests')
+            ->addOption('coverage', 'c', InputOption::VALUE_NONE, 'Generate coverage report')
+            ->addOption('filter', null, InputOption::VALUE_REQUIRED, 'Filter tests by name');
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $command = 'vendor/bin/phpunit --testdox';
+        
+        if ($input->getOption('unit')) {
+            $command .= ' --testsuite=Unit';
+        } elseif ($input->getOption('integration')) {
+            $command .= ' --testsuite=Integration';
+        }
+        
+        if ($input->getOption('coverage')) {
+            $command .= ' --coverage-html=tests/coverage/html --coverage-text';
+        }
+        
+        if ($input->getOption('filter')) {
+            $command .= ' --filter=' . $input->getOption('filter');
+        }
+        
+        // Handle Windows
+        if (DIRECTORY_SEPARATOR === '\\') {
+            $command = 'php ' . str_replace('vendor/bin/', 'vendor\\bin\\', $command);
+        }
+        
+        $output->writeln("<info>Running: {$command}</info>");
+        passthru($command, $exitCode);
+        
+        return $exitCode === 0 ? Command::SUCCESS : Command::FAILURE;
+    }
+}
+
+// Create and run the application
+$application = new Application('Yii3 API Quality Tools', '1.0.0');
+$application->add(new QualityCheckCommand());
+$application->add(new TestCommand());
+$application->run();

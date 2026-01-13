@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Shared\Validation;
@@ -15,8 +16,7 @@ abstract class AbstractValidator
 
         if (!$result->isValid()) {
             throw new ValidationException(
-                message: 'Validation failed',
-                errors: ValidationHelper::formatErrors($result)
+                ValidationHelper::formatErrors($result)
             );
         }
     }

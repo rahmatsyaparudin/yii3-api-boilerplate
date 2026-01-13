@@ -4,14 +4,9 @@ declare(strict_types=1);
 
 namespace App;
 
-use RuntimeException;
-
-use function in_array;
-use function sprintf;
-
 final class Environment
 {
-    public const DEV = 'dev';
+    public const DEV  = 'dev';
     public const TEST = 'test';
     public const PROD = 'prod';
 
@@ -36,7 +31,7 @@ final class Environment
      */
     public static function appEnv(): string
     {
-        /** @var non-empty-string */
+        // @var non-empty-string
         return self::$values['APP_ENV'];
     }
 
@@ -58,21 +53,21 @@ final class Environment
     /**
      * @return non-empty-string|null
      */
-    public static function appHostPath(): string|null
+    public static function appHostPath(): ?string
     {
-        /** @var non-empty-string|null */
+        // @var non-empty-string|null
         return self::$values['APP_HOST_PATH'];
     }
 
     public static function appC3(): bool
     {
-        /** @var bool */
+        // @var bool
         return self::$values['APP_C3'];
     }
 
     public static function appDebug(): bool
     {
-        /** @var bool */
+        // @var bool
         return self::$values['APP_DEBUG'];
     }
 
@@ -80,12 +75,13 @@ final class Environment
     {
         $environment = self::getRawValue('APP_ENV');
 
-        if (!in_array($environment, self::ENVIRONMENTS, true)) {
+        if (!\in_array($environment, self::ENVIRONMENTS, true)) {
             $message = $environment === null
                 ? 'APP_ENV environment variable is empty.'
-                : sprintf('APP_ENV="%s" environment is invalid.', $environment);
-            $message .= sprintf(' Valid values are "%s".', implode('", "', self::ENVIRONMENTS));
-            throw new RuntimeException($message);
+                : \sprintf('APP_ENV="%s" environment is invalid.', $environment);
+            $message .= \sprintf(' Valid values are "%s".', \implode('", "', self::ENVIRONMENTS));
+
+            throw new \RuntimeException($message);
         }
 
         self::$values['APP_ENV'] = $environment;
@@ -93,38 +89,38 @@ final class Environment
 
     private static function setBoolean(string $key, bool $default): void
     {
-        $value = self::getRawValue($key);
+        $value              = self::getRawValue($key);
         self::$values[$key] = $value === null
             ? $default
-            : (filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? $default);
+            : (\filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? $default);
     }
 
     private static function setInteger(string $key, int $default): void
     {
-        $value = self::getRawValue($key);
+        $value              = self::getRawValue($key);
         self::$values[$key] = $value === null ? $default : (int) $value;
     }
 
     private static function setString(string $key, string $default): void
     {
-        $value = self::getRawValue($key);
+        $value              = self::getRawValue($key);
         self::$values[$key] = $value ?? $default;
     }
 
-    private static function setNonEmptyStringOrNull(string $key, string|null $default): void
+    private static function setNonEmptyStringOrNull(string $key, ?string $default): void
     {
-        $value = self::getRawValue($key);
+        $value              = self::getRawValue($key);
         self::$values[$key] = $value === null || $value === '' ? $default : $value;
     }
 
     private static function getRawValue(string $key): ?string
     {
-        $value = getenv($key, true);
+        $value = \getenv($key, true);
         if ($value !== false) {
             return $value;
         }
 
-        $value = getenv($key);
+        $value = \getenv($key);
         if ($value !== false) {
             return $value;
         }

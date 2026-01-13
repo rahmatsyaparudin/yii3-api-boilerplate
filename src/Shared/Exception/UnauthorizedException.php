@@ -8,8 +8,9 @@ use Yiisoft\Http\Status;
 
 final class UnauthorizedException extends HttpException
 {
-    public function __construct(string $message = 'Unauthorized', ?array $params = [], ?\Throwable $previous = null)
+    public function __construct(?array $translate = null, ?array $errors = null, ?\Throwable $previous = null)
     {
-        parent::__construct($message, Status::UNAUTHORIZED, $params, $previous);
+        $translate = $translate ?? ['key' => 'unauthorized', 'params' => []];
+        parent::__construct(Status::UNAUTHORIZED, $translate, $errors, $previous);
     }
 }

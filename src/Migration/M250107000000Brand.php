@@ -18,9 +18,9 @@ final class M250107000000Brand implements RevertibleMigrationInterface
         $cb = $b->columnBuilder();
 
         $b->createTable('brand', [
-            'id' => $cb::primaryKey(),
-            'name' => $cb::string(255)->notNull(),
-            'status' => $cb::smallint()->notNull()->defaultValue(StatusEnum::ACTIVE->value),
+            'id'          => $cb::primaryKey(),
+            'name'        => $cb::string(255)->notNull(),
+            'status'      => $cb::smallint()->notNull()->defaultValue(StatusEnum::ACTIVE->value),
             'detail_info' => $cb::json()->notNull()->defaultValue([
                 'change_log' => [
                     'created_at' => null,
@@ -35,7 +35,7 @@ final class M250107000000Brand implements RevertibleMigrationInterface
         ]);
 
         // Seed dummy data
-        $timestamp = gmdate('Y-m-d H:i:s');
+        $timestamp = \gmdate('Y-m-d H:i:s');
         $dummyData = [
             ['name' => 'Asus', 'status' => StatusEnum::ACTIVE->value],
             ['name' => 'Acer', 'status' => StatusEnum::ACTIVE->value],
@@ -46,8 +46,8 @@ final class M250107000000Brand implements RevertibleMigrationInterface
 
         foreach ($dummyData as $data) {
             $b->insert('brand', [
-                'name' => $data['name'],
-                'status' => $data['status'],
+                'name'        => $data['name'],
+                'status'      => $data['status'],
                 'detail_info' => [
                     'change_log' => [
                         'created_at' => $timestamp,

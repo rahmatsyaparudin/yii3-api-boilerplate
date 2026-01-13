@@ -8,8 +8,9 @@ use Yiisoft\Http\Status;
 
 final class NotFoundException extends HttpException
 {
-    public function __construct(string $message = 'Not found', ?array $params = [], ?\Throwable $previous = null)
+    public function __construct(?array $translate = null, ?array $errors = null, ?\Throwable $previous = null)
     {
-        parent::__construct($message, Status::NOT_FOUND, $params, $previous);
+        $translate = $translate ?? ['key' => 'not_found', 'params' => []];
+        parent::__construct(Status::NOT_FOUND, $translate, $errors, $previous);
     }
 }

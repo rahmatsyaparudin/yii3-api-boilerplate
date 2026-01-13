@@ -4,37 +4,46 @@ declare(strict_types=1);
 
 namespace App\Api\Shared;
 
-use Yiisoft\DataResponse\DataResponseFactoryInterface;
-use Yiisoft\Http\Status;
-use Yiisoft\Translator\TranslatorInterface;
-use Yiisoft\Validator\Result;
-use Psr\Http\Message\ResponseInterface;
-
 use App\Api\Shared\Presenter\AsIsPresenter;
 use App\Api\Shared\Presenter\FailPresenter;
 use App\Api\Shared\Presenter\PresenterInterface;
 use App\Api\Shared\Presenter\SuccessPresenter;
 use App\Api\Shared\Presenter\SuccessWithMetaPresenter;
 use App\Api\Shared\Presenter\ValidationResultPresenter;
+use Psr\Http\Message\ResponseInterface;
+use Yiisoft\DataResponse\DataResponseFactoryInterface;
+use Yiisoft\Http\Status;
+use Yiisoft\Translator\TranslatorInterface;
+use Yiisoft\Validator\Result;
 
 final readonly class ResponseFactory
 {
     public function __construct(
         private DataResponseFactoryInterface $dataResponseFactory,
         private TranslatorInterface $translator,
-    ) {}
+    ) {
+    }
 
     public function success(
         array|object|null $data = null,
         PresenterInterface $presenter = new AsIsPresenter(),
-        ?string $messageKey = null,
+        ?array $translate = null,
         ?array $meta = null,
     ): ResponseInterface {
+        // Extract message key and params from translate array
+        $messageKey = null;
+        $messageParams = [];
+        
+        if ($translate !== null) {
+            $messageKey = $translate['key'] ?? null;
+            $messageParams = $translate['params'] ?? [];
+        }
+        
         // Use custom message key or default 'success'
         $message = $this->translator->translate(
             $messageKey ?? 'success',
-            [],
-            'app'
+            $messageParams,
+            'success'
         );
 
         if ($meta !== null) {
@@ -50,7 +59,7 @@ final readonly class ResponseFactory
     public function fail(
         string $message,
         array|object|null $data = null,
-        int|null $code = null,
+        ?int $code = null,
         int $httpCode = Status::BAD_REQUEST,
         PresenterInterface $presenter = new AsIsPresenter(),
     ): ResponseInterface {

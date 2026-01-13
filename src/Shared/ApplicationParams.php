@@ -9,5 +9,6 @@ final readonly class ApplicationParams
     public function __construct(
         public string $name = 'My Project',
         public string $version = '1.0',
-    ) {}
+    ) {
+    }
 }

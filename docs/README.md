@@ -20,4 +20,7 @@
 - `18-observability.md`
 - `19-testing.md`
 - `20-deployment-runbook.md`
+- `21-backup-restore-procedure.md`
+- `22-audit-logging.md`
+- `23-secure-headers.md`
 - `99-api-readiness-checklist.md`

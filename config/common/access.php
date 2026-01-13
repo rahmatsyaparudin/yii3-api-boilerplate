@@ -1,23 +1,23 @@
 <?php
+
 declare(strict_types=1);
 
-use App\Infrastructure\Security\Actor;
+use App\Domain\Common\Audit\Actor;
+
+/** @var array $params */
+$params  = require __DIR__ . '/params.php';
+$appCode = $params['app/config']['code'] ?? 'default';
+
+$isKasir      = static fn (Actor $actor): bool => $actor->hasRole($appCode, 'kasir');
+$isSpv        = static fn (Actor $actor): bool => $actor->hasRole($appCode, 'spv');
+$isAdmin      = static fn (Actor $actor): bool => $actor->isAdmin($appCode);
+$isSuperAdmin = static fn (Actor $actor): bool => $actor->isSuperAdmin($appCode);
 
 return [
-
-    'brand.list' => static fn () => true,
-
-    'brand.view' => static fn (Actor $actor) =>
-        $actor->hasRole('enterEDC', 'kasir')
-        || $actor->hasRole('enterEDC', 'spv'),
-
-    'brand.create' => static fn (Actor $actor) =>
-        $actor->isAdmin('enterEDC')
-        || $actor->isSuperAdmin('enterEDC'),
-
-    'brand.update' => static fn (Actor $actor) =>
-        $actor->isAdmin('enterEDC'),
-
-    'brand.delete' => static fn (Actor $actor) =>
-        $actor->isSuperAdmin('enterEDC'),
+    'brand.index'  => static fn (Actor $actor): bool => true,
+    'brand.data'   => $isKasir,
+    'brand.view'   => $isKasir,
+    'brand.create' => $isKasir,
+    'brand.update' => $isKasir,
+    'brand.delete' => $isKasir,
 ];

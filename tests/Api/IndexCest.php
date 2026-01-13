@@ -17,8 +17,8 @@ final readonly class IndexCest
         $I->seeResponseContainsJson(
             [
                 'status' => 'success',
-                'data' => [
-                    'name' => 'My Project',
+                'data'   => [
+                    'name'    => 'My Project',
                     'version' => '1.0',
                 ],
             ],

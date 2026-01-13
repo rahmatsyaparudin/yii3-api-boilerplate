@@ -21,12 +21,12 @@ interface BrandRepositoryInterface
     /**
      * @return array<string, mixed>
      */
-    public function create(string $name, int $status, array $detailInfo = [], int|null $syncMdb = null): array;
+    public function create(string $name, int $status, array $detailInfo = [], ?int $syncMdb = null): array;
 
     /**
      * @return array<string, mixed>
      */
-    public function update(int $id, string $name, int $status, array $detailInfo = [], int|null $syncMdb = null): array;
+    public function update(int $id, string $name, int $status, array $detailInfo = [], ?int $syncMdb = null): array;
 
     public function delete(int $id): void;
 }

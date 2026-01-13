@@ -70,4 +70,11 @@ return [
 
     // Misc
     'operation.not_allowed' => 'Operasi tidak diizinkan',
+
+    'access.denied' => 'Akses ditolak',
+    'access.insufficient_permissions' => 'Anda tidak memiliki izin yang cukup untuk melakukan tindakan ini',
+    'access.auth_required' => 'Autentikasi diperlukan untuk mengakses sumber daya ini',
+
+    'rate_limit.exceeded' => 'Terlalu banyak permintaan. Silakan coba lagi dalam {seconds} detik.',
+    'rate_limit.try_again' => 'Silakan coba lagi dalam {seconds} detik.',
 ];

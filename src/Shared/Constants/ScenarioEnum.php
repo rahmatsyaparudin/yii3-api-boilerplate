@@ -28,19 +28,19 @@ enum ScenarioEnum: string
      * $service->handleRequest($data, ScenarioEnum::DELETE);
      * ```
      */
-    case DEFAULT = 'default';
-    case CREATE = 'create';
-    case UPDATE = 'update';
-    case DELETE = 'delete';
-    case DRAFT = 'draft';
-    case VIEW = 'view';
-    case COMPLETED = 'completed';
-    case RECEIVE = 'receive';
+    case DEFAULT      = 'default';
+    case CREATE       = 'create';
+    case UPDATE       = 'update';
+    case DELETE       = 'delete';
+    case DRAFT        = 'draft';
+    case VIEW         = 'view';
+    case COMPLETED    = 'completed';
+    case RECEIVE      = 'receive';
     case RECEIVE_ITEM = 'receiveItem';
-    case REJECT = 'reject';
-    case REJECT_ITEM = 'rejectItem';
-    case APPROVE = 'approve';
-    case DETAIL = 'detail';
+    case REJECT       = 'reject';
+    case REJECT_ITEM  = 'rejectItem';
+    case APPROVE      = 'approve';
+    case DETAIL       = 'detail';
 
     /**
      * Returns a human-readable label for the scenario.
@@ -58,24 +58,24 @@ enum ScenarioEnum: string
      * echo $scenario->label(); // Output: "Receive Item"
      * ```
      *
-     * @return string The display label for this scenario.
+     * @return string the display label for this scenario
      */
     public function label(): string
     {
         return match ($this) {
-            self::DEFAULT => 'Default',
-            self::CREATE => 'Create',
-            self::UPDATE => 'Update',
-            self::DELETE => 'Delete',
-            self::DRAFT => 'Draft',
-            self::VIEW => 'View',
-            self::COMPLETED => 'Completed',
-            self::RECEIVE => 'Receive',
+            self::DEFAULT      => 'Default',
+            self::CREATE       => 'Create',
+            self::UPDATE       => 'Update',
+            self::DELETE       => 'Delete',
+            self::DRAFT        => 'Draft',
+            self::VIEW         => 'View',
+            self::COMPLETED    => 'Completed',
+            self::RECEIVE      => 'Receive',
             self::RECEIVE_ITEM => 'Receive Item',
-            self::REJECT => 'Reject',
-            self::REJECT_ITEM => 'Reject Item',
-            self::APPROVE => 'Approve',
-            self::DETAIL => 'Detail',
+            self::REJECT       => 'Reject',
+            self::REJECT_ITEM  => 'Reject Item',
+            self::APPROVE      => 'Approve',
+            self::DETAIL       => 'Detail',
         };
     }
 
@@ -108,7 +108,7 @@ enum ScenarioEnum: string
      * // ]
      * ```
      *
-     * @return array<string, string> Array with scenario values as keys and labels as values.
+     * @return array<string, string> array with scenario values as keys and labels as values
      */
     public static function list(): array
     {
@@ -140,7 +140,7 @@ enum ScenarioEnum: string
      * }
      * ```
      *
-     * @return self[] List of scenarios that allow update operations.
+     * @return self[] list of scenarios that allow update operations
      */
     public static function updateList(): array
     {
@@ -169,11 +169,11 @@ enum ScenarioEnum: string
      * }
      * ```
      *
-     * @return string[] List of scenario values that allow update operations.
+     * @return string[] list of scenario values that allow update operations
      */
     public static function updateValues(): array
     {
-        return array_map(
+        return \array_map(
             static fn (self $scenario) => $scenario->value,
             self::updateList()
         );
@@ -199,10 +199,10 @@ enum ScenarioEnum: string
      * }
      * ```
      *
-     * @return bool True if the scenario is allowed to perform update operations, false otherwise.
+     * @return bool true if the scenario is allowed to perform update operations, false otherwise
      */
     public function isUpdatable(): bool
     {
-        return in_array($this, self::updateList(), true);
+        return \in_array($this, self::updateList(), true);
     }
 }

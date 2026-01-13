@@ -1,0 +1,84 @@
+name: Quality Assurance
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        php-version: ['8.1', '8.2', '8.3']
+        
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        extensions: mbstring, xml, pdo, sqlite, pdo_sqlite
+        coverage: xdebug
+        
+    - name: Get Composer Cache Directory
+      id: composer-cache
+      run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+      
+    - name: Cache Composer
+      uses: actions/cache@v3
+      with:
+        path: ${{ steps.composer-cache.outputs.dir }}
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-composer-
+          
+    - name: Install dependencies
+      run: composer install --no-progress --no-interaction --prefer-dist
+      
+    - name: Validate composer
+      run: composer validate --strict
+      
+    - name: Check code style
+      run: vendor/bin/php-cs-fixer check --diff --verbose
+      
+    - name: Run static analysis
+      run: vendor/bin/psalm --show-progress=none
+      
+    - name: Run tests
+      run: vendor/bin/phpunit --coverage-text --coverage-clover=coverage.xml
+      
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        
+    - name: Install dependencies
+      run: composer install --no-progress --no-interaction --prefer-dist
+      
+    - name: Security audit
+      run: composer audit
+      
+    - name: Check for security issues
+      run: |
+        if ! command -v enlightn &> /dev/null; then
+          echo "Enlightn Security Checker not found, installing..."
+          composer global require enlightn/security-checker
+        fi
+        ~/.composer/vendor/bin/security-checker security:check

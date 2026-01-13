@@ -1,17 +1,15 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Domain\Brand;
 
 use App\Shared\Validation\AbstractValidator;
 use App\Shared\Validation\ValidationContext;
-use Yiisoft\Validator\Rule\{
-    Required,
-    Integer,
-    StringValue,
-    Length,
-    In,
-};
+use Yiisoft\Validator\Rule\Integer;
+use Yiisoft\Validator\Rule\Length;
+use Yiisoft\Validator\Rule\Required;
+use Yiisoft\Validator\Rule\StringValue;
 
 final class BrandValidator extends AbstractValidator
 {
@@ -38,12 +36,12 @@ final class BrandValidator extends AbstractValidator
                     skipOnEmpty: true,
                 ),
                 'page' => new Integer(
-                    min: 1, 
+                    min: 1,
                     skipOnEmpty: true,
                 ),
                 'page_size' => new Integer(
-                    min: 1, 
-                    max: 200, 
+                    min: 1,
+                    max: 200,
                     skipOnEmpty: true,
                 ),
                 'sort_by' => new StringValue(
@@ -56,11 +54,11 @@ final class BrandValidator extends AbstractValidator
 
             ValidationContext::CREATE => [
                 'name' => [new Required(), new StringValue(), new Length(max: 100)],
-                'status' => new Integer(),
+                // 'status' => new Integer(),
             ],
 
             ValidationContext::UPDATE => [
-                'name' => [new StringValue(), new Length(max: 100)],
+                'name'   => [new StringValue(), new Length(max: 100)],
                 'status' => new Integer(),
             ],
 

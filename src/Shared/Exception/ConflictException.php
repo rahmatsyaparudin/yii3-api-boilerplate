@@ -8,8 +8,9 @@ use Yiisoft\Http\Status;
 
 final class ConflictException extends HttpException
 {
-    public function __construct(string $message = 'Conflict', ?array $params = [], ?\Throwable $previous = null)
+    public function __construct(?array $translate = null, ?array $errors = null, ?\Throwable $previous = null)
     {
-        parent::__construct($message, Status::CONFLICT, $params, $previous);
+        $translate = $translate ?? ['key' => 'resource.conflict', 'params' => []];
+        parent::__construct(Status::CONFLICT, $translate, $errors, $previous);
     }
 }

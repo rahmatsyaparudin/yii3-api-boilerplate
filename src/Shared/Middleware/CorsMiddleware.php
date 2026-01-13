@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Shared\Middleware;
@@ -16,7 +17,8 @@ final class CorsMiddleware implements MiddlewareInterface
     public function __construct(
         private array $config,
         private ResponseFactoryInterface $responseFactory,
-    ) {}
+    ) {
+    }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -27,13 +29,19 @@ final class CorsMiddleware implements MiddlewareInterface
         }
 
         if (!$this->isOriginAllowed($origin)) {
-            throw new ForbiddenException('forbidden');
+            throw new ForbiddenException(
+                translate: [
+                    'key' => 'request.origin_not_allowed',
+                    'params' => ['origin' => $origin]
+                ]
+            );
         }
 
         $allowOrigin = $this->getAllowOriginValue($origin);
 
-        if (strtoupper($request->getMethod()) === 'OPTIONS') {
+        if (\strtoupper($request->getMethod()) === 'OPTIONS') {
             $response = $this->responseFactory->createResponse(Status::NO_CONTENT);
+
             return $this->addCorsHeaders($request, $response, $allowOrigin);
         }
 
@@ -50,16 +58,16 @@ final class CorsMiddleware implements MiddlewareInterface
 
         $allowedMethods = $this->config['allowedMethods'] ?? ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'];
         $allowedHeaders = $this->config['allowedHeaders'] ?? ['Content-Type', 'Authorization'];
-        $maxAge = $this->config['maxAge'] ?? 3600;
+        $maxAge         = $this->config['maxAge'] ?? 3600;
 
         $response = $response
-            ->withHeader('Access-Control-Allow-Methods', implode(', ', $allowedMethods))
-            ->withHeader('Access-Control-Allow-Headers', implode(', ', $allowedHeaders))
+            ->withHeader('Access-Control-Allow-Methods', \implode(', ', $allowedMethods))
+            ->withHeader('Access-Control-Allow-Headers', \implode(', ', $allowedHeaders))
             ->withHeader('Access-Control-Max-Age', (string) $maxAge);
 
         $exposed = $this->config['exposedHeaders'] ?? [];
         if (!empty($exposed)) {
-            $response = $response->withHeader('Access-Control-Expose-Headers', implode(', ', $exposed));
+            $response = $response->withHeader('Access-Control-Expose-Headers', \implode(', ', $exposed));
         }
 
         $allowCredentials = (bool) ($this->config['allowCredentials'] ?? false);
@@ -73,19 +81,19 @@ final class CorsMiddleware implements MiddlewareInterface
     private function isOriginAllowed(string $origin): bool
     {
         $allowedOrigins = $this->config['allowedOrigins'] ?? ['*'];
-        if (in_array('*', $allowedOrigins, true)) {
+        if (\in_array('*', $allowedOrigins, true)) {
             return true;
         }
 
-        return in_array($origin, $allowedOrigins, true);
+        return \in_array($origin, $allowedOrigins, true);
     }
 
     private function getAllowOriginValue(string $origin): string
     {
-        $allowedOrigins = $this->config['allowedOrigins'] ?? ['*'];
+        $allowedOrigins   = $this->config['allowedOrigins'] ?? ['*'];
         $allowCredentials = (bool) ($this->config['allowCredentials'] ?? false);
 
-        if (!$allowCredentials && in_array('*', $allowedOrigins, true)) {
+        if (!$allowCredentials && \in_array('*', $allowedOrigins, true)) {
             return '*';
         }
 

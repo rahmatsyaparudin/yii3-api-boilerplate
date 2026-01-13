@@ -10,26 +10,24 @@ use Yiisoft\Log\Logger;
 use Yiisoft\Log\Target\File\FileTarget;
 use Yiisoft\Yii\Runner\Http\HttpApplicationRunner;
 
-$root = dirname(__DIR__);
+$root = \dirname(__DIR__);
 
 require_once $root . '/src/autoload.php';
 
 if (Environment::appC3()) {
     $c3 = $root . '/c3.php';
-    if (file_exists($c3)) {
+    if (\file_exists($c3)) {
         require_once $c3;
     }
 }
 
-/**
- * @psalm-var string $_SERVER['REQUEST_URI']
- */
+// @psalm-var string $_SERVER['REQUEST_URI']
 // PHP built-in server routing.
 if (PHP_SAPI === 'cli-server') {
     // Serve static files as is.
     /** @var string $path */
-    $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-    if (is_file(__DIR__ . $path)) {
+    $path = \parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+    if (\is_file(__DIR__ . $path)) {
         return false;
     }
 

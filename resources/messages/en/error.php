@@ -30,7 +30,7 @@ return [
     'request.origin_not_allowed' => 'Origin is not allowed: {origin}',
 
     // Filtering / Sorting / Pagination
-    'filter.invalid_keys' => 'Invalid filter keys: {keys}',
+    'filter.invalid_keys' => 'Invalid field keys: {keys}',
     'filter.not_allowed' => 'Filter is not allowed: {filter}',
     'sort.invalid_field' => 'Invalid sort field: {field}',
     'sort.invalid_direction' => 'Invalid sort direction: {direction}',
@@ -70,4 +70,12 @@ return [
 
     // Misc
     'operation.not_allowed' => 'Operation not allowed',
+
+    'access.denied' => 'Access denied',
+    'access.insufficient_permissions' => 'You do not have sufficient permissions to perform this action',
+    'access.auth_required' => 'Authentication is required to access this resource',
+
+    'rate_limit.exceeded' => 'Too many requests. Please try again in {seconds} seconds.',
+    'rate_limit.try_again' => 'Please try again in {seconds} seconds.',
+
 ];

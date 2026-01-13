@@ -11,7 +11,8 @@ final readonly class BrandService
 {
     public function __construct(
         private BrandRepositoryInterface $repository,
-    ) {}
+    ) {
+    }
 
     /**
      * @return array<int, array<string, mixed>>
@@ -33,7 +34,12 @@ final readonly class BrandService
     {
         $brand = $this->repository->findById($id);
         if ($brand === null) {
-            throw new NotFoundException('Brand not found');
+            throw new NotFoundException(
+                translate: [
+                    'key' => 'resource.not_found',
+                    'params' => ['resource' => 'Brand']
+                ]
+            );
         }
 
         return $brand;

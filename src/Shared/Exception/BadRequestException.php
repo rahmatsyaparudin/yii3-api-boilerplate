@@ -8,8 +8,9 @@ use Yiisoft\Http\Status;
 
 final class BadRequestException extends HttpException
 {
-    public function __construct(string $message = 'Bad request', ?array $params = [], ?\Throwable $previous = null)
+    public function __construct(?array $translate = null, ?array $errors = null, ?\Throwable $previous = null)
     {
-        parent::__construct($message, Status::BAD_REQUEST, $params, $previous);
+        $translate = $translate ?? ['key' => 'bad_request', 'params' => []];
+        parent::__construct(Status::BAD_REQUEST, $translate, $errors, $previous);
     }
 }

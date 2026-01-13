@@ -23,11 +23,12 @@ final readonly class OffsetPaginatorPresenter implements PresenterInterface
     public function present(mixed $value, DataResponse $response): DataResponse
     {
         $collectionResponse = $this->collectionPresenter->present($value->read(), $response);
+
         return $collectionResponse->withData([
-            'items' => $collectionResponse->getData(),
-            'pageSize' => $value->getPageSize(),
+            'items'       => $collectionResponse->getData(),
+            'pageSize'    => $value->getPageSize(),
             'currentPage' => $value->getCurrentPage(),
-            'totalPages' => $value->getTotalPages(),
+            'totalPages'  => $value->getTotalPages(),
         ]);
     }
 }

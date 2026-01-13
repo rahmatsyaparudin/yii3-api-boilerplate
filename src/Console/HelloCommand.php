@@ -19,6 +19,7 @@ final class HelloCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $output->writeln('Hello!');
+
         return ExitCode::OK;
     }
 }

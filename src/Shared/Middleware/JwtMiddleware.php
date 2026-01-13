@@ -39,14 +39,19 @@ final class JwtMiddleware implements MiddlewareInterface
 
         $authHeader = $request->getHeaderLine('Authorization');
         if ($authHeader === '') {
-            throw new UnauthorizedException('Authorization header missing');
+            throw new UnauthorizedException(
+                translate: [
+                    'key' => 'auth.authorization_header_missing',
+                    'params' => []
+                ]
+            );
         }
 
-        $token = str_replace('Bearer ', '', $authHeader);
+        $token = \str_replace('Bearer ', '', $authHeader);
 
         try {
             $claims = $this->jwtService->decode($token);
-            $actor = $this->actorProvider->fromToken($claims);
+            $actor  = $this->actorProvider->fromToken($claims);
 
             // Set actor in CurrentUser service for automatic injection
             $this->currentUser->setActor($actor);
@@ -54,7 +59,12 @@ final class JwtMiddleware implements MiddlewareInterface
             // Also inject actor to request attributes for backward compatibility
             $request = $request->withAttribute('actor', $actor);
         } catch (\Exception $e) {
-            throw new UnauthorizedException('Invalid or expired JWT token: ' . $e->getMessage());
+            throw new UnauthorizedException(
+                translate: [
+                    'key' => 'auth.invalid_token',
+                    'params' => ['error' => $e->getMessage()]
+                ]
+            );
         }
 
         return $handler->handle($request);

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Shared\Request;
@@ -17,14 +18,14 @@ final readonly class RequestDataParser
     private function parse(): array
     {
         $query = $this->request->getQueryParams();
-        $body = $this->request->getParsedBody() ?? [];
+        $body  = $this->request->getParsedBody() ?? [];
 
-        if (is_object($body)) {
+        if (\is_object($body)) {
             $body = (array) $body;
         }
 
         // Body overrides query
-        return array_merge($query, $body);
+        return \array_merge($query, $body);
     }
 
     public function get(string $key, mixed $default = null): mixed

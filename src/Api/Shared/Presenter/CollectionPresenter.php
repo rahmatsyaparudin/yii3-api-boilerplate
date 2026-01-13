@@ -13,7 +13,8 @@ final readonly class CollectionPresenter implements PresenterInterface
 {
     public function __construct(
         private PresenterInterface $itemPresenter = new AsIsPresenter(),
-    ) {}
+    ) {
+    }
 
     public function present(mixed $value, DataResponse $response): DataResponse
     {
@@ -22,6 +23,7 @@ final readonly class CollectionPresenter implements PresenterInterface
             $response = $this->itemPresenter->present($item, $response);
             $result[] = $response->getData();
         }
+
         return $response->withData($result);
     }
 }

@@ -1,13 +1,12 @@
 <?php
+
 declare(strict_types=1);
 
 use Yiisoft\Security\TrustedHosts\TrustedHosts;
 
 return [
     TrustedHosts::class => [
-        /**
-         * Host yang VALID untuk request masuk
-         */
+        // Host yang VALID untuk request masuk
         'allowedHosts' => [
             'api.example.com',
             'example.com',
@@ -15,9 +14,7 @@ return [
             // 'localhost',
         ],
 
-        /**
-         * Header proxy yang boleh dipercaya
-         */
+        // Header proxy yang boleh dipercaya
         'allowedHeaders' => [
             'X-Forwarded-For',
             'X-Forwarded-Host',

@@ -13,11 +13,11 @@ final class AppConstants
     // Synchronization / Locking Constants
     // -------------------------------------------------------------------------
     public const OPTIMISTIC_LOCK = 'lock_version';
-    public const SYNC_MONGODB = 'sync_mdb';
-    public const SYNC_MASTER = 'sync_master';
-    public const SYNC_SLAVE = 'sync_slave';
-    public const SLAVE_ID = 'slave_id';
-    public const MASTER_ID = 'master_id';
+    public const SYNC_MONGODB    = 'sync_mdb';
+    public const SYNC_MASTER     = 'sync_master';
+    public const SYNC_SLAVE      = 'sync_slave';
+    public const SLAVE_ID        = 'slave_id';
+    public const MASTER_ID       = 'master_id';
 
     // -------------------------------------------------------------------------
     // Validation Patterns
