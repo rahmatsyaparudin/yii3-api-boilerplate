@@ -9,4 +9,6 @@ return [
     /*
      * Add your application-specific messages here
      */
+
+    'success' => 'Success',
 ];
