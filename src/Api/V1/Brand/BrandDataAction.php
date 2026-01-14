@@ -43,8 +43,12 @@ final readonly class BrandDataAction
 
         return $this->responseFactory->success(
             $brands,
-            messageKey: 'success.list_retrieved',
-            params: ['resource' => 'Brand'],
+            translate: [
+                'key' => 'success',
+                'params' => [
+                    'resource' => 'Brand'
+                ]
+            ],
             meta: $request->getMeta(),
         );
     }

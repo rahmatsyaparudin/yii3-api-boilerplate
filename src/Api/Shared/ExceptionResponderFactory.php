@@ -25,6 +25,8 @@ final readonly class ExceptionResponderFactory
 
     public function create(): ExceptionResponder
     {
+        error_log('ExceptionResponderFactory::create() called');
+        
         return new ExceptionResponder(
             [
                 InputValidationException::class => $this->inputValidationException(...),
@@ -42,8 +44,14 @@ final readonly class ExceptionResponderFactory
 
     private function throwable(\Throwable $exception): ResponseInterface
     {
+        error_log('ExceptionResponderFactory::throwable() called - ' . get_class($exception));
+        
+        // Format error yang diinginkan untuk semua exception
+        $statusCode = 500;
+        $message = 'Internal Server Error';
+        
         if ($exception instanceof HttpException) {
-            $code = $exception->getCode();
+            $statusCode = $exception->getCode();
             
             // Gunakan translate parameter dari exception
             $translate = $exception->getTranslate();
@@ -52,25 +60,61 @@ final readonly class ExceptionResponderFactory
                 $translate['params'] ?? $exception->getTranslateParams(),
                 'error'
             );
-
-            return $this->apiResponseFactory->fail(
-                $message,
-                data: $exception->getErrors() ?? [],
-                code: \is_int($code) ? $code : null,
-                httpCode: $exception->getHttpStatusCode(),
-            );
+        } elseif (UserException::isUserException($exception)) {
+            $statusCode = 400;
+            $message = $exception->getMessage();
+        } else {
+            // Untuk exception lain seperti ParseError, RuntimeException, dll
+            $message = $exception->getMessage();
         }
 
-        if (UserException::isUserException($exception)) {
-            $code = $exception->getCode();
+        // Check environment untuk menentukan detail error
+        $showErrors = $this->shouldShowErrorDetails();
+        
+        // Build error response dengan format yang diinginkan
+        $errorData = [
+            'code' => $statusCode,
+            'success' => false,
+            'message' => $message,
+            'errors' => $showErrors ? [
+                [
+                    'type' => get_class($exception),
+                    'message' => $exception->getMessage(),
+                    'code' => $exception->getCode(),
+                    'file' => $exception->getFile(),
+                    'line' => $exception->getLine(),
+                    'trace' => $exception->getTraceAsString(),
+                ]
+            ] : []
+        ];
 
-            return $this->apiResponseFactory->fail(
-                $this->translateErrorMessage($exception->getMessage()),
-                code: \is_int($code) ? $code : null,
-            );
-        }
+        error_log('ExceptionResponderFactory: Returning formatted error response - Show details: ' . ($showErrors ? 'YES' : 'NO'));
+        
+        $response = $this->psrResponseFactory->createResponse($statusCode);
+        $response->getBody()->write(json_encode($errorData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        
+        return $response->withHeader('Content-Type', 'application/json');
+    }
 
-        throw $exception;
+    private function shouldShowErrorDetails(): bool
+    {
+        // Get environment variables dari $_ENV (lebih reliable)
+        $env = $_ENV['APP_ENV'] ?? $_SERVER['APP_ENV'] ?? 'prod';
+        $debug = $_ENV['APP_DEBUG'] ?? $_SERVER['APP_DEBUG'] ?? '0';
+        
+        // Convert to lowercase for comparison
+        $env = strtolower($env);
+        $debug = strtolower($debug);
+        
+        // Debug: Log nilai environment variables yang terbaca
+        error_log("Environment Check - APP_ENV: '{$env}', APP_DEBUG: '{$debug}'");
+        
+        // Hanya tampilkan detail error jika APP_ENV=dev DAN APP_DEBUG=1
+        $showDetails = $env === 'dev' && ($debug === '1' || $debug === 'true');
+        
+        error_log("Show Error Details: " . ($showDetails ? 'YES' : 'NO'));
+        
+        return $showDetails;
     }
 
     private function translateErrorMessage(string $message, array $params = []): string
