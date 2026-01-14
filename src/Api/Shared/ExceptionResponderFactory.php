@@ -68,8 +68,8 @@ final readonly class ExceptionResponderFactory
             $message = $exception->getMessage();
         }
 
-        // Check environment untuk menentukan detail error
-        $showErrors = $this->shouldShowErrorDetails();
+        // Check environment dan apakah ini business exception
+        $showErrors = $this->shouldShowErrorDetails($exception);
         
         // Build error response dengan format yang diinginkan
         $errorData = [
@@ -96,7 +96,7 @@ final readonly class ExceptionResponderFactory
         return $response->withHeader('Content-Type', 'application/json');
     }
 
-    private function shouldShowErrorDetails(): bool
+    private function shouldShowErrorDetails(\Throwable $exception): bool
     {
         // Get environment variables dari $_ENV (lebih reliable)
         $env = $_ENV['APP_ENV'] ?? $_SERVER['APP_ENV'] ?? 'prod';
@@ -106,11 +106,23 @@ final readonly class ExceptionResponderFactory
         $env = strtolower($env);
         $debug = strtolower($debug);
         
-        // Debug: Log nilai environment variables yang terbaca
-        error_log("Environment Check - APP_ENV: '{$env}', APP_DEBUG: '{$debug}'");
-        
         // Hanya tampilkan detail error jika APP_ENV=dev DAN APP_DEBUG=1
-        $showDetails = $env === 'dev' && ($debug === '1' || $debug === 'true');
+        $environmentAllowsDetails = $env === 'dev' && ($debug === '1' || $debug === 'true');
+        
+        // Jika environment tidak memperbolehkan detail, langsung return false
+        if (!$environmentAllowsDetails) {
+            return false;
+        }
+        
+        // Jika environment memperbolehkan, cek apakah ini business exception
+        // Business exception dari src/Shared/Exception tidak perlu detail
+        $exceptionClass = get_class($exception);
+        $isBusinessException = str_contains($exceptionClass, 'App\\Shared\\Exception');
+        
+        // Debug: Log nilai environment variables yang terbaca
+        error_log("Environment Check - APP_ENV: '{$env}', APP_DEBUG: '{$debug}', Is Business Exception: " . ($isBusinessException ? 'YES' : 'NO'));
+        
+        $showDetails = $environmentAllowsDetails && !$isBusinessException;
         
         error_log("Show Error Details: " . ($showDetails ? 'YES' : 'NO'));
         

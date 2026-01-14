@@ -110,8 +110,8 @@ return [
     'app/jwt' => [
         'secret'    => $_ENV['app.jwt.secret'],
         'algorithm' => $_ENV['app.jwt.algorithm'] ?? 'HS256',
-        'issuer'    => $_ENV['app.jwt.issuer'] ?? 'https://sso.dev-enterkomputer.com',
-        'audience'  => $_ENV['app.jwt.audience'] ?? 'https://sso.dev-enterkomputer.com',
+        'issuer'    => $_ENV['app.jwt.issuer'] ?? null,
+        'audience'  => $_ENV['app.jwt.audience'] ?? null,
     ],
     'app/trusted_hosts' => [
         'allowedHosts' => [

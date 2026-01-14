@@ -18,8 +18,6 @@ final class FilterHelper
     {
         $unknown = self::unknownKeys($filters, $allowedKeys);
         if ($unknown !== []) {
-            throw new \RuntimeException('Test runtime error');
-
             throw new BadRequestException(
                 translate: [
                     'key' => 'filter.invalid_keys',
