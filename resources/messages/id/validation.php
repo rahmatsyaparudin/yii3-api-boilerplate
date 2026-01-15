@@ -102,5 +102,12 @@ return [
     'prohibited' => 'Field {field} dilarang',
     'prohibited_if' => '{field} dilarang ketika {other} adalah {value}',
     'prohibited_unless' => '{field} dilarang kecuali {other} adalah {value}',
-];
 
+    'cannot_delete_active' => 'Tidak dapat menghapus {resource} yang sedang aktif',
+    'already_exists' => '{resource} dengan nilai "{value}" sudah ada',
+
+    // Field Status for Data 
+    'status.forbid_update' => 'Data {resource} dengan status "{status}" tidak dapat dilakukan pembaruan.',
+    'status.cannot_update' => 'Tidak dapat mengubah status {resource} dari "{current_status}" menjadi "{status}".',
+    'status.invalid_on_creation' => '{resource} harus dalam status "active" atau "draft" saat proses pembuatan.'
+];

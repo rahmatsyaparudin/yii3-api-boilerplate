@@ -2,16 +2,26 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Brand;
+namespace App\Domain\Brand\Repository;
+
+use App\Domain\Brand\Entity\Brand;
+use App\Shared\Request\RawParams;
+use App\Shared\Request\PaginationParams;
+use App\Shared\Request\SortParams;
 
 interface BrandRepositoryInterface
 {
     /**
+     * Find brand by name
+     */
+    public function findByName(string $name): ?array;
+
+    /**
      * @return array<int, array<string, mixed>>
      */
-    public function list(int $limit, int $offset, array $filters = [], ?string $sortBy = null, string $sortDir = 'asc'): array;
+    public function list(?RawParams $params = null, ?PaginationParams $pagination = null, ?SortParams $sort = null): array;
 
-    public function count(array $filters = []): int;
+    public function count(?RawParams $params = null): int;
 
     /**
      * @return array<string, mixed>|null

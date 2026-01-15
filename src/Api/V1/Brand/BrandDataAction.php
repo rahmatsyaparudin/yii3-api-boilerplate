@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Api\V1\Brand;
 
 use App\Api\Shared\ResponseFactory;
-use App\Domain\Brand\BrandService;
-use App\Domain\Brand\BrandValidator;
+use App\Domain\Brand\Service\BrandService;
+use App\Domain\Brand\Application\BrandInputValidator;
+use App\Domain\Brand\Application\BrandValidator;
 use App\Shared\Helper\FilterHelper;
+use App\Shared\Request\RawParams;
 use App\Shared\Validation\ValidationContext;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -17,39 +19,56 @@ final readonly class BrandDataAction
     public function __construct(
         private BrandService $service,
         private ResponseFactory $responseFactory,
+        private BrandInputValidator $inputValidator,
         private BrandValidator $brandValidator,
     ) {
     }
 
     public function __invoke(ServerRequestInterface $request): ResponseInterface
     {
-        /** @var \App\Shared\Request\RequestParams $params */
-        $request = $request->getAttribute('params');
+        /** @var \App\Shared\Request\RequestParams $payload */
+        $payload = $request->getAttribute('payload');
 
-        $params = FilterHelper::onlyAllowed($request->getParams(), ['id', 'name', 'status', 'sync_mdb']);
+        $query = $payload->getQuery(); 
+        $pagination = $payload->getPagination();
+        $sort = $payload->getSort();
 
-        $this->brandValidator->validate(
-            ValidationContext::SEARCH,
-            $params
+        $validationPayload = new RawParams([
+            'query' => $query->toArray(),
+            'pagination' => $pagination->toArray(),
+            'sort' => $sort->toArray(),
+        ]);
+        
+        $this->brandValidator->validateForSearch(
+            data: $validationPayload
         );
 
         $brands = $this->service->list(
-            $request->getPageSize(),
-            $request->getOffset(),
-            $params,
-            $request->getSortBy(),
-            $request->getSortDir(),
+            params: $query,
+            pagination: $pagination,
+            sort: $sort,
         );
 
         return $this->responseFactory->success(
-            $brands,
+            data: $brands,
             translate: [
                 'key' => 'success',
                 'params' => [
                     'resource' => 'Brand'
                 ]
             ],
-            meta: $request->getMeta(),
+            meta: [
+                'pagination' => [
+                    'page' => $pagination->page,
+                    'page_size' => $pagination->page_size,
+                    'total' => $brands['total'] ?? 0,
+                ],
+                'sort' => [
+                    'by' => $sort->by,
+                    'dir' => $sort->dir,
+                ],
+                'query' => $query->toArray(),
+            ],
         );
     }
 }

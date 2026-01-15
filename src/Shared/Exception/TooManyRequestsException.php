@@ -10,7 +10,7 @@ final class TooManyRequestsException extends HttpException
 {
     public function __construct(?array $translate = null, ?array $errors = null, ?\Throwable $previous = null)
     {
-        $translate = $translate ?? ['key' => 'too_many_requests', 'params' => []];
+        $translate ??= ['key' => 'too_many_requests', 'params' => []];
         parent::__construct(Status::TOO_MANY_REQUESTS, $translate, $errors, $previous);
     }
 }

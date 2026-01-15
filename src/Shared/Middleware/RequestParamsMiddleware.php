@@ -32,7 +32,7 @@ final class RequestParamsMiddleware implements MiddlewareInterface
             'defaultPageSize' => $this->defaultPageSize,
             'maxPageSize'     => $this->maxPageSize,
         ]);
-        $request = $request->withAttribute('params', $params);
+        $request = $request->withAttribute('payload', $params);
 
         return $handler->handle($request);
     }

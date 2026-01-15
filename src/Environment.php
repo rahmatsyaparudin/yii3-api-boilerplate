@@ -104,7 +104,7 @@ final class Environment
     private static function setString(string $key, string $default): void
     {
         $value              = self::getRawValue($key);
-        self::$values[$key] = $value ?? $default;
+        self::$values[$key] ??= $default;
     }
 
     private static function setNonEmptyStringOrNull(string $key, ?string $default): void

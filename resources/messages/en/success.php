@@ -13,12 +13,12 @@ return [
     'processed' => '{resource} processed successfully',
     
     // Global CRUD Operations
-    'created' => '{resource} created successfully',
-    'updated' => '{resource} updated successfully',
-    'deleted' => '{resource} deleted successfully',
-    'restored' => '{resource} restored successfully',
-    'list_retrieved' => '{resource} list retrieved successfully',
-    'details_retrieved' => '{resource} details retrieved successfully',
+    'resource.created' => '{resource} created successfully',
+    'resource.updated' => '{resource} updated successfully',
+    'resource.deleted' => '{resource} deleted successfully',
+    'resource.restored' => '{resource} restored successfully',
+    'resource.list_retrieved' => '{resource} list retrieved successfully',
+    'resource.details_retrieved' => '{resource} details retrieved successfully',
     
     // Specific Operations (non-CRUD)
     'user.activated' => 'User activated successfully',

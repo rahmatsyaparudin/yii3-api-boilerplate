@@ -13,12 +13,12 @@ return [
     'processed' => '{resource} berhasil diproses',
     
     // Global CRUD Operations
-    'created' => '{resource} berhasil dibuat',
-    'updated' => '{resource} berhasil diperbarui',
-    'deleted' => '{resource} berhasil dihapus',
-    'restored' => '{resource} berhasil dipulihkan',
-    'list_retrieved' => '{resource} berhasil diambil',
-    'details_retrieved' => '{resource} berhasil diambil',
+    'resource.created' => '{resource} berhasil dibuat',
+    'resource.updated' => '{resource} berhasil diperbarui',
+    'resource.deleted' => '{resource} berhasil dihapus',
+    'resource.restored' => '{resource} berhasil dipulihkan',
+    'resource.list_retrieved' => '{resource} berhasil diambil',
+    'resource.details_retrieved' => '{resource} berhasil diambil',
     
     // Specific Operations (non-CRUD)
     'user.activated' => 'Pengguna berhasil diaktifkan',

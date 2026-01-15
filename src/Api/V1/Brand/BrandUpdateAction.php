@@ -5,40 +5,62 @@ declare(strict_types=1);
 namespace App\Api\V1\Brand;
 
 use App\Api\Shared\ResponseFactory;
-use App\Domain\Brand\BrandService;
+use App\Domain\Brand\Service\BrandService;
+use App\Domain\Brand\Application\BrandInputValidator;
+use App\Domain\Brand\Application\BrandValidator;
+use App\Shared\Validation\ValidationContext;
 use App\Shared\Constants\StatusEnum;
+use App\Shared\Helper\FilterHelper;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Http\Status;
 
 final readonly class BrandUpdateAction
 {
+    private const ALLOWED_KEYS = ['name'];
+
     public function __construct(
         private BrandService $service,
         private ResponseFactory $responseFactory,
+        private BrandInputValidator $inputValidator,
+        private BrandValidator $brandValidator,
     ) {
     }
 
     public function __invoke(ServerRequestInterface $request): ResponseInterface
     {
-        $id = (int) $request->getAttribute('id');
+        /** @var \App\Shared\Request\RequestParams|null $payload */
+        $payload = $request->getAttribute('payload');
 
-        if (!$id) {
-            return $this->responseFactory->fail('Brand ID is required');
+        if ($payload === null) {
+            return $this->responseFactory->fail('Request parameters not found', httpCode: Status::BAD_REQUEST);
         }
 
-        $body = (array) $request->getParsedBody();
+        $params = FilterHelper::onlyAllowed($payload->getRawParams(), ['id', 'name', 'status']);
 
-        $name       = isset($body['name']) ? \trim((string) $body['name']) : '';
-        $status     = isset($body['status']) ? (int) $body['status'] : StatusEnum::ACTIVE->value;
-        $detailInfo = isset($body['detail_info']) && \is_array($body['detail_info']) ? $body['detail_info'] : [];
+        $this->inputValidator->validate(
+            ValidationContext::UPDATE,
+            $params
+        );
 
-        if ($name === '') {
-            return $this->responseFactory->fail('Name is required', httpCode: Status::UNPROCESSABLE_ENTITY);
-        }
+        $this->brandValidator->validateForUpdate(
+            data: $params
+        );
 
-        $brand = $this->service->update($id, $name, $status, $detailInfo);
+        $brand = $this->service->update(
+            name: $params->name ?? null,
+            status: $params->status ?? null,
+            id: (int) $params->id,
+        );
 
-        return $this->responseFactory->success($brand, messageKey: 'success.updated');
+        return $this->responseFactory->success(
+            data: $brand,
+            translate: [
+                'key' => 'resource.updated',
+                'params' => [
+                    'resource' => 'Brand',
+                ]
+            ]
+        );
     }
 }

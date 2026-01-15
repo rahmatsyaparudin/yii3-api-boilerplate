@@ -37,6 +37,9 @@ return [
     'pagination.invalid_page' => 'The page value must be a valid number.',
     'pagination.invalid_page_size' => 'The page size value must be valid.',
 
+    // Validation
+    'validation.failed' => 'Validation failed. Please review the provided data.',
+
     // Data type / format (generic, reusable)
     'type.string' => '{field} must be a string.',
     'type.integer' => '{field} must be an integer.',
@@ -64,7 +67,7 @@ return [
     'file.invalid_type' => 'The uploaded file type is not allowed.',
 
     // Resource / DB
-    'resource.not_found' => 'The requested {resource} was not found.',
+    'db.not_found' => '{resource} data with {field}: {value} was not found.',
     'resource.conflict' => 'A conflict occurred with the {resource}.',
     'resource.already_exists' => 'The {resource} already exists.',
 
@@ -77,4 +80,8 @@ return [
 
     'rate_limit.exceeded' => 'Too many requests. Please try again after {seconds} seconds.',
     'rate_limit.try_again' => 'Please try again in {seconds} seconds.',
+
+    'brand.name_already_exists' => 'Brand dengan nama "{name}" sudah ada.',
+    'brand.name_min_length' => 'Nama brand harus minimal 3 karakter.',
+    'brand.cannot_delete_active' => 'Tidak dapat menghapus brand yang aktif.',
 ];
