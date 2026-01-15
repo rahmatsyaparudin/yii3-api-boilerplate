@@ -37,6 +37,9 @@ return [
     'pagination.invalid_page' => 'Nilai halaman (page) tidak valid.',
     'pagination.invalid_page_size' => 'Nilai ukuran halaman (page size) tidak valid.',
 
+    // Validation
+    'validation.failed' => 'Validasi gagal. Silakan periksa data yang Anda berikan.',
+
     // Data type / format (generic, reusable)
     'type.string' => '{field} harus berupa string.',
     'type.integer' => '{field} harus berupa bilangan bulat.',
@@ -64,7 +67,7 @@ return [
     'file.invalid_type' => 'Tipe file yang diunggah tidak diizinkan.',
 
     // Resource / DB
-    'resource.not_found' => '{resource} tidak ditemukan.',
+    'db.not_found' => '{resource} dengan {field}: {value} tidak ditemukan.',
     'resource.conflict' => 'Terjadi konflik pada {resource}.',
     'resource.already_exists' => '{resource} sudah tersedia.',
 
@@ -77,4 +80,5 @@ return [
 
     'rate_limit.exceeded' => 'Terlalu banyak permintaan. Silakan coba lagi dalam {seconds} detik.',
     'rate_limit.try_again' => 'Silakan coba lagi dalam {seconds} detik.',
-];
+
+    ];

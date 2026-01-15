@@ -10,7 +10,7 @@ final class UnauthorizedException extends HttpException
 {
     public function __construct(?array $translate = null, ?array $errors = null, ?\Throwable $previous = null)
     {
-        $translate = $translate ?? ['key' => 'unauthorized', 'params' => []];
+        $translate ??= ['key' => 'unauthorized', 'params' => []];
         parent::__construct(Status::UNAUTHORIZED, $translate, $errors, $previous);
     }
 }

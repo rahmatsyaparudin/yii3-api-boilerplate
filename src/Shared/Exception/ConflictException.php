@@ -10,7 +10,7 @@ final class ConflictException extends HttpException
 {
     public function __construct(?array $translate = null, ?array $errors = null, ?\Throwable $previous = null)
     {
-        $translate = $translate ?? ['key' => 'resource.conflict', 'params' => []];
+        $translate ??= ['key' => 'resource.conflict', 'params' => []];
         parent::__construct(Status::CONFLICT, $translate, $errors, $previous);
     }
 }

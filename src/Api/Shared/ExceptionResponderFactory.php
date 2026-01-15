@@ -76,17 +76,43 @@ final readonly class ExceptionResponderFactory
             'code' => $statusCode,
             'success' => false,
             'message' => $message,
-            'errors' => $showErrors ? [
-                [
-                    'type' => get_class($exception),
-                    'message' => $exception->getMessage(),
-                    'code' => $exception->getCode(),
-                    'file' => $exception->getFile(),
-                    'line' => $exception->getLine(),
-                    'trace' => $exception->getTraceAsString(),
-                ]
-            ] : []
+            'errors' => []
         ];
+        
+        // Jika boleh menampilkan detail error
+        if ($showErrors) {
+            // Untuk ValidationException, tampilkan validation errors
+            if ($exception instanceof \App\Shared\Exception\ValidationException) {
+                $validationErrors = $exception->getErrors();
+                if ($validationErrors !== null) {
+                    $errorData['errors'] = $validationErrors;
+                } else {
+                    // Fallback ke format default jika tidak ada validation errors
+                    $errorData['errors'] = [
+                        [
+                            'type' => get_class($exception),
+                            'message' => $exception->getMessage(),
+                            'code' => $exception->getCode(),
+                            'file' => $exception->getFile(),
+                            'line' => $exception->getLine(),
+                            'trace' => $exception->getTraceAsString(),
+                        ]
+                    ];
+                }
+            } else {
+                // Untuk exception lain, tampilkan detail lengkap
+                $errorData['errors'] = [
+                    [
+                        'type' => get_class($exception),
+                        'message' => $exception->getMessage(),
+                        'code' => $exception->getCode(),
+                        'file' => $exception->getFile(),
+                        'line' => $exception->getLine(),
+                        'trace' => $exception->getTraceAsString(),
+                    ]
+                ];
+            }
+        }
 
         error_log('ExceptionResponderFactory: Returning formatted error response - Show details: ' . ($showErrors ? 'YES' : 'NO'));
         
@@ -119,10 +145,14 @@ final readonly class ExceptionResponderFactory
         $exceptionClass = get_class($exception);
         $isBusinessException = str_contains($exceptionClass, 'App\\Shared\\Exception');
         
-        // Debug: Log nilai environment variables yang terbaca
-        error_log("Environment Check - APP_ENV: '{$env}', APP_DEBUG: '{$debug}', Is Business Exception: " . ($isBusinessException ? 'YES' : 'NO'));
+        // Exception: ValidationException boleh menampilkan detail error di development
+        $isValidationException = $exception instanceof \App\Shared\Exception\ValidationException;
         
-        $showDetails = $environmentAllowsDetails && !$isBusinessException;
+        // Debug: Log nilai environment variables yang terbaca
+        error_log("Environment Check - APP_ENV: '{$env}', APP_DEBUG: '{$debug}', Is Business Exception: " . ($isBusinessException ? 'YES' : 'NO') . ", Is Validation Exception: " . ($isValidationException ? 'YES' : 'NO'));
+        
+        // Tampilkan detail jika: environment allows + (bukan business exception ATAU validation exception)
+        $showDetails = $environmentAllowsDetails && (!$isBusinessException || $isValidationException);
         
         error_log("Show Error Details: " . ($showDetails ? 'YES' : 'NO'));
         
