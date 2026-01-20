@@ -8,7 +8,7 @@ Secure headers protect your API from various web vulnerabilities by instructing 
 
 ### 1. SecureHeadersMiddleware
 
-The `SecureHeadersMiddleware` adds comprehensive security headers to all responses:
+The `App\Shared\Middleware\SecureHeadersMiddleware` adds comprehensive security headers to all responses:
 
 ```php
 // Default headers included
@@ -22,12 +22,145 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 
 ### 2. HSTS Middleware
 
-Separate HSTS middleware for HTTPS-only sites:
+Separate `App\Infrastructure\Security\HstsMiddleware` for HTTPS-only sites:
 
 ```php
 // Only added on HTTPS connections
 Strict-Transport-Security: max-age=31536000; includeSubDomains
 ```
+
+## Configuration
+
+### Secure Headers Configuration
+
+Configure in `config/common/params.php`:
+
+```php
+'app/secureHeaders' => [
+    'x_frame_options' => 'DENY',           // or 'SAMEORIGIN'
+    'x_content_type_options' => 'nosniff',
+    'x_xss_protection' => '1; mode=block',
+    'referrer_policy' => 'strict-origin-when-cross-origin',
+    'content_security_policy' => [
+        'default-src' => ['self'],
+        'script-src' => ['self', 'unsafe-inline'],
+        'style-src' => ['self', 'unsafe-inline'],
+        'img-src' => ['self', 'data:', 'https:'],
+        'font-src' => ['self'],
+        'connect-src' => ['self'],
+        'frame-ancestors' => ['none'],
+        'base-uri' => ['self'],
+        'form-action' => ['self'],
+    ],
+    'permissions_policy' => [
+        'geolocation' => [],
+        'microphone' => [],
+        'camera' => [],
+        'payment' => [],
+        'usb' => [],
+        'magnetometer' => [],
+        'gyroscope' => [],
+        'accelerometer' => [],
+    ],
+],
+```
+
+### HSTS Configuration
+
+```php
+'app/hsts' => [
+    'max_age' => 31536000,              // 1 year
+    'include_sub_domains' => true,     // Include subdomains
+    'preload' => false,                 // HSTS preload
+],
+```
+
+## Middleware Registration
+
+Register in `config/common/di/middleware.php`:
+
+```php
+SecureHeadersMiddleware::class => static function () use ($params) {
+    $secureHeaders = $params['app/secureHeaders'] ?? [];
+    return new SecureHeadersMiddleware($secureHeaders);
+},
+
+HstsMiddleware::class => static function () use ($params) {
+    $hsts = $params['app/hsts'] ?? [];
+    return new HstsMiddleware(
+        maxAge: (int) ($hsts['max_age'] ?? 31536000),
+        includeSubDomains: (bool) ($hsts['include_sub_domains'] ?? true),
+        preload: (bool) ($hsts['preload'] ?? false)
+    );
+},
+```
+
+## Security Headers Explained
+
+### X-Content-Type-Options: nosniff
+Prevents MIME-type sniffing by browsers.
+
+### X-Frame-Options: DENY
+Prevents clickjacking by blocking iframe embedding.
+
+### X-XSS-Protection: 1; mode=block
+Enables browser XSS protection.
+
+### Referrer-Policy: strict-origin-when-cross-origin
+Controls how much referrer information is sent.
+
+### Content-Security-Policy (CSP)
+Defines approved content sources:
+- `default-src 'self'`: Default to same origin
+- `script-src`: Allow scripts from same origin + inline
+- `style-src`: Allow styles from same origin + inline
+- `img-src`: Allow images from same origin, data URIs, HTTPS
+- `frame-ancestors 'none'`: Prevent iframe embedding
+
+### Permissions-Policy
+Disables browser features:
+- `geolocation=()`: Disable geolocation
+- `microphone=()`: Disable microphone access
+- `camera=()`: Disable camera access
+
+### Strict-Transport-Security (HSTS)
+Enforces HTTPS connections:
+- `max-age=31536000`: 1 year cache
+- `includeSubDomains`: Apply to all subdomains
+- `preload`: Submit to HSTS preload list
+
+## Testing
+
+### Verify Headers
+```bash
+curl -I http://localhost:8080/api/v1/brands
+```
+
+### Expected Headers
+```http
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+X-XSS-Protection: 1; mode=block
+Referrer-Policy: strict-origin-when-cross-origin
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()
+```
+
+## Best Practices
+
+1. **Use HTTPS**: Always enable HSTS for HTTPS sites
+2. **CSP Policy**: Start with restrictive policy, loosen as needed
+3. **Regular Review**: Update headers as security best practices evolve
+4. **Testing**: Verify headers in all environments
+5. **Monitoring**: Monitor for CSP violations and security issues
+
+## Security Considerations
+
+- **CSP Violations**: Monitor CSP violation reports
+- **Inline Scripts**: Minimize `unsafe-inline` in CSP
+- **Third-party Domains**: Explicitly whitelist required domains
+- **HSTS Preload**: Consider submitting to preload list for production
+- **Header Bypass**: Ensure all routes include security headers
 
 ## Configuration
 

@@ -108,6 +108,6 @@ return [
 
     // Field Status for Data 
     'status.forbid_update' => '{resource} data with status "{status}" cannot be updated.',
-    'status.cannot_update' => 'Cannot update {resource} from status "{current_status}" to "{status}".',
+    'status.cannot_update' => 'Cannot update {resource} from status "{status}" to "{current_status}".',
     'status.invalid_on_creation' => '{resource} must be in "active" or "draft" status to proceed with creation.'
 ];

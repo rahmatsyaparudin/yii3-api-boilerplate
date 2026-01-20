@@ -57,26 +57,42 @@ final readonly class ResponseFactory
     }
 
     public function fail(
-        string $message,
         array|object|null $data = null,
         ?int $code = null,
         int $httpCode = Status::BAD_REQUEST,
         PresenterInterface $presenter = new AsIsPresenter(),
+        ?array $translate = null,
     ): ResponseInterface {
-        return (new FailPresenter($message, $code, $httpCode, $presenter))
+        // Extract message key and params from translate array
+        $messageKey = null;
+        $messageParams = [];
+        
+        if ($translate !== null) {
+            $messageKey = $translate['key'] ?? null;
+            $messageParams = $translate['params'] ?? [];
+        }
+        
+        // Use custom message key or default message
+        $translatedMessage = $this->translator->translate(
+            $messageKey ?? 'Error',
+            $messageParams,
+            'error'
+        );
+
+        return (new FailPresenter($translatedMessage, $code, $httpCode, $presenter))
             ->present($data, $this->dataResponseFactory->createResponse());
     }
 
     public function notFound(string $message = 'Not found.'): ResponseInterface
     {
-        return $this->fail($message, httpCode: Status::NOT_FOUND);
+        return $this->fail(translate: ['key' => 'error.not_found'], httpCode: Status::NOT_FOUND);
     }
 
     public function failValidation(Result $result): ResponseInterface
     {
         return $this->fail(
-            'Validation failed.',
-            $result,
+            translate: ['key' => 'error.validation_failed'],
+            data: $result,
             httpCode: Status::UNPROCESSABLE_ENTITY,
             presenter: new ValidationResultPresenter(),
         );

@@ -7,6 +7,10 @@ namespace App\Domain\Shared\Trait;
 use App\Shared\Request\RawParams;
 use App\Shared\Validation\UniqueFieldValidator;
 use App\Domain\Brand\Repository\BrandRepositoryInterface;
+use App\Domain\Shared\ValueObject\Status;
+use App\Shared\Exception\ValidationException;
+use App\Shared\Exception\ConflictException;
+use App\Shared\Helper\ArrayHelper;
 
 /**
  * Entity Validation Trait
@@ -75,5 +79,58 @@ trait EntityValidationTrait
     {
         // Template method - override in concrete validators
         // Add dependency checking logic here
+    }
+
+    /**
+     * Validate status for update operations
+     * 
+     * @param array $entity Entity data with status
+     * @param RawParams $data Update data
+     * @param string $resource Resource name for translation
+     */
+    protected function validateStatusForUpdate(array $entity, RawParams $data, string $resource = 'Entity'): void
+    {
+        $status = Status::from($entity['status']);
+        $getUpdatableKeys = ArrayHelper::getUpdatableKeys(
+            data: $data->toArray(),
+            exclude: ['id', 'status']
+        );
+
+        if ($getUpdatableKeys && !$status->canBeUpdated($entity['status'])) {
+            throw new ConflictException(
+                translate: [
+                    'key' => 'resource.update_not_allowed_by_status',
+                    'params' => [
+                        'resource' => self::RESOURCE,
+                        'current_status' => Status::getLabel($entity['status']),
+                    ]
+                ]
+            );
+        }
+
+        if (!$getUpdatableKeys && $data->status == $entity['status']) {
+            throw new ConflictException(
+                translate: [
+                    'key' => 'resource.status_already_set',
+                    'params' => [
+                        'resource' => self::RESOURCE,
+                        'current_status' => Status::getLabel($entity['status']),
+                    ]
+                ]
+            );
+        }
+
+        if (!$status->allowsTransitionTo()) {
+            throw new ConflictException(
+                translate: [
+                    'key' => 'resource.cannot_update',
+                    'params' => [
+                        'resource' => self::RESOURCE,
+                        'status' => Status::getLabel($data->status),
+                        'current_status' => Status::getLabel($entity['status']),
+                    ]
+                ]
+            );
+        }
     }
 }

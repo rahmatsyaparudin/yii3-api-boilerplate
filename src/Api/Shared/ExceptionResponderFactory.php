@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Api\Shared;
 
 use App\Shared\Exception\HttpException;
+use App\Shared\Exception\NoChangesException;
+use App\Shared\Exception\ValidationException;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Yiisoft\ErrorHandler\Exception\UserException;
@@ -30,6 +32,7 @@ final readonly class ExceptionResponderFactory
         return new ExceptionResponder(
             [
                 InputValidationException::class => $this->inputValidationException(...),
+                NoChangesException::class => $this->noChangesException(...),
                 \Throwable::class               => $this->throwable(...),
             ],
             $this->psrResponseFactory,
@@ -40,6 +43,14 @@ final readonly class ExceptionResponderFactory
     private function inputValidationException(InputValidationException $exception): ResponseInterface
     {
         return $this->apiResponseFactory->failValidation($exception->getResult());
+    }
+
+    private function noChangesException(NoChangesException $exception): ResponseInterface
+    {
+        return $this->apiResponseFactory->success(
+            data: $exception->getData(),
+            translate: $exception->getTranslate()
+        );
     }
 
     private function throwable(\Throwable $exception): ResponseInterface
@@ -82,7 +93,7 @@ final readonly class ExceptionResponderFactory
         // Jika boleh menampilkan detail error
         if ($showErrors) {
             // Untuk ValidationException, tampilkan validation errors
-            if ($exception instanceof \App\Shared\Exception\ValidationException) {
+            if ($exception instanceof ValidationException) {
                 $validationErrors = $exception->getErrors();
                 if ($validationErrors !== null) {
                     $errorData['errors'] = $validationErrors;
@@ -146,7 +157,7 @@ final readonly class ExceptionResponderFactory
         $isBusinessException = str_contains($exceptionClass, 'App\\Shared\\Exception');
         
         // Exception: ValidationException boleh menampilkan detail error di development
-        $isValidationException = $exception instanceof \App\Shared\Exception\ValidationException;
+        $isValidationException = $exception instanceof ValidationException;
         
         // Debug: Log nilai environment variables yang terbaca
         error_log("Environment Check - APP_ENV: '{$env}', APP_DEBUG: '{$debug}', Is Business Exception: " . ($isBusinessException ? 'YES' : 'NO') . ", Is Validation Exception: " . ($isValidationException ? 'YES' : 'NO'));

@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Persistence\Brand;
 
 use App\Domain\Brand\Entity\Brand;
-use App\Domain\Brand\ValueObject\BrandId;
-use App\Domain\Brand\ValueObject\DetailInfo;
+use App\Domain\Brand\Application\BrandInput;
 use App\Domain\Shared\ValueObject\Status;
 use App\Domain\Brand\Repository\BrandRepositoryInterface;
 use App\Shared\Request\RawParams;
@@ -71,119 +70,60 @@ final readonly class DbBrandRepository implements BrandRepositoryInterface
 
         $rows = $query->all();
 
-        return $this->jsonFieldNormalizer->normalize(
-            data: $rows, 
-            jsonFields: ['detail_info'],
-        );
+        return array_map(fn($row) => Brand::fromArray($row), $rows);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function count(?RawParams $params = null): int
+    public function create(BrandInput $input): Brand
     {
-        $params ??= new RawParams();
-        
-        $query = (new Query($this->db))
-            ->from(self::TABLE);
-
-        $this->applyFilters(
-            query: $query, 
-            filters: $params,
-        );
-
-        return (int) $query->count();
-    }
-
-    
-
-    /**
-     * {@inheritdoc}
-     */
-    public function findById(int $id): ?array
-    {
-        $row = (new Query($this->db))
-            ->select([
-                'id',
-                'name',
-                'status',
-                'detail_info',
-                'sync_mdb',
-            ])
-            ->from(self::TABLE)
-            ->where(['id' => $id])
-            ->one();
-
-        if ($row === false || $row === null) {
-            return null;
-        }
-
-        return $this->jsonFieldNormalizer->normalize(
-            data: $row, 
-            jsonFields: ['detail_info']
-        );
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function findByName(string $name): ?array
-    {
-        $row = (new Query($this->db))
-            ->select(['id', 'name', 'status', 'detail_info', 'sync_mdb'])
-            ->from(self::TABLE)
-            ->where(['LOWER(name)' => strtolower($name)])
-            ->one();
-
-        return $row ? $this->jsonFieldNormalizer->normalize(
-            data: $row, 
-            jsonFields: ['detail_info']
-        ) : null;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function create(string $name, int $status, array $detailInfo = [], ?int $syncMdb = null): array
-    {
-        // Prepare detail_info with audit trail
-        $finalDetailInfo = $this->prepareDetailInfo([], $detailInfo);
-
         $this->db->createCommand()
             ->insert(self::TABLE, [
-                'name'        => $name,
-                'status'      => $status,
-                'detail_info' => $finalDetailInfo,
-                'sync_mdb'    => $syncMdb,
+                'name' => $input->name,
+                'status' => $input->status,
+                'detail_info' => $input->detailInfo,
+                'sync_mdb' => $input->syncMdb,
             ])
             ->execute();
 
         $id = (int) $this->db->getLastInsertID('brand_id_seq');
 
-        $brand = $this->findById(
-            id: $id
+        return new Brand(
+            id: $id,
+            name: $input->name,
+            status: Status::from($input->status),
+            detailInfo: $input->detailInfo,
+            syncMdb: $input->syncMdb
         );
+    }
 
-        if ($brand === null) {
+    public function update(int $id, array $input): void
+    {
+        $affected = $this->db->createCommand()
+            ->update(
+                self::TABLE, 
+                $input, 
+                [
+                    'id' => $id
+                ])
+            ->execute();
+
+        if ($affected === 0) {
             throw new NotFoundException(
                 translate: [
-                    'key' => 'db.not_found',
+                    'key' => 'resource.not_found',
                     'params' => [
                         'resource' => self::RESOURCE,
                         'field' => 'ID',
-                        'value' => $id,
+                        'value' => $id
                     ]
                 ]
             );
         }
-
-        return $brand;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function update(int $id, ?string $name = null, ?int $status = null, array $detailInfo = [], ?int $syncMdb = null): array
+    public function updates(int $id, ?string $name = null, ?int $status = null, array $detailInfo = [], ?int $syncMdb = null): array
     {
         // Build update data
         $updateData = array_filter([
@@ -198,7 +138,7 @@ final readonly class DbBrandRepository implements BrandRepositoryInterface
         if ($existingBrand === null) {
             throw new NotFoundException(
                 translate: [
-                    'key' => 'db.not_found', 
+                    'key' => 'resource.not_found', 
                     'params' => [
                         'resource' => self::RESOURCE,
                         'field' => 'ID',
@@ -226,7 +166,7 @@ final readonly class DbBrandRepository implements BrandRepositoryInterface
         if ($affected === 0) {
             throw new NotFoundException(
                 translate: [
-                    'key' => 'db.not_found', 
+                    'key' => 'resource.not_found', 
                     'params' => [
                         'resource' => self::RESOURCE,
                         'field' => 'ID',
@@ -243,16 +183,85 @@ final readonly class DbBrandRepository implements BrandRepositoryInterface
     /**
      * {@inheritdoc}
      */
-    public function delete(int $id): void
+    public function count(?RawParams $params = null): int
+    {
+        $params ??= new RawParams();
+        
+        $query = (new Query($this->db))
+            ->from(self::TABLE);
+
+        $this->applyFilters(
+            query: $query, 
+            filters: $params,
+        );
+
+        return (int) $query->count();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function findById(int $id): ?Brand
+    {
+        $row = (new Query($this->db))
+            ->select([
+                'id',
+                'name',
+                'status',
+                'detail_info',
+                'sync_mdb',
+            ])
+            ->from(self::TABLE)
+            ->where(['id' => $id])
+            ->one();
+
+        if ($row === false || $row === null) {
+            return null;
+        }
+
+        return Brand::fromArray($row);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function findByName(string $name): ?Brand
+    {
+        $row = (new Query($this->db))
+            ->select(['id', 'name', 'status', 'detail_info', 'sync_mdb'])
+            ->from(self::TABLE)
+            ->where(['LOWER(name)' => strtolower($name)])
+            ->one();
+
+        if (!$row) {
+            return null;
+        }
+
+        return Brand::fromArray($row);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function delete(int $id): bool
     {
         $affected = $this->db->createCommand()
-            ->delete(self::TABLE, ['id' => $id])
-            ->execute();
+            ->update(
+                self::TABLE,
+                [
+                    'status' => StatusEnum::DELETED->value,
+                ],
+                [
+                    'and',
+                    ['id' => $id],
+                    ['<>', 'status', StatusEnum::DELETED->value],
+                ]
+            )->execute();
 
         if ($affected === 0) {
             throw new NotFoundException(
                 translate: [
-                    'key' => 'db.not_found',
+                    'key' => 'resource.not_found',
                     'params' => [
                         'resource' => self::RESOURCE,
                         'field' => 'ID',
@@ -261,6 +270,8 @@ final readonly class DbBrandRepository implements BrandRepositoryInterface
                 ]
             );
         }
+
+        return true;
     }
 
     /**
@@ -320,8 +331,12 @@ final readonly class DbBrandRepository implements BrandRepositoryInterface
      */
     private function buildOrderBy(?string $sortBy, string $sortDir): array
     {
-        $column    = self::ALLOWED_SORT[$sortBy ?? 'id'] ?? 'id';
-        $direction = \strtolower($sortDir) === 'desc' ? SORT_DESC : SORT_ASC;
+        $column = self::ALLOWED_SORT[$sortBy ?? 'id'] ?? 'id';
+        $direction = match(\strtolower($sortDir)) {
+            'desc' => SORT_DESC,
+            'asc' => SORT_ASC,
+            default => SORT_ASC
+        };
 
         return [$column => $direction];
     }

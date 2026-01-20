@@ -10,6 +10,7 @@ abstract class HttpException extends \RuntimeException
         private readonly int $httpStatusCode,
         private readonly array $translate,
         private readonly ?array $errors = null,
+        private readonly ?array $data = null,
         ?\Throwable $previous = null
     ) {
         parent::__construct('', $httpStatusCode, $previous);
@@ -38,5 +39,10 @@ abstract class HttpException extends \RuntimeException
     public function getErrors(): ?array
     {
         return $this->errors;
+    }
+    
+    public function getData(): ?array
+    {
+        return $this->data;
     }
 }

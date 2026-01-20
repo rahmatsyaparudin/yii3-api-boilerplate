@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Api\V1\Brand;
 
 use App\Api\Shared\ResponseFactory;
+use App\Domain\Brand\Application\BrandInput;
 use App\Domain\Brand\Service\BrandService;
 use App\Domain\Brand\Application\BrandInputValidator;
 use App\Domain\Brand\Application\BrandValidator;
@@ -14,10 +15,11 @@ use App\Shared\Helper\FilterHelper;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Http\Status;
+use Yiisoft\Router\CurrentRoute;
 
 final readonly class BrandUpdateAction
 {
-    private const ALLOWED_KEYS = ['name'];
+    private const ALLOWED_KEYS = ['id', 'name', 'status'];
 
     public function __construct(
         private BrandService $service,
@@ -27,16 +29,33 @@ final readonly class BrandUpdateAction
     ) {
     }
 
-    public function __invoke(ServerRequestInterface $request): ResponseInterface
+    public function __invoke(
+        ServerRequestInterface $request,
+        CurrentRoute $currentRoute
+    ): ResponseInterface
     {
         /** @var \App\Shared\Request\RequestParams|null $payload */
         $payload = $request->getAttribute('payload');
+        
+        $id = $currentRoute->getArgument('id');
 
-        if ($payload === null) {
-            return $this->responseFactory->fail('Request parameters not found', httpCode: Status::BAD_REQUEST);
+        if ($id === null) {
+            return $this->responseFactory->fail(
+                translate: [
+                    'key' => 'route.parameter_missing',
+                    'params' => [
+                        'resource' => 'Brand',
+                        'parameter' => 'id',
+                    ]
+                ],
+                httpCode: Status::NOT_FOUND
+            );
         }
 
-        $params = FilterHelper::onlyAllowed($payload->getRawParams(), ['id', 'name', 'status']);
+        $params = FilterHelper::onlyAllowed(
+            filters: $payload->getRawParams(), 
+            allowedKeys: self::ALLOWED_KEYS
+        )->with('id', $id);
 
         $this->inputValidator->validate(
             ValidationContext::UPDATE,
@@ -47,14 +66,19 @@ final readonly class BrandUpdateAction
             data: $params
         );
 
+        $input = new BrandInput(
+            name: $params->name,
+            status: $params->status ? (int) $params->status : null,
+            detailInfo: [],
+        );
+
         $brand = $this->service->update(
-            name: $params->name ?? null,
-            status: $params->status ?? null,
-            id: (int) $params->id,
+            id: intval($id), 
+            input: $input
         );
 
         return $this->responseFactory->success(
-            data: $brand,
+            data: $brand->toArray(),
             translate: [
                 'key' => 'resource.updated',
                 'params' => [

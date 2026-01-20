@@ -25,20 +25,21 @@ trait StatusDelegationTrait
     }
 
     /**
-     * Check if entity can be updated
-     * Delegates to Status value object business rules
-     */
-    public function canBeUpdated(): bool
-    {
-        return $this->status->canBeUpdated();
-    }
-
-    /**
      * Check if entity is available for use
      * Delegates to Status value object business rules
      */
     public function isAvailableForUse(): bool
     {
         return $this->status->isAvailableForUse();
+    }
+
+    public function allowsTransitionTo(): bool
+    {
+        return $this->status->allowsTransitionTo();
+    }
+
+    public function canBeUpdated(): bool
+    {
+        return $this->status->canBeUpdated();
     }
 }

@@ -66,10 +66,13 @@ return [
     'file.too_large' => 'Ukuran file yang diunggah terlalu besar.',
     'file.invalid_type' => 'Tipe file yang diunggah tidak diizinkan.',
 
-    // Resource / DB
-    'db.not_found' => '{resource} dengan {field}: {value} tidak ditemukan.',
+    // Resource
+    'resource.not_found' => '{resource} dengan {field}: {value} tidak ditemukan.',
     'resource.conflict' => 'Terjadi konflik pada {resource}.',
     'resource.already_exists' => '{resource} sudah tersedia.',
+    'resource.cannot_update' => 'Tidak dapat memperbarui {resource}. Perubahan status dari "{current_status}" ke "{status}" tidak diizinkan.',
+    'resource.update_not_allowed_by_status' => 'Perubahan data tidak diizinkan untuk {resource} saat statusnya "{current_status}".',
+    'resource.status_already_set' => 'Tidak dapat memperbarui {resource}. Status sudah "{current_status}".',
 
     // Misc
     'operation.not_allowed' => 'Operasi ini tidak diizinkan.',

@@ -37,6 +37,9 @@ return [
     'pagination.invalid_page' => 'The page value must be a valid number.',
     'pagination.invalid_page_size' => 'The page size value must be valid.',
 
+    // Route
+    'route.field_required' => 'Invalid request. {resource} {field} is required in the URL.',
+
     // Validation
     'validation.failed' => 'Validation failed. Please review the provided data.',
 
@@ -66,10 +69,13 @@ return [
     'file.too_large' => 'The uploaded file exceeds the maximum allowed size.',
     'file.invalid_type' => 'The uploaded file type is not allowed.',
 
-    // Resource / DB
-    'db.not_found' => '{resource} data with {field}: {value} was not found.',
+    // Resource
+    'resource.not_found' => '{resource} data with {field}: {value} was not found.',
     'resource.conflict' => 'A conflict occurred with the {resource}.',
     'resource.already_exists' => 'The {resource} already exists.',
+    'resource.cannot_update' => 'Cannot update {resource}. Status change from "{current_status}" to "{status}" is not allowed.',
+    'resource.update_not_allowed_by_status' => 'Data changes are not allowed for {resource} when its status is "{current_status}".',
+    'resource.status_already_set' => 'Cannot update {resource}. The status is already "{current_status}".',
 
     // Misc
     'operation.not_allowed' => 'This operation is not allowed.',

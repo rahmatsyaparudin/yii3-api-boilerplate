@@ -6,6 +6,7 @@ namespace App\Api\V1\Brand;
 
 use App\Api\Shared\ResponseFactory;
 use App\Domain\Brand\Service\BrandService;
+use App\Domain\Brand\Application\BrandInput;
 use App\Domain\Brand\Application\BrandInputValidator;
 use App\Domain\Brand\Application\BrandValidator;
 use App\Domain\Shared\ValueObject\Status;
@@ -36,9 +37,7 @@ final readonly class BrandCreateAction
         $params = FilterHelper::onlyAllowed(
             filters: $request->getRawParams(),
             allowedKeys: self::ALLOWED_KEYS
-        )->with(
-            'status', StatusEnum::DRAFT->value
-        );
+        )->with('status', StatusEnum::DRAFT->value);
 
         $this->inputValidator->validate(
             context: ValidationContext::CREATE,
@@ -49,14 +48,17 @@ final readonly class BrandCreateAction
             data: $params
         );
 
-        $brand = $this->service->create(
+        $input = new BrandInput(
             name: $params->name,
             status: $params->status,
-            syncMdb: $params->sync_mdb
+            detailInfo: [],
+            syncMdb: null
         );
 
+        $brand = $this->service->create($input);
+
         return $this->responseFactory->success(
-            data: $brand,
+            data: $brand->toArray(),
             translate: [
                 'key' => 'resource.created',
                 'params' => [

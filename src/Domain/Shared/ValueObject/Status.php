@@ -20,6 +20,45 @@ final readonly class Status
     ) {
     }
 
+    private const IMMUTABLE_STATUSES = [
+        StatusEnum::ACTIVE->value,
+        StatusEnum::COMPLETED->value,
+        StatusEnum::DELETED->value,
+    ];
+
+    /**
+     * Allowed status transitions for updates
+     */
+    private const ALLOWED_UPDATE_STATUS_LIST = [
+        StatusEnum::DRAFT->value => [
+            StatusEnum::INACTIVE->value,
+            StatusEnum::ACTIVE->value,
+            StatusEnum::DELETED->value,
+            StatusEnum::MAINTENANCE->value,
+        ],
+        StatusEnum::ACTIVE->value => [
+            StatusEnum::COMPLETED->value,
+            StatusEnum::APPROVED->value,
+            StatusEnum::REJECTED->value,
+        ],
+        StatusEnum::INACTIVE->value => [
+            StatusEnum::ACTIVE->value,
+            StatusEnum::DRAFT->value,
+            StatusEnum::DELETED->value,
+        ],
+        StatusEnum::MAINTENANCE->value => [
+            StatusEnum::INACTIVE->value,
+            StatusEnum::ACTIVE->value,
+            StatusEnum::DRAFT->value,
+            StatusEnum::DELETED->value,
+        ],
+        StatusEnum::APPROVED->value => [
+            StatusEnum::COMPLETED->value,
+            StatusEnum::APPROVED->value,
+            StatusEnum::REJECTED->value,
+        ],
+    ];
+
     // ====== FACTORY METHODS ======
     
     public static function draft(): self
@@ -62,59 +101,25 @@ final readonly class Status
         return new self(StatusEnum::REJECTED);
     }
 
-    public static function fromInt(int $value): self
+    public static function from(int|string $input): self
     {
-        $enum = StatusEnum::from($value);
+        // StatusEnum::from() bisa otomatis handle int atau string
+        $enum = StatusEnum::from($input);
+
         return new self($enum);
     }
-
-    public static function fromString(string $name): self
-    {
-        $enum = StatusEnum::from($name);
-        return new self($enum);
-    }
-
-    // ====== BUSINESS RULES ======
-
-    /**
-     * Allowed status transitions for updates
-     */
-    private const ALLOWED_UPDATE_STATUS_LIST = [
-        StatusEnum::DRAFT->value => [
-            StatusEnum::INACTIVE->value,
-            StatusEnum::ACTIVE->value,
-            StatusEnum::DELETED->value,
-            StatusEnum::MAINTENANCE->value,
-        ],
-        StatusEnum::ACTIVE->value => [
-            StatusEnum::COMPLETED->value,
-            StatusEnum::APPROVED->value,
-            StatusEnum::REJECTED->value,
-        ],
-        StatusEnum::INACTIVE->value => [
-            StatusEnum::ACTIVE->value,
-            StatusEnum::DRAFT->value,
-            StatusEnum::DELETED->value,
-        ],
-        StatusEnum::MAINTENANCE->value => [
-            StatusEnum::INACTIVE->value,
-            StatusEnum::ACTIVE->value,
-            StatusEnum::DRAFT->value,
-            StatusEnum::DELETED->value,
-        ],
-        StatusEnum::APPROVED->value => [
-            StatusEnum::COMPLETED->value,
-            StatusEnum::APPROVED->value,
-            StatusEnum::REJECTED->value,
-        ],
-    ];
 
     /**
      * Check if status allows updates
      */
-    public function canBeUpdated(): bool
+    public function allowsTransitionTo(): bool
     {
         return isset(self::ALLOWED_UPDATE_STATUS_LIST[$this->value()]);
+    }
+
+    public function canBeUpdated(): bool
+    {
+        return !in_array($this->value(), self::IMMUTABLE_STATUSES, true);
     }
 
     /**
@@ -215,9 +220,9 @@ final readonly class Status
      * Get status label directly from integer value
      * Static method for convenience without creating Status object
      */
-    public static function getLabelByValue(int $value): string
+    public static function getLabel(int|string $value): string
     {
-        $status = self::fromInt($value);
+        $status = self::from($value);
         return $status->label();
     }
 

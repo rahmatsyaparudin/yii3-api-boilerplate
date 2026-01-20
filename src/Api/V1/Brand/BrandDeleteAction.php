@@ -11,9 +11,11 @@ use App\Domain\Brand\Application\BrandValidator;
 use App\Shared\Validation\ValidationContext;
 use App\Shared\Constants\StatusEnum;
 use App\Shared\Helper\FilterHelper;
+use App\Shared\Request\RawParams;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Http\Status;
+use Yiisoft\Router\CurrentRoute;
 
 final readonly class BrandDeleteAction
 {
@@ -27,36 +29,49 @@ final readonly class BrandDeleteAction
     ) {
     }
 
-    public function __invoke(ServerRequestInterface $request): ResponseInterface
+    public function __invoke(
+        ServerRequestInterface $request,
+        CurrentRoute $currentRoute
+    ): ResponseInterface
     {
         /** @var \App\Shared\Request\RequestParams|null $payload */
         $payload = $request->getAttribute('payload');
+        
+        $id = $currentRoute->getArgument('id');
+        if ($id === null) {
+            return $this->responseFactory->fail(
+                translate: [
+                    'key' => 'route.parameter_missing',
+                    'params' => [
+                        'resource' => 'Brand',
+                        'parameter' => 'id',
+                    ]
+                ],
+                httpCode: Status::NOT_FOUND
+            );
+        }
 
-        // if ($payload === null) {
-        //     return $this->responseFactory->fail('Request parameters not found', httpCode: Status::BAD_REQUEST);
-        // }
-
-        $params = FilterHelper::onlyAllowed($payload->getRawParams(), self::ALLOWED_KEYS);
+        $params = new RawParams([
+            'id' => $id,
+        ]);
 
         $this->inputValidator->validate(
             ValidationContext::DELETE,
             $params
         );
 
-        $this->brandValidator->validateForUpdate(
-            data: $params
-        );
+        // Validate using entity business rules
+        $this->brandValidator->validateForDelete($params);
 
-        $brand = $this->service->update(
-            name: $params->name,
-            status: $params->status,
-            id: (int) $params->id,
+        // Perform soft delete by updating status
+        $brandData = $this->service->delete(
+            id: (int) $id,
         );
 
         return $this->responseFactory->success(
-            data: $brand,
+            data: $brandData,
             translate: [
-                'key' => 'resource.updated',
+                'key' => 'resource.deleted',
                 'params' => [
                     'resource' => 'Brand',
                 ]

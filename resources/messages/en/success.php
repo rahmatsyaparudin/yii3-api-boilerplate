@@ -19,6 +19,7 @@ return [
     'resource.restored' => '{resource} restored successfully',
     'resource.list_retrieved' => '{resource} list retrieved successfully',
     'resource.details_retrieved' => '{resource} details retrieved successfully',
+    'resource.no_changes_detected' => 'The data for {resource} has not changed. The submitted data does not contain any changes.',
     
     // Specific Operations (non-CRUD)
     'user.activated' => 'User activated successfully',

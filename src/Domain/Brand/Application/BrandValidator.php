@@ -42,7 +42,7 @@ final class BrandValidator
     {
         // Status validation
         if ($data->status !== null) {
-            $status = Status::fromInt($data->status);
+            $status = Status::from($data->status);
             if (!$status->isValidForCreation()) {
                 throw new ValidationException(
                     errors: [
@@ -82,7 +82,7 @@ final class BrandValidator
         if ($brand === null) {
             throw new NotFoundException(
                 translate: [
-                    'key' => 'db.not_found',
+                    'key' => 'resource.not_found',
                     'params' => [
                         'resource' => self::RESOURCE,
                         'field' => 'ID',
@@ -92,51 +92,19 @@ final class BrandValidator
             );
         }
 
-
         // Unique field validation
-        if ($data->name && $data->name !== $brand['name']) {
+        if ($data->name && $data->name !== $brand->name()) {
             $this->validateUniqueField(
                 data: $data,
                 uniqueFieldValidator: $this->uniqueFieldValidator,
                 repository: $this->repository,
                 field: 'name',
-                excludeId: $brand['id']
+                excludeId: $brand->id()
             );
         }
 
-        // Business rules validation - check status directly from array
-        $status = Status::fromInt($brand['status']);
-        if ($status->isCompleted() || $status->isDeleted()){
-            throw new ValidationException(
-                errors: [
-                    'brand' => $this->translator->translate(
-                        'status.forbid_update', 
-                        [
-                            'resource' => self::RESOURCE,
-                            'status' => Status::getLabelByValue($brand['status']),
-                            'current_status' => Status::getLabelByValue($data->status ?? $brand['status']),
-                        ], 
-                        'validation'
-                    )
-                ]
-            );
-        }
-
-        if (!$status->canBeUpdated()) {
-            throw new ValidationException(
-                errors: [
-                    'brand' => $this->translator->translate(
-                        'status.cannot_update', 
-                        [
-                            'resource' => self::RESOURCE,
-                            'status' => Status::getLabelByValue($brand['status']),
-                            'current_status' => Status::getLabelByValue($data->status ?? $brand['status']),
-                        ], 
-                        'validation'
-                    )
-                ]
-            );
-        }
+        // Business rules validation - use trait method
+        $this->validateStatusForUpdate($brand->toArray(), $data, self::RESOURCE);
     }
 
     /**

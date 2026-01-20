@@ -8,6 +8,11 @@ use App\Shared\Request\PaginationParams;
 use App\Shared\Request\SortParams;
 use Psr\Http\Message\ServerRequestInterface;
 
+/**
+ * Simple Request Parameters
+ * 
+ * Simplified version focusing on essential functionality
+ */
 final readonly class RequestParams
 {
     private const DEFAULT_PAGE_SIZE = 50;
@@ -16,7 +21,7 @@ final readonly class RequestParams
     private const DEFAULT_SORT_DIR = 'asc';
 
     private RawParams $rawParams;
-    private RawParams $query;
+    private RawParams $filter;
     private PaginationParams $pagination;
     private SortParams $sort;
 
@@ -28,59 +33,32 @@ final readonly class RequestParams
         $rawData = $parser->all();
         $this->rawParams = new RawParams($rawData);
         
-        $this->query = $this->createQueryParams($rawData);
-        $this->pagination = $this->createPaginationParams($rawData, $parser, $defaultPageSize, $maxPageSize);
-        $this->sort = $this->createSortParams($rawData, $parser);
-    }
-
-    private function createQueryParams(array $rawParams): RawParams
-    {
-        $queryData = $rawParams['query'] ?? [];
-        return new RawParams($queryData);
-    }
-
-    private function createPaginationParams(
-        array $rawParams,
-        RequestDataParser $parser,
-        int $defaultPageSize,
-        int $maxPageSize
-    ): PaginationParams {
-        $paginationData = $rawParams['pagination'] ?? [];
+        // Extract filter parameters
+        $filterData = $rawData['filter'] ?? [];
+        $this->filter = new RawParams($filterData);
         
-        $page = $this->normalizePage($paginationData['page'] ?? $parser->get('page', self::DEFAULT_PAGE));
-        $pageSize = $this->normalizePageSize(
-            $paginationData['page_size'] ?? $parser->get('page_size', $defaultPageSize),
-            $maxPageSize
-        );
-
-        return new PaginationParams(page: $page, page_size: $pageSize);
-    }
-
-    private function createSortParams(array $rawParams, RequestDataParser $parser): SortParams
-    {
-        $sortData = $rawParams['sort'] ?? [];
+        // Simple pagination
+        $page = max(self::DEFAULT_PAGE, (int) ($rawData['page'] ?? self::DEFAULT_PAGE));
+        $pageSize = max(1, min($maxPageSize, (int) ($rawData['page_size'] ?? $defaultPageSize)));
+        $this->pagination = new PaginationParams(page: $page, page_size: $pageSize);
         
-        return new SortParams(
+        // Simple sort
+        $sortData = $rawData['sort'] ?? [];
+        $this->sort = new SortParams(
             by: $sortData['by'] ?? null,
             dir: $sortData['dir'] ?? self::DEFAULT_SORT_DIR
         );
     }
 
-    private function normalizePage(mixed $page): int
-    {
-        return max(self::DEFAULT_PAGE, (int) $page);
-    }
-
-    private function normalizePageSize(mixed $pageSize, int $maxPageSize): int
-    {
-        $normalized = (int) $pageSize;
-        return max(1, min($maxPageSize, $normalized));
-    }
-
     // ====== MAIN GETTERS ======
-    public function getQuery(): RawParams
+    public function getRawParams(): RawParams
     {
-        return $this->query;
+        return $this->rawParams;
+    }
+
+    public function getFilter(): RawParams
+    {
+        return $this->filter;
     }
 
     public function getPagination(): PaginationParams
@@ -91,11 +69,6 @@ final readonly class RequestParams
     public function getSort(): SortParams
     {
         return $this->sort;
-    }
-
-    public function getRawParams(): RawParams
-    {
-        return $this->rawParams;
     }
 
     public function getPage(): int
@@ -113,32 +86,28 @@ final readonly class RequestParams
         return $this->pagination->getOffset();
     }
 
-    public function getParams(): array
+    // ====== CONVENIENCE METHODS ======
+    public function get(string $key, mixed $default = null): mixed
     {
-        return array_diff_key($this->rawParams, array_flip(['query', 'pagination', 'sort']));
+        return $this->rawParams->get($key, $default);
+    }
+
+    public function has(string $key): bool
+    {
+        return $this->rawParams->has($key);
+    }
+
+    public function all(): array
+    {
+        return $this->rawParams->all();
     }
 
     public function withTotal(): bool
     {
-        return ($this->rawParams['with_total'] ?? '0') !== '0';
+        return ($this->rawParams->get('with_total') ?? '0') !== '0';
     }
 
-    // ====== UTILITY METHODS ======
-    public function hasQuery(string $key): bool
-    {
-        return $this->query->has($key);
-    }
-
-    public function hasPagination(string $key): bool
-    {
-        return array_key_exists($key, $this->pagination->toArray());
-    }
-
-    public function hasSort(string $key): bool
-    {
-        return array_key_exists($key, $this->sort->toArray());
-    }
-
+    // ====== STATIC FACTORY ======
     public static function fromRequest(ServerRequestInterface $request, string $attribute = 'payload'): self
     {
         $params = $request->getAttribute($attribute);
@@ -147,5 +116,17 @@ final readonly class RequestParams
         }
 
         return $params;
+    }
+
+    // ====== STATIC CREATION ======
+    public static function from(array $data, int $defaultPageSize = self::DEFAULT_PAGE_SIZE, int $maxPageSize = self::MAX_PAGE_SIZE): self
+    {
+        $parser = new class($data) {
+            public function __construct(private array $data) {}
+            public function all(): array { return $this->data; }
+            public function get(string $key, mixed $default = null): mixed { return $this->data[$key] ?? $default; }
+        };
+
+        return new self($parser, $defaultPageSize, $maxPageSize);
     }
 }

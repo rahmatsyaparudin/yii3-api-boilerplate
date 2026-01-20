@@ -19,6 +19,7 @@ return [
     'resource.restored' => '{resource} berhasil dipulihkan',
     'resource.list_retrieved' => '{resource} berhasil diambil',
     'resource.details_retrieved' => '{resource} berhasil diambil',
+    'resource.no_changes_detected' => 'Data untuk {resource} tidak berubah. Data yang dikirim tidak mengandung perubahan.',
     
     // Specific Operations (non-CRUD)
     'user.activated' => 'Pengguna berhasil diaktifkan',

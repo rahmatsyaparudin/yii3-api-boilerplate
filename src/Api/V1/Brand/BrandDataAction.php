@@ -29,12 +29,20 @@ final readonly class BrandDataAction
         /** @var \App\Shared\Request\RequestParams $payload */
         $payload = $request->getAttribute('payload');
 
-        $query = $payload->getQuery(); 
+        $filter = $payload->getFilter(); 
         $pagination = $payload->getPagination();
         $sort = $payload->getSort();
 
+
+        // Input validation (format validation)
+        $this->inputValidator->validate(
+            ValidationContext::SEARCH,
+            $filter
+        );
+
+        // Business validation
         $validationPayload = new RawParams([
-            'query' => $query->toArray(),
+            'filter' => $filter->toArray(),
             'pagination' => $pagination->toArray(),
             'sort' => $sort->toArray(),
         ]);
@@ -44,7 +52,7 @@ final readonly class BrandDataAction
         );
 
         $brands = $this->service->list(
-            params: $query,
+            params: $filter,
             pagination: $pagination,
             sort: $sort,
         );
@@ -67,7 +75,7 @@ final readonly class BrandDataAction
                     'by' => $sort->by,
                     'dir' => $sort->dir,
                 ],
-                'query' => $query->toArray(),
+                'filter' => $filter->toArray(),
             ],
         );
     }
