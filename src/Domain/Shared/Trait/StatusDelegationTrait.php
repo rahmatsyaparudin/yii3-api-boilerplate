@@ -33,9 +33,9 @@ trait StatusDelegationTrait
         return $this->status->isAvailableForUse();
     }
 
-    public function allowsTransitionTo(): bool
+    public function allowsTransitionTo(Status $newStatus): bool
     {
-        return $this->status->allowsTransitionTo();
+        return $this->status->allowsTransitionTo($newStatus);
     }
 
     public function canBeUpdated(): bool

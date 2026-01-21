@@ -6,6 +6,7 @@ namespace App\Shared\Middleware;
 
 use App\Infrastructure\Security\CurrentUser;
 use App\Shared\Exception\ForbiddenException;
+use App\Shared\ValueObject\Message;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -51,10 +52,9 @@ final class AccessMiddleware implements MiddlewareInterface
 
         if ($actor === null) {
             throw new ForbiddenException(
-                translate: [
-                    'key' => 'access.insufficient_permissions',
-                    'params' => []
-                ]
+                translate: new Message(
+                    key: 'access.insufficient_permissions'
+                )
             );
         }
 
@@ -66,10 +66,9 @@ final class AccessMiddleware implements MiddlewareInterface
 
         if (!$allowed) {
             throw new ForbiddenException(
-                translate: [
-                    'key' => 'access.insufficient_permissions',
-                    'params' => []
-                ]
+                translate: new Message(
+                    key: 'access.insufficient_permissions'
+                )
             );
         }
 

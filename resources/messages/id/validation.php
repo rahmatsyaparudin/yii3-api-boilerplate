@@ -8,106 +8,111 @@ declare(strict_types=1);
  */
 return [
     // Required
-    'required' => '{field} wajib diisi',
-    'required_if' => '{field} wajib diisi ketika {other} adalah {value}',
-    'required_unless' => '{field} wajib diisi kecuali {other} adalah {value}',
-    'required_with' => '{field} wajib diisi ketika {other} ada',
-    'required_without' => '{field} wajib diisi ketika {other} tidak ada',
-    'filled' => '{field} harus memiliki nilai ketika ada',
-    'present' => 'Field {field} harus ada',
+    'required' => 'Kolom {resource} wajib diisi',
+    'required.if' => 'Kolom {resource} wajib diisi jika {other} adalah {value}',
+    'required.unless' => 'Kolom {resource} wajib diisi kecuali {other} adalah {value}',
+    'required.with' => 'Kolom {resource} wajib diisi jika terdapat {other}',
+    'required.without' => 'Kolom {resource} wajib diisi jika tidak terdapat {other}',
+    'filled' => 'Kolom {resource} tidak boleh kosong',
+    'present' => 'Kolom {resource} harus tersedia',
     
-    // String
-    'string' => '{field} harus berupa teks',
-    'min_length' => '{field} minimal {min} karakter',
-    'max_length' => '{field} maksimal {max} karakter',
-    'length' => '{field} harus tepat {length} karakter',
-    'length_between' => '{field} harus antara {min} dan {max} karakter',
-    'alpha' => '{field} hanya boleh berisi huruf',
-    'alpha_num' => '{field} hanya boleh berisi huruf dan angka',
-    'alpha_dash' => '{field} hanya boleh berisi huruf, angka, strip dan garis bawah',
-    'starts_with' => '{field} harus dimulai dengan: {values}',
-    'ends_with' => '{field} harus diakhiri dengan: {values}',
-    'lowercase' => '{field} harus huruf kecil',
-    'uppercase' => '{field} harus huruf besar',
+    // String Prefix
+    'string.invalid' => 'Kolom {field} harus berupa teks',
+    'string.min' => 'Kolom {field} minimal harus {min} karakter',
+    'string.max' => 'Kolom {field} maksimal {max} karakter',
+    'string.length' => 'Kolom {field} harus tepat {length} karakter',
+    'string.between' => 'Kolom {field} harus antara {min} dan {max} karakter',
+    'string.alpha' => 'Kolom {field} hanya boleh berisi huruf',
+    'string.alpha_num' => 'Kolom {field} hanya boleh berisi huruf dan angka',
+    'string.alpha_dash' => 'Kolom {field} hanya boleh berisi huruf, angka, strip, dan garis bawah',
+    'string.starts_with' => 'Kolom {field} harus dimulai dengan: {values}',
+    'string.ends_with' => 'Kolom {field} harus diakhiri dengan: {values}',
+    'string.lowercase' => 'Kolom {field} harus menggunakan huruf kecil',
+    'string.uppercase' => 'Kolom {field} harus menggunakan huruf besar',
     
-    // Numeric
-    'numeric' => '{field} harus berupa angka',
-    'integer' => '{field} harus berupa bilangan bulat',
-    'decimal' => '{field} harus berupa angka desimal',
-    'min_value' => '{field} minimal {min}',
-    'max_value' => '{field} maksimal {max}',
-    'between' => '{field} harus antara {min} dan {max}',
-    'positive' => '{field} harus berupa angka positif',
-    'negative' => '{field} harus berupa angka negatif',
-    'divisible_by' => '{field} harus dapat dibagi dengan {divisor}',
+    // Number Prefix
+    'number.invalid' => 'Kolom {field} harus berupa angka',
+    'number.integer' => 'Kolom {field} harus berupa bilangan bulat',
+    'number.decimal' => 'Kolom {field} harus berupa angka desimal',
+    'number.min' => 'Nilai kolom {field} minimal harus {min}',
+    'number.max' => 'Nilai kolom {field} maksimal {max}',
+    'number.between' => 'Nilai kolom {field} harus di antara {min} dan {max}',
+    'number.positive' => 'Kolom {field} harus berupa angka positif',
+    'number.negative' => 'Kolom {field} harus berupa angka negatif',
+    'number.divisible_by' => 'Kolom {field} harus habis dibagi dengan {divisor}',
     
     // Format
-    'email' => '{field} harus berupa alamat email yang valid',
-    'url' => '{field} harus berupa URL yang valid',
-    'ip' => '{field} harus berupa alamat IP yang valid',
-    'ipv4' => '{field} harus berupa alamat IPv4 yang valid',
-    'ipv6' => '{field} harus berupa alamat IPv6 yang valid',
-    'mac_address' => '{field} harus berupa alamat MAC yang valid',
-    'uuid' => '{field} harus berupa UUID yang valid',
-    'json' => '{field} harus berupa string JSON yang valid',
-    'regex' => 'Format {field} tidak valid',
+    'format.email' => 'Kolom {field} harus berupa alamat email yang valid',
+    'format.url' => 'Kolom {field} harus berupa URL yang valid',
+    'format.ip' => 'Kolom {field} harus berupa alamat IP yang valid',
+    'format.ipv4' => 'Kolom {field} harus berupa alamat IPv4 yang valid',
+    'format.ipv6' => 'Kolom {field} harus berupa alamat IPv6 yang valid',
+    'format.mac_address' => 'Kolom {field} harus berupa alamat MAC yang valid',
+    'format.uuid' => 'Kolom {field} harus berupa UUID yang valid',
+    'format.json' => 'Kolom {field} harus berupa string JSON yang valid',
+    'format.regex' => 'Format kolom {field} tidak valid',
     
     // Date & Time
-    'date' => '{field} harus berupa tanggal yang valid',
-    'date_format' => '{field} harus sesuai format {format}',
-    'before' => '{field} harus tanggal sebelum {date}',
-    'after' => '{field} harus tanggal setelah {date}',
-    'before_or_equal' => '{field} harus tanggal sebelum atau sama dengan {date}',
-    'after_or_equal' => '{field} harus tanggal setelah atau sama dengan {date}',
-    'timezone' => '{field} harus berupa zona waktu yang valid',
+    'date.invalid' => 'Kolom {field} harus berupa tanggal yang valid',
+    'date.format' => 'Kolom {field} harus sesuai dengan format {format}',
+    'date.before' => 'Kolom {field} harus berupa tanggal sebelum {date}',
+    'date.after' => 'Kolom {field} harus berupa tanggal setelah {date}',
+    'date.before_or_equal' => 'Kolom {field} harus berupa tanggal sebelum atau sama dengan {date}',
+    'date.after_or_equal' => 'Kolom {field} harus berupa tanggal setelah atau sama dengan {date}',
+    'date.timezone' => 'Kolom {field} harus berupa zona waktu yang valid',
     
-    // File & Upload
-    'file' => '{field} harus berupa file',
-    'image' => '{field} harus berupa gambar',
-    'mimes' => '{field} harus berupa file dengan tipe: {types}',
-    'mimetypes' => '{field} harus berupa file dengan tipe: {types}',
-    'file_size' => '{field} tidak boleh lebih dari {size} KB',
-    'file_min_size' => '{field} minimal {size} KB',
-    'dimensions' => '{field} memiliki dimensi gambar yang tidak valid',
-    'min_width' => '{field} minimal {width} piksel lebarnya',
-    'max_width' => '{field} maksimal {width} piksel lebarnya',
-    'min_height' => '{field} minimal {height} piksel tingginya',
-    'max_height' => '{field} maksimal {height} piksel tingginya',
+    // File Prefix
+    'file.invalid' => 'Kolom {resource} harus berupa berkas yang valid',
+    'file.mimes' => 'Kolom {resource} harus berupa berkas dengan tipe: {types}',
+    'file.mimetypes' => 'Kolom {resource} harus berupa berkas dengan tipe: {types}',
+    'file.max_size' => 'Ukuran {resource} tidak boleh lebih dari {size} KB',
+    'file.min_size' => 'Ukuran {resource} minimal harus {size} KB',
     
-    // Comparison
-    'same' => '{field} harus sama dengan {other}',
-    'different' => '{field} harus berbeda dari {other}',
-    'confirmed' => 'Konfirmasi {field} tidak cocok',
-    'in' => '{field} yang dipilih tidak valid',
-    'not_in' => '{field} yang dipilih tidak valid',
+    // Image Prefix
+    'image.invalid' => 'Kolom {resource} harus berupa gambar',
+    'image.dimensions' => 'Dimensi gambar {resource} tidak valid',
+    'image.min_width' => 'Lebar {resource} minimal harus {width} piksel',
+    'image.max_width' => 'Lebar {resource} tidak boleh lebih dari {width} piksel',
+    'image.min_height' => 'Tinggi {resource} minimal harus {height} piksel',
+    'image.max_height' => 'Tinggi {resource} tidak boleh lebih dari {height} piksel',
     
-    // Boolean
-    'boolean' => '{field} harus bernilai benar atau salah',
-    'accepted' => '{field} harus diterima',
-    'declined' => '{field} harus ditolak',
+    // Comparison Prefix
+    'compare.same' => 'Kolom {resource} harus sama dengan {other}',
+    'compare.different' => 'Kolom {resource} harus berbeda dengan {other}',
+    'compare.confirmed' => 'Konfirmasi {resource} tidak cocok',
+    'compare.in' => '{resource} yang dipilih tidak valid',
+    'compare.not_in' => '{resource} yang dipilih tidak valid',
     
-    // Array
-    'array' => '{field} harus berupa array',
-    'array_min' => '{field} minimal harus memiliki {min} item',
-    'array_max' => '{field} tidak boleh lebih dari {max} item',
-    'array_between' => '{field} harus memiliki antara {min} dan {max} item',
-    'distinct' => '{field} memiliki nilai duplikat',
+    // Boolean Prefix
+    'boolean.invalid' => 'Kolom {resource} harus bernilai true atau false',
+    'boolean.accepted' => 'Kolom {resource} harus disetujui',
+    'boolean.declined' => 'Kolom {resource} harus ditolak',
     
-    // Existence
-    'exists' => '{field} yang dipilih tidak valid',
-    'unique' => '{field} sudah digunakan',
+    // Array Prefix
+    'array.invalid' => 'Kolom {resource} harus berupa array',
+    'array.min' => 'Kolom {resource} minimal harus memiliki {min} item',
+    'array.max' => 'Kolom {resource} tidak boleh memiliki lebih dari {max} item',
+    'array.between' => 'Kolom {resource} harus memiliki antara {min} dan {max} item',
+    'array.distinct' => 'Kolom {resource} memiliki nilai duplikat',
     
-    // Special
-    'nullable' => '{field} boleh kosong',
-    'prohibited' => 'Field {field} dilarang',
-    'prohibited_if' => '{field} dilarang ketika {other} adalah {value}',
-    'prohibited_unless' => '{field} dilarang kecuali {other} adalah {value}',
+    // Existence Prefix
+    'exists.invalid' => '{resource} yang dipilih tidak ditemukan',
+    'exists.unique' => '{resource} sudah digunakan',
+    'exists.already_exists' => '{resource} dengan nilai "{value}" sudah ada sebelumnya',
+    'exists.cannot_delete_active' => 'Tidak dapat menghapus {resource} yang masih aktif',
 
-    'cannot_delete_active' => 'Tidak dapat menghapus {resource} yang sedang aktif',
-    'already_exists' => '{resource} dengan nilai "{value}" sudah ada',
+    // Special Prefix
+    'special.nullable' => 'Kolom {resource} boleh kosong (null)',
+    'special.prohibited' => 'Kolom {resource} dilarang untuk diisi',
+    'special.prohibited_if' => 'Kolom {resource} dilarang diisi jika {other} adalah {value}',
+    'special.prohibited_unless' => 'Kolom {resource} dilarang diisi kecuali {other} adalah {value}',
 
-    // Field Status for Data 
-    'status.forbid_update' => 'Data {resource} dengan status "{status}" tidak dapat dilakukan pembaruan.',
-    'status.cannot_update' => 'Tidak dapat mengubah status {resource} dari "{current_status}" menjadi "{status}".',
-    'status.invalid_on_creation' => '{resource} harus dalam status "active" atau "draft" saat proses pembuatan.'
+    // Status Prefix
+    'status.forbid_update' => 'Data {resource} dengan status "{status}" tidak dapat diperbarui',
+    'status.invalid_transition' => 'Tidak dapat memperbarui {resource} dari status "{status}" ke "{current_status}"',
+    'status.invalid_on_creation' => '{resource} harus berstatus "active" atau "draft" untuk melanjutkan pembuatan',
+    'status.cannot_delete' => 'Tidak dapat menghapus {resource} dengan status "{status}"',
+
+    // Request Prefix
+    'request.unknown_parameters' => 'Parameter tidak dikenal: {unknown_keys}. Parameter yang diizinkan: {allowed_keys}',
 ];

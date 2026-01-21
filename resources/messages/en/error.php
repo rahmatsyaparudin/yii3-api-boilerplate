@@ -3,91 +3,104 @@
 declare(strict_types=1);
 
 return [
-    // Generic HTTP / API
-    'bad_request' => 'The request is invalid or malformed.',
-    'unauthorized' => 'Authentication is required or has failed.',
-    'forbidden' => 'You do not have permission to access this resource.',
-    'not_found' => 'The requested resource was not found.',
-    'method_not_allowed' => 'The HTTP method used is not allowed for this endpoint.',
-    'unsupported_media_type' => 'The request media type is not supported.',
-    'too_many_requests' => 'Too many requests have been sent in a short period of time.',
-    'internal_error' => 'An internal server error occurred.',
-    'service_unavailable' => 'The service is temporarily unavailable.',
+    // HTTP Prefix (Generic API Errors)
+    'http.bad_request' => 'The request is invalid or malformed',
+    'http.unauthorized' => 'Authentication is required or has failed',
+    'http.forbidden' => 'You do not have permission to access this resource',
+    'http.not_found' => 'The requested resource was not found',
+    'http.method_not_allowed' => 'The HTTP method is not allowed for this endpoint',
+    'http.unsupported_media_type' => 'The requested media type is not supported',
+    'http.too_many_requests' => 'Too many requests. Please try again later',
+    'http.internal_error' => 'An internal server error occurred',
+    'http.service_unavailable' => 'The service is temporarily unavailable',
 
-    // Authentication / Authorization
-    'auth.authorization_header_missing' => 'The Authorization header is missing.',
-    'auth.invalid_token' => 'The access token is invalid or has expired.',
-    'auth.invalid_issuer' => 'The token issuer is not valid.',
-    'auth.invalid_audience' => 'The token audience is not valid.',
-    'auth.missing_claim' => 'The token is missing a required claim: {claim}.',
+    // Security Prefix
+    'security.host_not_allowed' => 'Access denied: Host not allowed',
 
-    // Request / Payload
-    'request.invalid_json' => 'The request body contains invalid JSON.',
-    'request.invalid_body' => 'The request body is invalid or improperly formatted.',
-    'request.missing_parameter' => 'The required parameter is missing: {param}.',
-    'request.invalid_parameter' => 'The parameter value is invalid: {param}.',
-    'request.host_not_allowed' => 'The request host is not allowed: {host}.',
-    'request.origin_not_allowed' => 'The request origin is not allowed: {origin}.',
+    // Auth Prefix (Infrastructure Level)
+    'auth.header_missing' => 'Authorization header is missing',
+    'auth.invalid_token' => 'Access token is invalid or has expired',
+    'auth.invalid_issuer' => 'The token issuer is invalid',
+    'auth.invalid_audience' => 'The token audience is invalid',
+    'auth.missing_claim' => 'The token is missing a required claim: {claim}',
 
-    // Filtering / Sorting / Pagination
-    'filter.invalid_keys' => 'The request contains unsupported field(s): {keys}.',
-    'filter.not_allowed' => 'Filtering by this field is not allowed: {filter}.',
-    'sort.invalid_field' => 'The specified sort field is invalid: {field}.',
-    'sort.invalid_direction' => 'The specified sort direction is invalid: {direction}.',
-    'pagination.invalid_page' => 'The page value must be a valid number.',
-    'pagination.invalid_page_size' => 'The page size value must be valid.',
+    // Request Prefix
+    'request.invalid_json' => 'The request body contains invalid JSON',
+    'request.invalid_body' => 'The request body is invalid or malformed',
+    'request.missing_parameter' => 'Required parameter is missing: {param}',
+    'request.invalid_parameter' => 'The parameter value is invalid: {param}',
+    'request.host_not_allowed' => 'The host is not allowed: {host}',
+    'request.origin_not_allowed' => 'The origin is not allowed: {origin}',
 
+    // Filtering
+    'filter.invalid_keys' => 'The request contains unsupported filter field(s): {keys}',
+    'filter.not_allowed' => 'Filtering by the field "{filter}" is not allowed',
+    
+    // Sorting
+    'sort.invalid_field' => 'The specified sort field "{field}" is invalid or not allowed',
+    'sort.invalid_direction' => 'The sort direction "{direction}" is invalid. Use "asc" or "desc"',
+    
+    // Pagination
+    'pagination.invalid_page' => 'The page number must be a valid positive integer',
+    'pagination.invalid_limit' => 'The page size value is invalid',
+    'pagination.invalid_page_size' => 'The page size value is invalid',
+    'pagination.invalid_parameter' => 'Invalid "{parameter}" parameter',
+    
     // Route
-    'route.field_required' => 'Invalid request. {resource} {field} is required in the URL.',
+    'route.field_required' => 'Invalid request. {resource} {field} is required in the URL',
+    'route.parameter_missing' => '{resource} {parameter} parameter is required in the URL',
 
     // Validation
-    'validation.failed' => 'Validation failed. Please review the provided data.',
+    'validation.failed' => 'Validation failed. Please review the provided data',
 
-    // Data type / format (generic, reusable)
-    'type.string' => '{field} must be a string.',
-    'type.integer' => '{field} must be an integer.',
-    'type.numeric' => '{field} must be a numeric value.',
-    'type.boolean' => '{field} must be a boolean value.',
-    'type.array' => '{field} must be an array.',
-    'type.object' => '{field} must be an object.',
+    // Data type (Prefix 'type.')
+    'type.string' => 'The {field} field must be a string',
+    'type.integer' => 'The {field} field must be an integer',
+    'type.numeric' => 'The {field} field must be a numeric value',
+    'type.boolean' => 'The {field} field must be a boolean value',
+    'type.array' => 'The {field} field must be an array',
+    'type.object' => 'The {field} field must be an object',
 
-    'format.email' => '{field} must be a valid email address.',
-    'format.url' => '{field} must be a valid URL.',
-    'format.uuid' => '{field} must be a valid UUID.',
-    'format.date' => '{field} must be a valid date.',
-    'format.datetime' => '{field} must be a valid date and time.',
-    'format.json' => '{field} must contain valid JSON.',
+    // Format (Prefix 'format.')
+    'format.email' => 'The {field} field must be a valid email address',
+    'format.url' => 'The {field} field must be a valid URL',
+    'format.uuid' => 'The {field} field must be a valid UUID',
+    'format.date' => 'The {field} field must be a valid date',
+    'format.datetime' => 'The {field} field must be a valid date and time',
+    'format.json' => 'The {field} field must contain valid JSON',
 
-    // Range / length
-    'range.min' => '{field} must be greater than or equal to {min}.',
-    'range.max' => '{field} must be less than or equal to {max}.',
-    'length.min' => '{field} must contain at least {min} characters.',
-    'length.max' => '{field} must not exceed {max} characters.',
+    // Range & Length
+    'range.min' => 'The {field} field must be greater than or equal to {min}',
+    'range.max' => 'The {field} field must be less than or equal to {max}',
+    'length.min' => 'The {field} field must contain at least {min} characters',
+    'length.max' => 'The {field} field must not exceed {max} characters',
 
-    // File / upload
-    'file.invalid' => 'The uploaded file is invalid.',
-    'file.too_large' => 'The uploaded file exceeds the maximum allowed size.',
-    'file.invalid_type' => 'The uploaded file type is not allowed.',
+    // File
+    'file.invalid' => 'The uploaded file is invalid',
+    'file.too_large' => 'The uploaded file exceeds the maximum allowed size',
+    'file.invalid_type' => 'The uploaded file type is not allowed',
 
-    // Resource
-    'resource.not_found' => '{resource} data with {field}: {value} was not found.',
-    'resource.conflict' => 'A conflict occurred with the {resource}.',
-    'resource.already_exists' => 'The {resource} already exists.',
-    'resource.cannot_update' => 'Cannot update {resource}. Status change from "{current_status}" to "{status}" is not allowed.',
-    'resource.update_not_allowed_by_status' => 'Data changes are not allowed for {resource} when its status is "{current_status}".',
-    'resource.status_already_set' => 'Cannot update {resource}. The status is already "{current_status}".',
+    // Resource (Business Logic)
+    'resource.not_found' => '{resource} data with {field}: {value} was not found',
+    'resource.conflict' => 'A conflict occurred with the {resource}',
+    'resource.already_exists' => 'The {resource} already exists',
+    'resource.cannot_update' => 'Cannot update {resource}. Status change from "{current_status}" to "{status}" is not allowed',
+    'resource.update_not_allowed_by_status' => 'Data changes are not allowed for {resource} when its status is "{current_status}"',
+    'resource.status_already_set' => 'Cannot update {resource}. The status is already "{current_status}"',
 
-    // Misc
-    'operation.not_allowed' => 'This operation is not allowed.',
+    // Access & Rate Limit
+    'operation.not_allowed' => 'This operation is not allowed',
+    'access.denied' => 'Access to this resource is denied',
+    'access.insufficient_permissions' => 'You do not have sufficient permissions to perform this action',
+    'access.auth_required' => 'Authentication is required to access this resource',
+    'rate_limit.exceeded' => 'Too many requests. Please try again after {seconds} seconds',
+    'rate_limit.try_again' => 'Please try again in {seconds} seconds',
 
-    'access.denied' => 'Access to this resource is denied.',
-    'access.insufficient_permissions' => 'You do not have sufficient permissions to perform this action.',
-    'access.auth_required' => 'Authentication is required to access this resource.',
+    'business.violation' => 'Business rule violation: {reason}',
+    'business.limit_reached' => 'Limit {resource} reached',
+    'business.requirement_unmet' => 'Requirement not met: {reason}',
 
-    'rate_limit.exceeded' => 'Too many requests. Please try again after {seconds} seconds.',
-    'rate_limit.try_again' => 'Please try again in {seconds} seconds.',
-
-    'brand.name_already_exists' => 'Brand dengan nama "{name}" sudah ada.',
-    'brand.name_min_length' => 'Nama brand harus minimal 3 karakter.',
-    'brand.cannot_delete_active' => 'Tidak dapat menghapus brand yang aktif.',
+    'service.error' => 'Failed to process request: {reason}',
+    'service.unavailable' => 'Service "{service}" is unavailable',
+    'service.failed' => 'The service process failed',
 ];

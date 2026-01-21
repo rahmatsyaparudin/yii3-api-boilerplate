@@ -14,6 +14,7 @@ use Yiisoft\ErrorHandler\Middleware\ExceptionResponder;
 use Yiisoft\Injector\Injector;
 use Yiisoft\Input\Http\InputValidationException;
 use Yiisoft\Translator\TranslatorInterface;
+use App\Shared\ValueObject\Message;
 
 final readonly class ExceptionResponderFactory
 {
@@ -49,7 +50,7 @@ final readonly class ExceptionResponderFactory
     {
         return $this->apiResponseFactory->success(
             data: $exception->getData(),
-            translate: $exception->getTranslate()
+            translate: $exception->getTranslateMessage()
         );
     }
 
@@ -64,12 +65,12 @@ final readonly class ExceptionResponderFactory
         if ($exception instanceof HttpException) {
             $statusCode = $exception->getCode();
             
-            // Gunakan translate parameter dari exception
-            $translate = $exception->getTranslate();
+            // Gunakan Message dari exception
+            $translateMessage = $exception->getTranslateMessage();
             $message = $this->translator->translate(
-                $translate['key'] ?? $exception->getDefaultMessageKey(),
-                $translate['params'] ?? $exception->getTranslateParams(),
-                'error'
+                $translateMessage->getKey(),
+                $translateMessage->getParams(),
+                $translateMessage->getDomain() ?? 'error'
             );
         } elseif (UserException::isUserException($exception)) {
             $statusCode = 400;

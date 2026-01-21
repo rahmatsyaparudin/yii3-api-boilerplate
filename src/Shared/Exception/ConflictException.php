@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace App\Shared\Exception;
 
 use Yiisoft\Http\Status;
+use App\Shared\ValueObject\Message;
 
 final class ConflictException extends HttpException
 {
-    public function __construct(?array $translate = null, ?array $errors = null, ?\Throwable $previous = null)
+    public function __construct(Message|string $translate = null, ?array $errors = null, ?\Throwable $previous = null)
     {
-        $translate ??= ['key' => 'resource.conflict', 'params' => []];
-        parent::__construct(Status::CONFLICT, $translate, $errors, $previous);
+        $message = $translate instanceof Message 
+            ? $translate 
+            : new Message($translate ?? 'resource.conflict');
+            
+        parent::__construct(Status::CONFLICT, $message, $errors, $previous);
     }
 }

@@ -8,6 +8,7 @@ use App\Infrastructure\Security\ActorProvider;
 use App\Infrastructure\Security\CurrentUser;
 use App\Infrastructure\Security\JwtService;
 use App\Shared\Exception\UnauthorizedException;
+use App\Shared\ValueObject\Message;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -40,10 +41,9 @@ final class JwtMiddleware implements MiddlewareInterface
         $authHeader = $request->getHeaderLine('Authorization');
         if ($authHeader === '') {
             throw new UnauthorizedException(
-                translate: [
-                    'key' => 'auth.authorization_header_missing',
-                    'params' => []
-                ]
+                translate: new Message(
+                    key: 'auth.header_missing'
+                )
             );
         }
 
@@ -60,10 +60,10 @@ final class JwtMiddleware implements MiddlewareInterface
             $request = $request->withAttribute('actor', $actor);
         } catch (\Exception $e) {
             throw new UnauthorizedException(
-                translate: [
-                    'key' => 'auth.invalid_token',
-                    'params' => ['error' => $e->getMessage()]
-                ]
+                translate: new Message(
+                    key: 'auth.invalid_token',
+                    params: ['error' => $e->getMessage()]
+                )
             );
         }
 

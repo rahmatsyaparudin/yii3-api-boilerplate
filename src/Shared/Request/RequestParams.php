@@ -6,6 +6,8 @@ namespace App\Shared\Request;
 
 use App\Shared\Request\PaginationParams;
 use App\Shared\Request\SortParams;
+use App\Shared\Exception\BadRequestException;
+use App\Shared\ValueObject\Message;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
@@ -37,13 +39,51 @@ final readonly class RequestParams
         $filterData = $rawData['filter'] ?? [];
         $this->filter = new RawParams($filterData);
         
-        // Simple pagination
-        $page = max(self::DEFAULT_PAGE, (int) ($rawData['page'] ?? self::DEFAULT_PAGE));
-        $pageSize = max(1, min($maxPageSize, (int) ($rawData['page_size'] ?? $defaultPageSize)));
+        // Handle nested pagination structure
+        $paginationData = $rawData['pagination'] ?? [];
+        if (empty($paginationData)) {
+            // Fallback to root level for backward compatibility
+            $pageParam = $rawData['page'] ?? self::DEFAULT_PAGE;
+            $pageSizeParam = $rawData['page_size'] ?? $defaultPageSize;
+        } else {
+            // Use nested pagination structure
+            $pageParam = $paginationData['page'] ?? self::DEFAULT_PAGE;
+            $pageSizeParam = $paginationData['page_size'] ?? $defaultPageSize;
+        }
+        
+        // Validate page parameter
+        if (!is_numeric($pageParam)) {
+            throw new BadRequestException(
+                translate: new Message(
+                    key: 'pagination.invalid_parameter', 
+                    params: [
+                        'parameter' => 'page'
+                    ]
+                )
+            );
+        }
+        $page = max(self::DEFAULT_PAGE, (int) $pageParam);
+        
+        // Validate page_size parameter
+        if (!is_numeric($pageSizeParam)) {
+            throw new BadRequestException(
+                translate: new Message(
+                    key: 'pagination.invalid_parameter', 
+                    params: [
+                        'parameter' => 'page_size'
+                    ]
+                )
+            );
+        }
+        $pageSize = max(1, min($maxPageSize, (int) $pageSizeParam));
         $this->pagination = new PaginationParams(page: $page, page_size: $pageSize);
         
-        // Simple sort
+        // Handle nested sort structure
         $sortData = $rawData['sort'] ?? [];
+        if (empty($sortData)) {
+            // Fallback to root level for backward compatibility
+            $sortData = $rawData;
+        }
         $this->sort = new SortParams(
             by: $sortData['by'] ?? null,
             dir: $sortData['dir'] ?? self::DEFAULT_SORT_DIR

@@ -6,7 +6,6 @@ namespace App\Api\Shared\Presenter;
 
 use Yiisoft\DataResponse\DataResponse;
 use Yiisoft\Http\Status;
-use Yiisoft\Translator\TranslatorInterface;
 
 /**
  * Success presenter with meta information (e.g., pagination).
@@ -16,9 +15,8 @@ use Yiisoft\Translator\TranslatorInterface;
 final readonly class SuccessWithMetaPresenter implements PresenterInterface
 {
     public function __construct(
-        private TranslatorInterface $translator,
-        private array $meta,
         private PresenterInterface $presenter = new AsIsPresenter(),
+        private ?array $meta = null,
         private ?string $message = null,
     ) {
     }
@@ -27,14 +25,11 @@ final readonly class SuccessWithMetaPresenter implements PresenterInterface
     {
         $response = $this->presenter->present($value, $response);
 
-        // Use provided message or translate default 'success'
-        $message = $this->message ?? $this->translator->translate('success', [], 'app');
-
         return $response
             ->withData([
                 'code'    => $response->getStatusCode(),
                 'success' => true,
-                'message' => $message,
+                'message' => $this->message,
                 'meta'    => $this->meta,
                 'data'    => $response->getData(),
             ])

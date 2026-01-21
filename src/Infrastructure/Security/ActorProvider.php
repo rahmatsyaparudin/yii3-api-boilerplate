@@ -6,6 +6,7 @@ namespace App\Infrastructure\Security;
 
 use App\Domain\Common\Audit\Actor;
 use App\Shared\Exception\UnauthorizedException;
+use App\Shared\ValueObject\Message;
 
 final class ActorProvider
 {
@@ -17,10 +18,10 @@ final class ActorProvider
 
             if (!isset($user->username)) {
                 throw new UnauthorizedException(
-                    translate: [
-                        'key' => 'auth.missing_claim',
-                        'params' => ['claim' => 'user.username']
-                    ]
+                    translate: new Message(
+                        key: 'auth.missing_claim',
+                        params: ['claim' => 'user.username']
+                    )
                 );
             }
 
@@ -38,10 +39,10 @@ final class ActorProvider
         }
 
         throw new UnauthorizedException(
-            translate: [
-                'key' => 'auth.missing_claim',
-                'params' => ['claim' => 'username']
-            ]
+            translate: new Message(
+                key: 'auth.missing_claim',
+                params: ['claim' => 'username']
+            )
         );
     }
 

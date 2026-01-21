@@ -5,39 +5,44 @@ declare(strict_types=1);
 namespace App\Domain\Brand\Repository;
 
 use App\Domain\Brand\Entity\Brand;
-use App\Domain\Brand\Application\BrandInput;
-use App\Shared\Request\RawParams;
-use App\Shared\Request\PaginationParams;
-use App\Shared\Request\SortParams;
+use App\Shared\Dto\SearchCriteria;
+use App\Shared\Dto\PaginatedResult;
 
+/**
+ * Brand Repository Interface
+ * 
+ * Pure repository pattern for Brand aggregate root operations.
+ * Only handles aggregate root persistence and basic lookups.
+ */
 interface BrandRepositoryInterface
 {
+    /**
+     * Find brand by ID
+     */
+    public function findById(int $id): ?Brand;
+
     /**
      * Find brand by name
      */
     public function findByName(string $name): ?Brand;
 
     /**
-     * @return array<int, Brand>
+     * Check if brand exists by name
      */
-    public function list(?RawParams $params = null, ?PaginationParams $pagination = null, ?SortParams $sort = null): array;
-
-    public function count(?RawParams $params = null): int;
+    public function existsByName(string $name): bool;
 
     /**
-     * @return Brand|null
+     * Save brand aggregate root
      */
-    public function findById(int $id): ?Brand;
+    public function save(Brand $brand): Brand;
 
     /**
-     * @return Brand
+     * Delete brand aggregate root
      */
-    public function create(BrandInput $input): Brand;
+    public function delete(Brand $brand): void;
 
     /**
-     * @return void
+     * List brands with filtering, pagination, and sorting
      */
-    public function update(int $id, array $input): void;
-
-    public function delete(int $id): bool;
+    public function list(SearchCriteria $criteria): PaginatedResult;
 }

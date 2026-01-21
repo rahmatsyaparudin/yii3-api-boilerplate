@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace App\Shared\Exception;
 
 use Yiisoft\Http\Status;
+use App\Shared\ValueObject\Message;
 
 final class NotFoundException extends HttpException
 {
-    public function __construct(?array $translate = null, ?array $errors = null, ?\Throwable $previous = null)
+    public function __construct(Message|string $translate = null, ?array $errors = null, ?\Throwable $previous = null)
     {
-        $translate ??= ['key' => 'not_found', 'params' => []];
-        parent::__construct(Status::NOT_FOUND, $translate, $errors, $previous);
+        $message = $translate instanceof Message 
+            ? $translate 
+            : new Message($translate ?? 'http.not_found');
+            
+        parent::__construct(Status::NOT_FOUND, $message, $errors, $previous);
     }
 }
