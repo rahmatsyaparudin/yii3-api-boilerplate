@@ -3,85 +3,103 @@
 declare(strict_types=1);
 
 return [
-    // Generic HTTP / API
-    'bad_request' => 'Permintaan tidak valid atau formatnya salah.',
-    'unauthorized' => 'Autentikasi diperlukan atau telah gagal.',
-    'forbidden' => 'Anda tidak memiliki izin untuk mengakses resource ini.',
-    'not_found' => 'Resource yang diminta tidak ditemukan.',
-    'method_not_allowed' => 'Metode HTTP yang digunakan tidak diizinkan untuk endpoint ini.',
-    'unsupported_media_type' => 'Tipe media pada permintaan tidak didukung.',
-    'too_many_requests' => 'Terlalu banyak permintaan dalam waktu singkat.',
-    'internal_error' => 'Terjadi kesalahan internal pada server.',
-    'service_unavailable' => 'Layanan sedang tidak tersedia untuk sementara waktu.',
+    // HTTP Prefix (Generic API Errors)
+    'http.bad_request' => 'Permintaan tidak valid atau formatnya salah',
+    'http.unauthorized' => 'Autentikasi diperlukan atau telah gagal',
+    'http.forbidden' => 'Anda tidak memiliki izin untuk mengakses sumber daya ini',
+    'http.not_found' => 'Sumber daya yang diminta tidak ditemukan',
+    'http.method_not_allowed' => 'Metode HTTP tidak diizinkan untuk endpoint ini',
+    'http.unsupported_media_type' => 'Tipe media pada permintaan tidak didukung',
+    'http.too_many_requests' => 'Terlalu banyak permintaan. Silakan coba lagi nanti',
+    'http.internal_error' => 'Terjadi kesalahan internal pada server',
+    'http.service_unavailable' => 'Layanan sedang tidak tersedia untuk sementara waktu',
 
-    // Authentication / Authorization
-    'auth.authorization_header_missing' => 'Header Authorization tidak ditemukan.',
-    'auth.invalid_token' => 'Token akses tidak valid atau telah kedaluwarsa.',
-    'auth.invalid_issuer' => 'Issuer token tidak valid.',
-    'auth.invalid_audience' => 'Audience token tidak valid.',
-    'auth.missing_claim' => 'Token tidak memiliki claim yang diperlukan: {claim}.',
+    // Security Prefix
+    'security.host_not_allowed' => 'Akses ditolak: Host tidak diizinkan',
 
-    // Request / Payload
-    'request.invalid_json' => 'Body request berisi JSON yang tidak valid.',
-    'request.invalid_body' => 'Body request tidak valid atau formatnya salah.',
-    'request.missing_parameter' => 'Parameter wajib tidak ditemukan: {param}.',
-    'request.invalid_parameter' => 'Nilai parameter tidak valid: {param}.',
-    'request.host_not_allowed' => 'Host tidak diizinkan: {host}.',
-    'request.origin_not_allowed' => 'Origin tidak diizinkan: {origin}.',
+    // Auth Prefix (Infrastructure Level)
+    'auth.header_missing' => 'Header otorisasi tidak ditemukan',
+    'auth.invalid_token' => 'Token akses tidak valid atau telah kedaluwarsa',
+    'auth.invalid_issuer' => 'Penerbit (issuer) token tidak valid',
+    'auth.invalid_audience' => 'Target (audience) token tidak valid',
+    'auth.missing_claim' => 'Token tidak memiliki klaim yang diperlukan: {claim}',
 
-    // Filtering / Sorting / Pagination
-    'filter.invalid_keys' => 'Terdapat field yang tidak didukung dalam request: {keys}.',
-    'filter.not_allowed' => 'Filter tidak diizinkan: {filter}.',
-    'sort.invalid_field' => 'Field untuk sorting tidak valid: {field}.',
-    'sort.invalid_direction' => 'Arah sorting tidak valid: {direction}.',
-    'pagination.invalid_page' => 'Nilai halaman (page) tidak valid.',
-    'pagination.invalid_page_size' => 'Nilai ukuran halaman (page size) tidak valid.',
+    // Request Prefix
+    'request.invalid_json' => 'Isi permintaan mengandung JSON yang tidak valid',
+    'request.invalid_body' => 'Isi permintaan tidak valid atau formatnya salah',
+    'request.missing_parameter' => 'Parameter wajib tidak ditemukan: {param}',
+    'request.invalid_parameter' => 'Nilai parameter tidak valid: {param}',
+    'request.host_not_allowed' => 'Host tidak diizinkan: {host}',
+    'request.origin_not_allowed' => 'Origin tidak diizinkan: {origin}',
+
+    // Filtering
+    'filter.invalid_keys' => 'Permintaan mengandung kolom filter yang tidak didukung: {keys}',
+    'filter.not_allowed' => 'Penyaringan berdasarkan kolom "{filter}" tidak diizinkan',
+    
+    // Sorting
+    'sort.invalid_field' => 'Kolom pengurutan "{field}" tidak valid atau tidak diizinkan',
+    'sort.invalid_direction' => 'Arah pengurutan "{direction}" tidak valid. Gunakan "asc" atau "desc"',
+    
+    // Pagination
+    'pagination.invalid_page' => 'Nomor halaman harus berupa bilangan bulat positif yang valid',
+    'pagination.invalid_limit' => 'Nilai ukuran halaman tidak valid',
+    'pagination.invalid_page_size' => 'Nilai ukuran halaman tidak valid',
+
+    // Route
+    'route.field_required' => 'Permintaan tidak valid. {resource} {field} wajib disertakan dalam URL',
+    'route.parameter_missing' => 'Parameter {parameter} {resource} wajib disertakan dalam URL',
 
     // Validation
-    'validation.failed' => 'Validasi gagal. Silakan periksa data yang Anda berikan.',
+    'validation.failed' => 'Validasi gagal. Silakan periksa kembali data yang dikirimkan',
 
-    // Data type / format (generic, reusable)
-    'type.string' => '{field} harus berupa string.',
-    'type.integer' => '{field} harus berupa bilangan bulat.',
-    'type.numeric' => '{field} harus berupa angka.',
-    'type.boolean' => '{field} harus berupa nilai boolean.',
-    'type.array' => '{field} harus berupa array.',
-    'type.object' => '{field} harus berupa objek.',
+    // Data type
+    'type.string' => 'Kolom {field} harus berupa teks (string)',
+    'type.integer' => 'Kolom {field} harus berupa bilangan bulat (integer)',
+    'type.numeric' => 'Kolom {field} harus berupa nilai numerik',
+    'type.boolean' => 'Kolom {field} harus berupa nilai boolean (true/false)',
+    'type.array' => 'Kolom {field} harus berupa array',
+    'type.object' => 'Kolom {field} harus berupa objek',
 
-    'format.email' => '{field} harus berupa alamat email yang valid.',
-    'format.url' => '{field} harus berupa URL yang valid.',
-    'format.uuid' => '{field} harus berupa UUID yang valid.',
-    'format.date' => '{field} harus berupa tanggal yang valid.',
-    'format.datetime' => '{field} harus berupa tanggal dan waktu yang valid.',
-    'format.json' => '{field} harus berisi JSON yang valid.',
+    // Format
+    'format.email' => 'Kolom {field} harus berupa alamat email yang valid',
+    'format.url' => 'Kolom {field} harus berupa URL yang valid',
+    'format.uuid' => 'Kolom {field} harus berupa UUID yang valid',
+    'format.date' => 'Kolom {field} harus berupa tanggal yang valid',
+    'format.datetime' => 'Kolom {field} harus berupa tanggal dan waktu yang valid',
+    'format.json' => 'Kolom {field} harus berisi format JSON yang valid',
 
-    // Range / length
-    'range.min' => '{field} harus bernilai minimal {min}.',
-    'range.max' => '{field} tidak boleh melebihi {max}.',
-    'length.min' => '{field} harus memiliki minimal {min} karakter.',
-    'length.max' => '{field} tidak boleh melebihi {max} karakter.',
+    // Range & Length
+    'range.min' => 'Nilai {field} harus lebih besar dari atau sama dengan {min}',
+    'range.max' => 'Nilai {field} harus lebih kecil dari atau sama dengan {max}',
+    'length.min' => 'Kolom {field} minimal harus berisi {min} karakter',
+    'length.max' => 'Kolom {field} tidak boleh lebih dari {max} karakter',
 
-    // File / upload
-    'file.invalid' => 'File yang diunggah tidak valid.',
-    'file.too_large' => 'Ukuran file yang diunggah terlalu besar.',
-    'file.invalid_type' => 'Tipe file yang diunggah tidak diizinkan.',
+    // File
+    'file.invalid' => 'Berkas yang diunggah tidak valid',
+    'file.too_large' => 'Berkas yang diunggah melebihi ukuran maksimal yang diizinkan',
+    'file.invalid_type' => 'Tipe berkas yang diunggah tidak diizinkan',
 
     // Resource
-    'resource.not_found' => '{resource} dengan {field}: {value} tidak ditemukan.',
-    'resource.conflict' => 'Terjadi konflik pada {resource}.',
-    'resource.already_exists' => '{resource} sudah tersedia.',
-    'resource.cannot_update' => 'Tidak dapat memperbarui {resource}. Perubahan status dari "{current_status}" ke "{status}" tidak diizinkan.',
-    'resource.update_not_allowed_by_status' => 'Perubahan data tidak diizinkan untuk {resource} saat statusnya "{current_status}".',
-    'resource.status_already_set' => 'Tidak dapat memperbarui {resource}. Status sudah "{current_status}".',
+    'resource.not_found' => 'Data {resource} dengan {field}: {value} tidak ditemukan',
+    'resource.conflict' => 'Terjadi konflik pada data {resource}',
+    'resource.already_exists' => '{resource} sudah ada sebelumnya',
+    'resource.cannot_update' => 'Tidak dapat memperbarui {resource}. Perubahan status dari "{current_status}" ke "{status}" tidak diizinkan',
+    'resource.update_not_allowed_by_status' => 'Perubahan data tidak diizinkan untuk {resource} saat berstatus "{current_status}"',
+    'resource.status_already_set' => 'Tidak dapat memperbarui {resource}. Status sudah bernilai "{current_status}"',
 
-    // Misc
-    'operation.not_allowed' => 'Operasi ini tidak diizinkan.',
+    // Access & Rate Limit
+    'operation.not_allowed' => 'Operasi ini tidak diizinkan',
+    'access.denied' => 'Akses ke sumber daya ini ditolak',
+    'access.insufficient_permissions' => 'Anda tidak memiliki izin yang cukup untuk melakukan tindakan ini',
+    'access.auth_required' => 'Autentikasi diperlukan untuk mengakses sumber daya ini',
+    'rate_limit.exceeded' => 'Terlalu banyak permintaan. Silakan coba lagi setelah {seconds} detik',
+    'rate_limit.try_again' => 'Silakan coba lagi dalam {seconds} detik',
 
-    'access.denied' => 'Akses ke resource ini ditolak.',
-    'access.insufficient_permissions' => 'Anda tidak memiliki izin yang cukup untuk melakukan tindakan ini.',
-    'access.auth_required' => 'Autentikasi diperlukan untuk mengakses resource ini.',
+    'business.violation' => 'Pelanggaran aturan bisnis: {reason}',
+    'business.limit_reached' => 'Batas {resource} telah tercapai',
+    'business.requirement_unmet' => 'Persyaratan tidak terpenuhi: {reason}',
 
-    'rate_limit.exceeded' => 'Terlalu banyak permintaan. Silakan coba lagi dalam {seconds} detik.',
-    'rate_limit.try_again' => 'Silakan coba lagi dalam {seconds} detik.',
-
-    ];
+    'service.error' => 'Gagal memproses permintaan: {reason}',
+    'service.unavailable' => 'Layanan "{service}" tidak tersedia',
+    'service.failed' => 'Proses layanan gagal dilakukan',
+];

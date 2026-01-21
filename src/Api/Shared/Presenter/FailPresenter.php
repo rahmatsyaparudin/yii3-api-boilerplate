@@ -14,7 +14,6 @@ final readonly class FailPresenter implements PresenterInterface
 {
     public function __construct(
         private string $message = 'Unknown error.',
-        private ?int $code = null,
         private int $httpCode = Status::BAD_REQUEST,
         private PresenterInterface $presenter = new AsIsPresenter(),
     ) {
@@ -29,9 +28,7 @@ final readonly class FailPresenter implements PresenterInterface
             'message' => $this->message,
             'errors'  => $response->getData() ?? [],
         ];
-        if ($this->code !== null) {
-            $result['code'] = $this->code;
-        }
+
         if ($value !== null) {
             $result['errors'] = $response->getData() ?? [];
         }

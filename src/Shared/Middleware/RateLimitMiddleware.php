@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Shared\Middleware;
 
 use App\Shared\Exception\TooManyRequestsException;
+use App\Shared\ValueObject\Message;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -45,16 +46,16 @@ final class RateLimitMiddleware implements MiddlewareInterface
             $resetTime = $now + $this->windowSize;
 
             throw new TooManyRequestsException(
-                translate: [
-                    'key' => 'rate_limit.exceeded',
-                    'params' => [
+                translate: new Message(
+                    key: 'rate_limit.exceeded',
+                    params: [
                         'seconds' => $this->windowSize,
                         'limit' => $this->maxRequests,
                         'remaining' => 0,
                         'reset' => $resetTime,
                         'retry_after' => $this->windowSize
                     ]
-                ]
+                )
             );
         }
 

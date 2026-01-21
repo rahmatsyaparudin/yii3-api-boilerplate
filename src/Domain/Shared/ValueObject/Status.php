@@ -110,11 +110,12 @@ final readonly class Status
     }
 
     /**
-     * Check if status allows updates
+     * Check if status allows transition to new status
      */
-    public function allowsTransitionTo(): bool
+    public function allowsTransitionTo(Status $newStatus): bool
     {
-        return isset(self::ALLOWED_UPDATE_STATUS_LIST[$this->value()]);
+        $allowedTransitions = self::ALLOWED_UPDATE_STATUS_LIST[$this->value()] ?? [];
+        return in_array($newStatus->value(), $allowedTransitions, true);
     }
 
     public function canBeUpdated(): bool

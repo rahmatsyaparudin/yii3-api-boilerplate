@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Shared\Middleware;
 
 use App\Shared\Exception\UnauthorizedException;
+use App\Shared\ValueObject\Message;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -23,10 +24,10 @@ final class TrustedHostMiddleware implements MiddlewareInterface
 
         if ($host === '' || !$this->isAllowedHost($host)) {
             throw new UnauthorizedException(
-                translate: [
-                    'key' => 'auth.authorization_header_missing',
-                    'params' => []
-                ]
+                translate: new Message(
+                    key: 'security.host_not_allowed',
+                    params: ['host' => $host]
+                )
             );
         }
 

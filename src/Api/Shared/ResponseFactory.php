@@ -15,6 +15,7 @@ use Yiisoft\DataResponse\DataResponseFactoryInterface;
 use Yiisoft\Http\Status;
 use Yiisoft\Translator\TranslatorInterface;
 use Yiisoft\Validator\Result;
+use App\Shared\ValueObject\Message;
 
 final readonly class ResponseFactory
 {
@@ -26,73 +27,71 @@ final readonly class ResponseFactory
 
     public function success(
         array|object|null $data = null,
-        PresenterInterface $presenter = new AsIsPresenter(),
-        ?array $translate = null,
         ?array $meta = null,
+        string|Message|null $translate = null,
+        PresenterInterface $presenter = new AsIsPresenter(),
     ): ResponseInterface {
-        // Extract message key and params from translate array
-        $messageKey = null;
-        $messageParams = [];
+        $message = 'Success'; 
         
-        if ($translate !== null) {
-            $messageKey = $translate['key'] ?? null;
-            $messageParams = $translate['params'] ?? [];
+        if (is_string($translate)) {
+            $message = $translate;
         }
         
-        // Use custom message key or default 'success'
-        $message = $this->translator->translate(
-            $messageKey ?? 'success',
-            $messageParams,
-            'success'
-        );
+        if ($translate instanceof Message) {
+            $message = $this->translator->translate(
+                $translate->key,
+                $translate->params,
+                $translate->domain ?? 'success'
+            );
+        }
 
         if ($meta !== null) {
             // Use custom presenter that includes meta
-            return (new SuccessWithMetaPresenter($this->translator, $meta, $presenter, $message))
+            return (new SuccessWithMetaPresenter($presenter, $meta, $message))
                 ->present($data, $this->dataResponseFactory->createResponse());
         }
 
-        return (new SuccessPresenter($this->translator, $presenter, $message))
+        return (new SuccessPresenter($presenter, $message))
             ->present($data, $this->dataResponseFactory->createResponse());
     }
 
     public function fail(
         array|object|null $data = null,
-        ?int $code = null,
-        int $httpCode = Status::BAD_REQUEST,
         PresenterInterface $presenter = new AsIsPresenter(),
-        ?array $translate = null,
+        string|Message|null $translate = null,
+        ?int $httpCode = Status::BAD_REQUEST,
     ): ResponseInterface {
-        // Extract message key and params from translate array
-        $messageKey = null;
-        $messageParams = [];
+        $message = 'Error';
         
-        if ($translate !== null) {
-            $messageKey = $translate['key'] ?? null;
-            $messageParams = $translate['params'] ?? [];
+        if (is_string($translate)) {
+            $message = $translate;
         }
         
-        // Use custom message key or default message
-        $translatedMessage = $this->translator->translate(
-            $messageKey ?? 'Error',
-            $messageParams,
-            'error'
-        );
-
-        return (new FailPresenter($translatedMessage, $code, $httpCode, $presenter))
+        if ($translate instanceof Message) {
+            $message = $this->translator->translate(
+                $translate->key,
+                $translate->params,
+                $translate->domain ?? 'error'
+            );
+        }
+        
+        return (new FailPresenter($message, $httpCode, $presenter))
             ->present($data, $this->dataResponseFactory->createResponse());
     }
 
     public function notFound(string $message = 'Not found.'): ResponseInterface
     {
-        return $this->fail(translate: ['key' => 'error.not_found'], httpCode: Status::NOT_FOUND);
+        return $this->fail(
+            translate: new Message(key: 'http.not_found'), 
+            httpCode: Status::NOT_FOUND
+        );
     }
 
     public function failValidation(Result $result): ResponseInterface
     {
         return $this->fail(
-            translate: ['key' => 'error.validation_failed'],
             data: $result,
+            translate: new Message(key: 'validation.failed'),
             httpCode: Status::UNPROCESSABLE_ENTITY,
             presenter: new ValidationResultPresenter(),
         );

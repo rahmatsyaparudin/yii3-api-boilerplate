@@ -8,106 +8,110 @@ declare(strict_types=1);
  */
 return [
     // Required
-    'required' => '{resource} is required',
-    'required_if' => '{resource} is required when {other} is {value}',
-    'required_unless' => '{resource} is required unless {other} is {value}',
-    'required_with' => '{resource} is required when {other} is present',
-    'required_without' => '{resource} is required when {other} is not present',
-    'filled' => '{resource} must have a value when present',
-    'present' => '{resource} field must be present',
+    'required' => 'The {resource} field is required',
+    'required.if' => 'The {resource} field is required when {other} is {value}',
+    'required.unless' => 'The {resource} field is required unless {other} is {value}',
+    'required.with' => 'The {resource} field is required when {other} is present',
+    'required.without' => 'The {resource} field is required when {other} is not present',
+    'filled' => 'The {resource} field must have a value',
+    'present' => 'The {resource} field must be present',
     
-    // String
-    'string' => '{resource} must be a string',
-    'min_length' => '{resource} must be at least {min} characters',
-    'max_length' => '{resource} must not exceed {max} characters',
-    'length' => '{resource} must be exactly {length} characters',
-    'length_between' => '{resource} must be between {min} and {max} characters',
-    'alpha' => '{resource} may only contain letters',
-    'alpha_num' => '{resource} may only contain letters and numbers',
-    'alpha_dash' => '{resource} may only contain letters, numbers, dashes and underscores',
-    'starts_with' => '{resource} must start with: {values}',
-    'ends_with' => '{resource} must end with: {values}',
-    'lowercase' => '{resource} must be lowercase',
-    'uppercase' => '{resource} must be uppercase',
+    // String Prefix
+    'string.invalid' => 'The {field} field must be a string',
+    'string.min' => 'The {field} field must be at least {min} characters',
+    'string.max' => 'The {field} field must not exceed {max} characters',
+    'string.length' => 'The {field} field must be exactly {length} characters',
+    'string.between' => 'The {field} field must be between {min} and {max} characters',
+    'string.alpha' => 'The {field} field may only contain letters',
+    'string.alpha_num' => 'The {field} field may only contain letters and numbers',
+    'string.alpha_dash' => 'The {field} field may only contain letters, numbers, dashes, and underscores',
+    'string.starts_with' => 'The {field} field must start with: {values}',
+    'string.ends_with' => 'The {field} field must end with: {values}',
+    'string.lowercase' => 'The {field} field must be lowercase',
+    'string.uppercase' => 'The {field} field must be uppercase',
     
-    // Numeric
-    'numeric' => '{resource} must be a number',
-    'integer' => '{resource} must be an integer',
-    'decimal' => '{resource} must be a decimal number',
-    'min_value' => '{resource} must be at least {min}',
-    'max_value' => '{resource} must not exceed {max}',
-    'between' => '{resource} must be between {min} and {max}',
-    'positive' => '{resource} must be a positive number',
-    'negative' => '{resource} must be a negative number',
-    'divisible_by' => '{resource} must be divisible by {divisor}',
+    // Number Prefix
+    'number.invalid' => 'The {field} field must be a number',
+    'number.integer' => 'The {field} field must be an integer',
+    'number.decimal' => 'The {field} field must be a decimal number',
+    'number.min' => 'The {field} field must be at least {min}',
+    'number.max' => 'The {field} field must not exceed {max}',
+    'number.between' => 'The {field} field must be between {min} and {max}',
+    'number.positive' => 'The {field} field must be a positive number',
+    'number.negative' => 'The {field} field must be a negative number',
+    'number.divisible_by' => 'The {field} field must be divisible by {divisor}',
     
     // Format
-    'email' => '{resource} must be a valid email address',
-    'url' => '{resource} must be a valid URL',
-    'ip' => '{resource} must be a valid IP address',
-    'ipv4' => '{resource} must be a valid IPv4 address',
-    'ipv6' => '{resource} must be a valid IPv6 address',
-    'mac_address' => '{resource} must be a valid MAC address',
-    'uuid' => '{resource} must be a valid UUID',
-    'json' => '{resource} must be a valid JSON string',
-    'regex' => '{resource} format is invalid',
+    'format.email' => 'The {field} field must be a valid email address',
+    'format.url' => 'The {field} field must be a valid URL',
+    'format.ip' => 'The {field} field must be a valid IP address',
+    'format.ipv4' => 'The {field} field must be a valid IPv4 address',
+    'format.ipv6' => 'The {field} field must be a valid IPv6 address',
+    'format.mac_address' => 'The {field} field must be a valid MAC address',
+    'format.uuid' => 'The {field} field must be a valid UUID',
+    'format.json' => 'The {field} field must be a valid JSON string',
+    'format.regex' => 'The {field} field format is invalid',
     
     // Date & Time
-    'date' => '{resource} must be a valid date',
-    'date_format' => '{resource} must match the format {format}',
-    'before' => '{resource} must be a date before {date}',
-    'after' => '{resource} must be a date after {date}',
-    'before_or_equal' => '{resource} must be a date before or equal to {date}',
-    'after_or_equal' => '{resource} must be a date after or equal to {date}',
-    'timezone' => '{resource} must be a valid timezone',
+    'date.invalid' => 'The {field} field must be a valid date',
+    'date.format' => 'The {field} field must match the format {format}',
+    'date.before' => 'The {field} field must be a date before {date}',
+    'date.after' => 'The {field} field must be a date after {date}',
+    'date.before_or_equal' => 'The {field} field must be a date before or equal to {date}',
+    'date.after_or_equal' => 'The {field} field must be a date after or equal to {date}',
+    'date.timezone' => 'The {field} field must be a valid timezone',
     
-    // File & Upload
-    'file' => '{resource} must be a file',
-    'image' => '{resource} must be an image',
-    'mimes' => '{resource} must be a file of type: {types}',
-    'mimetypes' => '{resource} must be a file of type: {types}',
-    'file_size' => '{resource} must not exceed {size} KB',
-    'file_min_size' => '{resource} must be at least {size} KB',
-    'dimensions' => '{resource} has invalid image dimensions',
-    'min_width' => '{resource} must be at least {width} pixels wide',
-    'max_width' => '{resource} must not exceed {width} pixels wide',
-    'min_height' => '{resource} must be at least {height} pixels high',
-    'max_height' => '{resource} must not exceed {height} pixels high',
+    // File Prefix
+    'file.invalid' => 'The {resource} must be a valid file',
+    'file.mimes' => 'The {resource} must be a file of type: {types}',
+    'file.mimetypes' => 'The {resource} must be a file of type: {types}',
+    'file.max_size' => 'The {resource} must not exceed {size} KB',
+    'file.min_size' => 'The {resource} must be at least {size} KB',
     
-    // Comparison
-    'same' => '{resource} must match {other}',
-    'different' => '{resource} must be different from {other}',
-    'confirmed' => '{resource} confirmation does not match',
-    'in' => 'Selected {resource} is invalid',
-    'not_in' => 'Selected {resource} is invalid',
+    // Image Prefix
+    'image.invalid' => 'The {resource} must be an image',
+    'image.dimensions' => 'The {resource} has invalid image dimensions',
+    'image.min_width' => 'The {resource} must be at least {width} pixels wide',
+    'image.max_width' => 'The {resource} must not exceed {width} pixels wide',
+    'image.min_height' => 'The {resource} must be at least {height} pixels high',
+    'image.max_height' => 'The {resource} must not exceed {height} pixels high',
     
-    // Boolean
-    'boolean' => '{resource} must be true or false',
-    'accepted' => '{resource} must be accepted',
-    'declined' => '{resource} must be declined',
+    // Comparison Prefix
+    'compare.same' => 'The {resource} must match {other}',
+    'compare.different' => 'The {resource} must be different from {other}',
+    'compare.confirmed' => 'The {resource} confirmation does not match',
+    'compare.in' => 'The selected {resource} is invalid',
+    'compare.not_in' => 'The selected {resource} is invalid',
     
-    // Array
-    'array' => '{resource} must be an array',
-    'array_min' => '{resource} must have at least {min} items',
-    'array_max' => '{resource} must not have more than {max} items',
-    'array_between' => '{resource} must have between {min} and {max} items',
-    'distinct' => '{resource} has duplicate values',
+    // Boolean Prefix
+    'boolean.invalid' => 'The {resource} field must be true or false',
+    'boolean.accepted' => 'The {resource} must be accepted',
+    'boolean.declined' => 'The {resource} must be declined',
     
-    // Existence
-    'exists' => 'Selected {resource} is invalid',
-    'unique' => '{resource} has already been taken',
+    // Array Prefix
+    'array.invalid' => 'The {resource} must be an array',
+    'array.min' => 'The {resource} must have at least {min} items',
+    'array.max' => 'The {resource} must not have more than {max} items',
+    'array.between' => 'The {resource} must have between {min} and {max} items',
+    'array.distinct' => 'The {resource} field has duplicate values',
     
-    // Special
-    'nullable' => '{resource} may be null',
-    'prohibited' => '{resource} field is prohibited',
-    'prohibited_if' => '{resource} is prohibited when {other} is {value}',
-    'prohibited_unless' => '{resource} is prohibited unless {other} is {value}',
+    // Existence Prefix
+    'exists.invalid' => 'The selected {resource} does not exist',
+    'exists.unique' => 'The {resource} has already been taken',
+    'exists.already_exists' => 'The {resource} with value "{value}" already exists',
+    'exists.cannot_delete_active' => 'Cannot delete {resource} while it is still active',
 
-    'cannot_delete_active' => 'Cannot delete active {resource}',
-    'already_exists' => '{resource} with value "{value}" already exists',
+    // Special Prefix
+    'special.nullable' => 'The {resource} field may be null',
+    'special.prohibited' => 'The {resource} field is prohibited',
+    'special.prohibited_if' => 'The {resource} field is prohibited when {other} is {value}',
+    'special.prohibited_unless' => 'The {resource} field is prohibited unless {other} is {value}',
 
-    // Field Status for Data 
-    'status.forbid_update' => '{resource} data with status "{status}" cannot be updated.',
-    'status.cannot_update' => 'Cannot update {resource} from status "{status}" to "{current_status}".',
-    'status.invalid_on_creation' => '{resource} must be in "active" or "draft" status to proceed with creation.'
+    // Status Prefix
+    'status.forbid_update' => '{resource} data with status "{status}" cannot be updated',
+    'status.invalid_transition' => 'Cannot update {resource} from status "{status}" to "{current_status}"',
+    'status.invalid_on_creation' => '{resource} must be in "active" or "draft" status to proceed with creation',
+    'status.cannot_delete' => 'Cannot delete {resource} with status "{status}"',
+
+    'request.unknown_parameters' => 'Unknown parameters: {unknown_keys}. Allowed parameters: {allowed_keys}',
 ];

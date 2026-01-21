@@ -3,25 +3,21 @@
 declare(strict_types=1);
 
 use App\Domain\Brand\Repository\BrandRepositoryInterface;
-use App\Domain\Brand\Application\BrandValidator;
-use App\Domain\Brand\Application\BrandInputValidator;
-use App\Infrastructure\Persistence\Brand\DbBrandRepository;
-use App\Shared\Validation\UniqueFieldValidator;
-use Yiisoft\Translator\TranslatorInterface;
+use App\Domain\Brand\Repository\BrandQueryServiceInterface;
+use App\Infrastructure\Persistence\Brand\BrandRepository;
+use App\Infrastructure\Persistence\Brand\BrandQueryService;
+use App\Shared\Query\QueryConditionApplier;
+use Yiisoft\Db\Connection\ConnectionInterface;
 
 return [
-    // Interface → Implementasi
-    BrandRepositoryInterface::class => DbBrandRepository::class,
-    
-    // Global Validators
-    UniqueFieldValidator::class => static function (TranslatorInterface $translator) {
-        return new UniqueFieldValidator($translator);
+    // Brand Repository (Yiisoft/Db)
+    BrandRepositoryInterface::class => static function (
+        QueryConditionApplier $queryConditionApplier,
+        ConnectionInterface $db
+    ) {
+        return new BrandRepository($queryConditionApplier, $db);
     },
     
-    // Application Services
-    BrandValidator::class => static function (BrandRepositoryInterface $repository, UniqueFieldValidator $uniqueFieldValidator, TranslatorInterface $translator) {
-        return new BrandValidator($repository, $uniqueFieldValidator, $translator);
-    },
-    
-    BrandInputValidator::class => BrandInputValidator::class,
+    // Brand Query Service (Simplified)
+    BrandQueryServiceInterface::class => BrandQueryService::class,
 ];

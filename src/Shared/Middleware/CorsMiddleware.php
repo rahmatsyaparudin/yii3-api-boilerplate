@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Shared\Middleware;
 
 use App\Shared\Exception\ForbiddenException;
+use App\Shared\ValueObject\Message;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -30,10 +31,10 @@ final class CorsMiddleware implements MiddlewareInterface
 
         if (!$this->isOriginAllowed($origin)) {
             throw new ForbiddenException(
-                translate: [
-                    'key' => 'request.origin_not_allowed',
-                    'params' => ['origin' => $origin]
-                ]
+                translate: new Message(
+                    key: 'request.origin_not_allowed',
+                    params: ['origin' => $origin]
+                )
             );
         }
 

@@ -13,59 +13,59 @@ return [
     'processed' => '{resource} berhasil diproses',
     
     // Global CRUD Operations
-    'resource.created' => '{resource} berhasil dibuat',
-    'resource.updated' => '{resource} berhasil diperbarui',
-    'resource.deleted' => '{resource} berhasil dihapus',
-    'resource.restored' => '{resource} berhasil dipulihkan',
-    'resource.list_retrieved' => '{resource} berhasil diambil',
-    'resource.details_retrieved' => '{resource} berhasil diambil',
-    'resource.no_changes_detected' => 'Data untuk {resource} tidak berubah. Data yang dikirim tidak mengandung perubahan.',
+    'resource.created' => '{resource} berhasil dibuat.',
+    'resource.updated' => '{resource} berhasil diperbarui.',
+    'resource.deleted' => '{resource} berhasil dihapus.',
+    'resource.restored' => '{resource} berhasil dipulihkan.',
+    'resource.list_retrieved' => 'Daftar {resource} berhasil dimuat.',
+    'resource.details_retrieved' => 'Detail {resource} berhasil dimuat.',
+    'resource.no_changes_detected' => 'Tidak ada perubahan data pada {resource}. Data yang dikirimkan sama dengan data saat ini.',
     
     // Specific Operations (non-CRUD)
-    'user.activated' => 'Pengguna berhasil diaktifkan',
-    'user.deactivated' => 'Pengguna berhasil dinonaktifkan',
+    'user.activated' => 'Pengguna {name} berhasil diaktifkan',
+    'user.deactivated' => 'Pengguna {name} berhasil dinonaktifkan',
     'user.password_changed' => 'Kata sandi berhasil diubah',
     'user.profile_updated' => 'Profil berhasil diperbarui',
     
     // Authentication
     'auth.login_success' => 'Login berhasil',
     'auth.logout_success' => 'Logout berhasil',
-    'auth.password_reset_sent' => 'Link reset kata sandi berhasil dikirim',
-    'auth.password_reset_success' => 'Kata sandi berhasil direset',
-    'auth.email_verified' => 'Email berhasil diverifikasi',
-    'auth.account_created' => 'Akun berhasil dibuat',
+    'auth.password_reset_sent' => 'Tautan atur ulang kata sandi telah dikirim ke email Anda',
+    'auth.password_reset_success' => 'Kata sandi berhasil diatur ulang',
+    'auth.email_verified' => 'Alamat email berhasil diverifikasi',
+    'auth.account_created' => 'Akun Anda berhasil dibuat',
     
     // Data Operations
     'data.imported' => 'Data berhasil diimpor',
     'data.exported' => 'Data berhasil diekspor',
     'data.synced' => 'Data berhasil disinkronkan',
-    'data.backed_up' => 'Data berhasil dibackup',
+    'data.backed_up' => 'Data berhasil dicadangkan',
     'data.restored' => 'Data berhasil dipulihkan',
-    'data.cleared' => 'Data berhasil dibersihkan',
+    'data.cleared' => 'Data berhasil dihapus bersih',
     
     // File Operations
-    'file.uploaded' => 'File berhasil diunggah',
-    'file.downloaded' => 'File berhasil diunduh',
-    'file.deleted' => 'File berhasil dihapus',
-    'file.moved' => 'File berhasil dipindahkan',
-    'file.copied' => 'File berhasil disalin',
+    'file.uploaded' => 'Berkas berhasil diunggah',
+    'file.downloaded' => 'Berkas berhasil diunduh',
+    'file.deleted' => 'Berkas berhasil dihapus',
+    'file.moved' => 'Berkas berhasil dipindahkan',
+    'file.copied' => 'Berkas berhasil disalin',
     
     // Settings & Configuration
     'settings.updated' => 'Pengaturan berhasil diperbarui',
     'settings.saved' => 'Pengaturan berhasil disimpan',
-    'settings.reset' => 'Pengaturan berhasil direset ke default',
+    'settings.reset' => 'Pengaturan berhasil dikembalikan ke standar',
     'configuration.updated' => 'Konfigurasi berhasil diperbarui',
     
     // System Operations
     'system.cache_cleared' => 'Cache berhasil dibersihkan',
-    'system.maintenance_enabled' => 'Mode pemeliharaan berhasil diaktifkan',
-    'system.maintenance_disabled' => 'Mode pemeliharaan berhasil dinonaktifkan',
-    'system.restarted' => 'Sistem berhasil dimulai ulang',
+    'system.maintenance_enabled' => 'Mode pemeliharaan telah diaktifkan',
+    'system.maintenance_disabled' => 'Mode pemeliharaan telah dinonaktifkan',
+    'system.restarted' => 'Sistem berhasil dijalankan ulang',
     
     // Notifications
     'notification.sent' => 'Notifikasi berhasil dikirim',
-    'notification.marked_read' => 'Notifikasi berhasil ditandai dibaca',
-    'notification.marked_unread' => 'Notifikasi berhasil ditandai belum dibaca',
+    'notification.marked_read' => 'Notifikasi ditandai sebagai sudah dibaca',
+    'notification.marked_unread' => 'Notifikasi ditandai sebagai belum dibaca',
     'notification.deleted' => 'Notifikasi berhasil dihapus',
     
     // Reports & Analytics
@@ -80,14 +80,9 @@ return [
     'bulk.imported' => '{resource} berhasil diimpor',
     'bulk.exported' => '{resource} berhasil diekspor',
     
-    // Validation & Processing
-    'validation.passed' => 'Validasi berhasil',
-    'processing.completed' => 'Pemrosesan selesai',
-    'transformation.applied' => 'Transformasi berhasil diterapkan',
-    
     // API Operations
     'api.request_processed' => 'Permintaan API berhasil diproses',
-    'api.rate_limit_reset' => 'Batasan rate API berhasil direset',
+    'api.rate_limit_reset' => 'Pembatasan akses (rate limit) API berhasil diatur ulang',
     'api.key_generated' => 'Kunci API berhasil dibuat',
     'api.key_revoked' => 'Kunci API berhasil dicabut',
 ];

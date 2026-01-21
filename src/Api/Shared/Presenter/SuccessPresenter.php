@@ -6,7 +6,6 @@ namespace App\Api\Shared\Presenter;
 
 use Yiisoft\DataResponse\DataResponse;
 use Yiisoft\Http\Status;
-use Yiisoft\Translator\TranslatorInterface;
 
 /**
  * @implements PresenterInterface<mixed>
@@ -14,7 +13,6 @@ use Yiisoft\Translator\TranslatorInterface;
 final readonly class SuccessPresenter implements PresenterInterface
 {
     public function __construct(
-        private TranslatorInterface $translator,
         private PresenterInterface $presenter = new AsIsPresenter(),
         private ?string $message = null,
     ) {
