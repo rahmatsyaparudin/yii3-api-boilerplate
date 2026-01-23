@@ -77,4 +77,52 @@ final readonly class DetailInfoFactory
             payload: $mergedPayload
         );
     }
+
+    /**
+     * Create DetailInfo with approval
+     */
+    public function createWithApproval(array $payload = []): DetailInfo
+    {
+        return $this->create($payload)->withApprovedExplicit($this->dateTime, $this->currentUser->getActor()->username);
+    }
+
+    /**
+     * Create DetailInfo with rejection
+     */
+    public function createWithRejection(array $payload = []): DetailInfo
+    {
+        return $this->create($payload)->withRejectedExplicit($this->dateTime, $this->currentUser->getActor()->username);
+    }
+
+    /**
+     * Create DetailInfo with custom field
+     */
+    public function createWithField(string $field, mixed $value, array $payload = []): DetailInfo
+    {
+        return $this->create($payload)->withFieldExplicit($field, $value, $this->dateTime, $this->currentUser->getActor()->username);
+    }
+
+    /**
+     * Update DetailInfo with approval
+     */
+    public function updateWithApproval(DetailInfo $detailInfo, array $payload = []): DetailInfo
+    {
+        return $this->update($detailInfo, $payload)->withApprovedExplicit($this->dateTime, $this->currentUser->getActor()->username);
+    }
+
+    /**
+     * Update DetailInfo with rejection
+     */
+    public function updateWithRejection(DetailInfo $detailInfo, array $payload = []): DetailInfo
+    {
+        return $this->update($detailInfo, $payload)->withRejectedExplicit($this->dateTime, $this->currentUser->getActor()->username);
+    }
+
+    /**
+     * Update DetailInfo with custom field
+     */
+    public function updateWithField(DetailInfo $detailInfo, string $field, mixed $value, array $payload = []): DetailInfo
+    {
+        return $this->update($detailInfo, $payload)->withFieldExplicit($field, $value, $this->dateTime, $this->currentUser->getActor()->username);
+    }
 }

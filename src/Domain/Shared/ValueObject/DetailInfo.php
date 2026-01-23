@@ -71,12 +71,63 @@ final readonly class DetailInfo
         return new self($mergedData);
     }
 
+    public function with(array $additionalLog): self
+    {
+        $data = $this->toArray();
+        
+        $data['change_log'] = array_merge(
+            $data['change_log'] ?? [],
+            $additionalLog
+        );
+
+        return new self($data);
+    }
+
+    public static function withEmptyApproval(): self
+    {
+        return (new self([]))->with([
+            'approved_at' => null,
+            'approved_by' => null,
+        ]);
+    }
+
+    public static function withEmptyRejection(): self
+    {
+        return (new self([]))->with([
+            'rejected_at' => null,
+            'rejected_by' => null,
+        ]);
+    }
+
+    public static function withChangeLog(array $fields): self
+    {
+        return (new self([]))->with($fields);
+    }
+
     /**
      * Create from array
      */
     public static function fromArray(array $data): self
     {
         return new self($data);
+    }
+
+    /**
+     * Create from JSON string
+     */
+    public static function fromJson(?string $jsonString): self
+    {
+        if (empty($jsonString)) {
+            return new self([]);
+        }
+        
+        $data = json_decode($jsonString, true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return new self([]);
+        }
+        
+        return new self($data ?: []);
     }
 
     /**

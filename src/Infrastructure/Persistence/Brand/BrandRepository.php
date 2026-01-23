@@ -49,7 +49,7 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
             id: (int) $row['id'],
             name: $row['name'],
             status: Status::from((int)$row['status']),
-            detailInfo: $this->createDetailInfo($row['detail_info']),
+            detailInfo: DetailInfo::fromJson($row['detail_info']),
             syncMdb: $row['sync_mdb'] ?? null
         ) : null;
     }
@@ -68,7 +68,7 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
             id: (int) $row['id'],
             name: $row['name'],
             status: Status::from((int)$row['status']),
-            detailInfo: $this->createDetailInfo($row['detail_info']),
+            detailInfo: DetailInfo::fromJson($row['detail_info']),
             syncMdb: $row['sync_mdb'] ?? null
         ) : null;
     }
@@ -85,7 +85,7 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
             id: (int) $row['id'],
             name: $row['name'],
             status: Status::from((int)$row['status']),
-            detailInfo: $this->createDetailInfo($row['detail_info']),
+            detailInfo: DetailInfo::fromJson($row['detail_info']),
             syncMdb: $row['sync_mdb'] ?? null
         ) : null;
     }
@@ -183,7 +183,7 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
     private function listAllGenerator(Query $query): iterable
     {
         foreach ($query->each(100, $this->db) as $row) {
-            $row['detail_info'] = json_decode($row['detail_info'] ?? '{}', true);
+            $row['detail_info'] = DetailInfo::fromJson($row['detail_info'])->toArray();
             yield $row;
         }
     }
@@ -222,24 +222,5 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
             ->execute();
             
         return $brand;
-    }
-
-    private function createDetailInfo(mixed $data): DetailInfo
-    {
-        // If data is already an array, create DetailInfo from array
-        if (is_array($data)) {
-            return DetailInfo::fromArray($data);
-        }
-        
-        // If data is JSON string, parse it first
-        if (is_string($data)) {
-            $decoded = json_decode($data, true);
-            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                return DetailInfo::fromArray($decoded);
-            }
-        }
-        
-        // Fallback to empty array if invalid data
-        return DetailInfo::fromArray([]);
     }
 }
