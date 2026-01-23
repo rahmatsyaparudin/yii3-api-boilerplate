@@ -88,7 +88,19 @@ final class BrandApplicationService
 
         $detailInfo = $this->detailInfoFactory->create(
             payload: []
-        );
+        )->with([
+            'approved_at' => null,
+            'approved_by' => null,
+            'rejected_at' => null,
+            'rejected_by' => null,
+            'reviewed_at' => null,
+            'reviewed_by' => null,
+        ]);
+
+        // Alternative methods:
+        // $detailInfo = $this->detailInfoFactory->create([])->withEmptyApproval();
+        // $detailInfo = DetailInfo::withEmptyApproval();
+        // $detailInfo = DetailInfo::withChangeLog(['approved_at' => null, 'approved_by' => null]);
 
         $brand = Brand::create(
             name: $command->name,
