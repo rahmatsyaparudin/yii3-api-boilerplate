@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Shared\Dto;
 
-final class PaginatedResult
+final readonly class PaginatedResult
 {
     public function __construct(
         public array $data,
@@ -13,11 +13,15 @@ final class PaginatedResult
         public int $pageSize,
         public array $filter = [],
         public array $sort = []
-    ) {}
+    ) {
+        if ($this->pageSize <= 0) {
+            $this->pageSize = 10;
+        }
+    }
 
     public function getTotalPages(): int
     {
-        return (int) ceil($this->total / $this->pageSize);
+        return $this->total === 0 ? 1 : (int) ceil($this->total / $this->pageSize);
     }
 
     public function getMeta(): array

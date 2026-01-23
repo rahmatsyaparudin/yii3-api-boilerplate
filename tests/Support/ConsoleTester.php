@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Support;
 
 /**
- * Inherited Methods.
- *
+ * Inherited Methods
  * @method void wantTo($text)
  * @method void wantToTest($text)
  * @method void execute($callable)
@@ -19,18 +18,19 @@ namespace App\Tests\Support;
  * @method void pause($vars = [])
  *
  * @SuppressWarnings(PHPMD)
- */
+*/
 class ConsoleTester extends \Codeception\Actor
 {
     use _generated\ConsoleTesterActions;
 
     /**
-     * Define custom actions here.
+     * Define custom actions here
      */
+
     public function runApp(?string $parameters = null): void
     {
         $this->runShellCommand(
-            \dirname(__DIR__, 2) . '/yii' . ($parameters === null ? '' : (' ' . $parameters)),
+            dirname(__DIR__, 2) . '/yii' . ($parameters === null ? '' : (' ' . $parameters)),
         );
     }
 }

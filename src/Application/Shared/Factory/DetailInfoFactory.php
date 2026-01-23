@@ -29,15 +29,48 @@ final readonly class DetailInfoFactory
         $username = $this->currentUser->getActor()->username;
         $oldData = $detailInfo->toArray();
         
-        // Get current change log
         $changeLog = $oldData['change_log'] ?? [];
         
-        // Remove change_log from old data to merge with payload
         unset($oldData['change_log']);
         $mergedPayload = array_merge($oldData, $payload);
         
-        // Use DetailInfo method to update with audit
         return DetailInfo::updateWithAudit(
+            dateTime: $this->dateTime,
+            user: $username,
+            currentLog: $changeLog,
+            payload: $mergedPayload
+        );
+    }
+
+    public function delete(DetailInfo $detailInfo, array $payload = []): DetailInfo
+    {
+        $username = $this->currentUser->getActor()->username;
+        $oldData = $detailInfo->toArray();
+        
+        $changeLog = $oldData['change_log'] ?? [];
+        
+        unset($oldData['change_log']);
+        $mergedPayload = array_merge($oldData, $payload);
+        
+        return DetailInfo::updateWithAudit(
+            dateTime: $this->dateTime,
+            user: $username,
+            currentLog: $changeLog,
+            payload: $mergedPayload
+        );
+    }
+
+    public function restore(DetailInfo $detailInfo, array $payload = []): DetailInfo
+    {
+        $username = $this->currentUser->getActor()->username;
+        $oldData = $detailInfo->toArray();
+        
+        $changeLog = $oldData['change_log'] ?? [];
+        
+        unset($oldData['change_log']);
+        $mergedPayload = array_merge($oldData, $payload);
+        
+        return DetailInfo::restoreWithAudit(
             dateTime: $this->dateTime,
             user: $username,
             currentLog: $changeLog,

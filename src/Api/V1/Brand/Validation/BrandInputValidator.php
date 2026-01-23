@@ -6,6 +6,8 @@ namespace App\Api\V1\Brand\Validation;
 
 use App\Shared\Validation\AbstractValidator;
 use App\Shared\Validation\ValidationContext;
+use App\Shared\Enums\RecordStatus;
+
 use Yiisoft\Validator\Rule\Required;
 use Yiisoft\Validator\Rule\Integer;
 use Yiisoft\Validator\Rule\StringValue;
@@ -29,6 +31,13 @@ final class BrandInputValidator extends AbstractValidator
                     new StringValue(),
                     new Length(min: 1, max: 255),
                 ],
+                'status' => [
+                    new Required(),
+                    new Integer(),
+                    new In(
+                        RecordStatus::draftOnlyStates(),
+                    ),
+                ],
             ],
             ValidationContext::UPDATE => [
                 'id' => [
@@ -47,7 +56,10 @@ final class BrandInputValidator extends AbstractValidator
                 ],
                 'status' => [
                     new Integer(
-                        skipOnEmpty: true,
+                        // skipOnEmpty: true,
+                    ),
+                    new In(
+                        RecordStatus::searchableStates(),
                     ),
                 ],
             ],

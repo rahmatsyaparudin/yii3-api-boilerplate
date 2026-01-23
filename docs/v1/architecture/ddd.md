@@ -33,7 +33,7 @@ Objects defined by their values, without identity:
 ```php
 final readonly class Status
 {
-    private function __construct(private StatusEnum $enum) {}
+    private function __construct(private RecordStatus $enum) {}
     
     public static function draft(): self
     public static function active(): self

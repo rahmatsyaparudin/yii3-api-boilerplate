@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Shared\Validation;
 
 use App\Shared\Exception\ValidationException;
-use App\Shared\Helper\ValidationHelper;
 use App\Shared\Request\RawParams;
+use Yiisoft\Validator\Result;
 use Yiisoft\Validator\Validator;
 
 abstract class AbstractValidator
@@ -20,7 +20,7 @@ abstract class AbstractValidator
 
         if (!$result->isValid()) {
             throw new ValidationException(
-                ValidationHelper::formatErrors($result)
+                $this->formatErrors($result)
             );
         }
     }
@@ -28,6 +28,20 @@ abstract class AbstractValidator
     protected function buildValidator(): Validator
     {
         return new Validator();
+    }
+
+    private function formatErrors(Result $result): array
+    {
+        $errors = [];
+        foreach ($result->getErrorMessagesIndexedByPath() as $property => $errorList) {
+            foreach ($errorList as $message) {
+                $errors[] = [
+                    'field'   => $property,
+                    'message' => $message,
+                ];
+            }
+        }
+        return $errors;
     }
 
     abstract protected function rules(string $context): array;

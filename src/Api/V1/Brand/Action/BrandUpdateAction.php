@@ -6,12 +6,14 @@ namespace App\Api\V1\Brand\Action;
 
 // Application Layer
 use App\Application\Brand\BrandApplicationService;
+use App\Application\Brand\Command\UpdateBrandCommand;
 
 // API Layer
 use App\Api\Shared\ResponseFactory;
+use App\Api\V1\Brand\Validation\BrandInputValidator;
 
 // Shared Layer
-use App\Shared\Validation\RequestValidator;
+use App\Shared\Validation\ValidationContext;
 use App\Shared\ValueObject\Message;
 
 // PSR Interfaces
@@ -24,15 +26,13 @@ use Yiisoft\Router\CurrentRoute;
 
 /**
  * Brand Update API Action
- * 
- * Uses BrandApplicationService for proper DDD architecture
  */
 final class BrandUpdateAction
 {
-    private const RESOURCE = 'Brand';
     private const ALLOWED_KEYS = ['name', 'status'];
 
     public function __construct(
+        private BrandInputValidator $brandInputValidator,
         private BrandApplicationService $brandApplicationService,
         private ResponseFactory $responseFactory,
     ) {
@@ -48,12 +48,14 @@ final class BrandUpdateAction
         
         $id = $currentRoute->getArgument('id');
 
+        $resource = $this->brandApplicationService->getResource();
+
         if ($id === null) {
             return $this->responseFactory->fail(
                 translate: new Message(
                     key: 'route.parameter_missing',
                     params: [
-                        'resource' => self::RESOURCE,
+                        'resource' => $resource,
                         'parameter' => 'id',
                     ]
                 ),
@@ -61,20 +63,36 @@ final class BrandUpdateAction
             );
         }
 
-        $params = RequestValidator::onlyAllowed(
-            filters: $payload->getRawParams(), 
-            allowedKeys: self::ALLOWED_KEYS
+        $params = $payload->getRawParams()
+            ->onlyAllowed(
+                allowedKeys: self::ALLOWED_KEYS
+            )->with('id', $id)
+            ->sanitize();
+
+        $this->brandInputValidator->validate(
+            data: $params,
+            context: ValidationContext::UPDATE,
         );
 
-        // Use BrandApplicationService for proper DDD architecture
-        $brand = $this->brandApplicationService->update((int) $id, $params->toArray());
+        $command = new UpdateBrandCommand(
+            id: (int) $id,
+            name: $params->get('name'),
+            status: $params->get('status'),
+            detailInfo: $params->get('detail_info'),
+            syncMdb: $params->get('sync_mdb')
+        );
+
+        $brandResponse = $this->brandApplicationService->update(
+            id: (int) $id,
+            command: $command
+        );
 
         return $this->responseFactory->success(
-            data: $brand->toArray(),
+            data: $brandResponse->toArray(),
             translate: new Message(
                 key: 'resource.updated',
                 params: [
-                    'resource' => self::RESOURCE,
+                    'resource' => $resource,
                 ]
             ),
         );

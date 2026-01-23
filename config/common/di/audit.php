@@ -2,11 +2,16 @@
 
 declare(strict_types=1);
 
-use App\Domain\Common\Audit\AuditService;
-use App\Infrastructure\Security\CurrentUser;
-use Psr\Clock\ClockInterface;
-use Yiisoft\Db\Connection;
+use App\Domain\Shared\Audit\AuditServiceInterface;
+use App\Domain\Shared\Contract\CurrentUserInterface;
+use App\Infrastructure\Audit\DatabaseAuditService;
+use Yiisoft\Db\Connection\ConnectionInterface;
 
 return [
-    AuditService::class => static fn (Connection $db) => new AuditService($db),
+    CurrentUserInterface::class => \App\Infrastructure\Security\CurrentUser::class,
+
+    AuditServiceInterface::class => static fn (
+        ConnectionInterface $db,
+        CurrentUserInterface $currentUser
+    ) => new DatabaseAuditService($db, $currentUser->getActor()),
 ];

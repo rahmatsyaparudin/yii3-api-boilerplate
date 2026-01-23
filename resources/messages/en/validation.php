@@ -109,9 +109,16 @@ return [
 
     // Status Prefix
     'status.forbid_update' => '{resource} data with status "{status}" cannot be updated',
-    'status.invalid_transition' => 'Cannot update {resource} from status "{status}" to "{current_status}"',
+    'status.invalid_transition' => 'Cannot update {resource} from status "{from}" to "{to}"',
     'status.invalid_on_creation' => '{resource} must be in "active" or "draft" status to proceed with creation',
     'status.cannot_delete' => 'Cannot delete {resource} with status "{status}"',
+    'status.deletion_restricted' => '{resource} with ID {id} cannot be deleted while in "{status}" status.',
 
+    // Restore Prefix
+    'resource.restored' => '{resource} has been restored successfully',
+    'resource.restore_failed' => 'Failed to restore {resource}: {error}',
+    'resource.not_deleted' => '{resource} is not in deleted status',
+
+    // Request Prefix
     'request.unknown_parameters' => 'Unknown parameters: {unknown_keys}. Allowed parameters: {allowed_keys}',
 ];

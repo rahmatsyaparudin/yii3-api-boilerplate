@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Security;
 
-use App\Domain\Common\Audit\Actor;
+use App\Infrastructure\Security\Actor;
 use App\Shared\Exception\UnauthorizedException;
 use App\Shared\ValueObject\Message;
 

@@ -13,16 +13,19 @@ use Yiisoft\Db\Query\Query;
 use App\Shared\Query\QueryConditionApplier;
 use App\Shared\Dto\SearchCriteria;
 use App\Shared\Dto\PaginatedResult;
+use App\Infrastructure\Concerns\HasCoreFeatures;
+use App\Infrastructure\Security\CurrentUserAwareInterface;
 
 /**
  * Brand Repository using Yiisoft/Db Query Builder
  * 
  * Pure query implementation using Yiisoft/Db for database operations
  */
-final class BrandRepository implements BrandRepositoryInterface
+final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwareInterface
 {
+    use HasCoreFeatures;
+    
     private const TABLE = 'brand';
-    private const RESOURCE = 'Brand';
     private const LIKE_OPERATOR = 'ilike';
 
     public function __construct(
@@ -37,7 +40,28 @@ final class BrandRepository implements BrandRepositoryInterface
             ->where([
                 'id' => $id,
             ])
-            ->andWhere(['<>', 'status', Status::deleted()->value()])
+            ->andWhere(
+                $this->scopeWhereNotDeleted(),
+            )
+            ->one();
+
+        return $row ? Brand::reconstitute(
+            id: (int) $row['id'],
+            name: $row['name'],
+            status: Status::from((int)$row['status']),
+            detailInfo: $this->createDetailInfo($row['detail_info']),
+            syncMdb: $row['sync_mdb'] ?? null
+        ) : null;
+    }
+
+    public function restore(int $id): ?Brand
+    {
+        $row = (new Query($this->db))
+            ->from(self::TABLE)
+            ->where(['id' => $id])
+            ->andWhere(
+                $this->scopeWhereDeleted(),
+            )
             ->one();
 
         return $row ? Brand::reconstitute(
@@ -54,6 +78,7 @@ final class BrandRepository implements BrandRepositoryInterface
         $row = (new Query($this->db))
             ->from(self::TABLE)
             ->where(['name' => $name])
+            ->andWhere($this->scopeWhereNotDeleted())
             ->one();
 
         return $row ? Brand::reconstitute(
@@ -77,11 +102,19 @@ final class BrandRepository implements BrandRepositoryInterface
         });
     }
 
-    public function delete(Brand $brand): void
+    public function delete(Brand $brand): Brand
     {
         $this->db->createCommand()
-            ->delete(self::TABLE, ['id' => $brand->getId()])
+            ->update(
+                self::TABLE,
+                $this->getDeletedState(), 
+                [
+                    'id' => $brand->getId(),
+                ]
+            )
             ->execute();
+
+        return $brand->markAsDeleted();
     }
 
     public function existsByName(string $name): bool
@@ -89,7 +122,8 @@ final class BrandRepository implements BrandRepositoryInterface
         return (new Query($this->db))
             ->from(self::TABLE)
             ->where(['name' => $name])
-            ->count() > 0;
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->exists();
     }
 
     public function list(SearchCriteria $criteria): PaginatedResult
@@ -102,7 +136,8 @@ final class BrandRepository implements BrandRepositoryInterface
                 'detail_info',
                 'sync_mdb',
             ])
-            ->from(self::TABLE);
+            ->from(self::TABLE)
+            ->where($this->scopeWhereNotDeleted());
 
         $filter = $criteria->filter;
 
@@ -151,56 +186,6 @@ final class BrandRepository implements BrandRepositoryInterface
             $row['detail_info'] = json_decode($row['detail_info'] ?? '{}', true);
             yield $row;
         }
-    }
-
-    public function list2(array $filter = [], int $page = 1, int $limit = 20, string $sortBy = 'name', string $sortDir = 'asc'): array
-    {
-        $query = (new Query($this->db))
-            ->from(self::TABLE)
-            ->select(['id', 'name', 'status', 'detail_info', 'sync_mdb']);
-
-        // Apply filters
-        foreach ($filter as $key => $value) {
-            match ($key) {
-                'search' => $query->andWhere(['or',
-                    ['like', 'name', $value],
-                    ['like', 'detail_info', $value]
-                ]),
-                'ids' => $query->andWhere(['in', 'id', $value]),
-                default => $query->andWhere(["{$key}" => $value])
-            };
-        }
-
-        // Get total count
-        $total = (clone $query)->count();
-
-        // Apply sorting
-        $direction = $sortDir === 'asc' ? SORT_ASC : SORT_DESC;
-        $query->orderBy([$sortBy => $direction]);
-
-        // Apply pagination
-        $offset = ($page - 1) * $limit;
-        $query->offset($offset)->limit($limit);
-
-        // Execute query and parse detail_info
-        $rows = $query->all();
-        $items = array_map(function ($row) {
-            // Parse detail_info JSON to object structure
-            if (isset($row['detail_info']) && is_string($row['detail_info'])) {
-                $decoded = json_decode($row['detail_info'], true);
-                if (json_last_error() === JSON_ERROR_NONE) {
-                    $row['detail_info'] = $decoded;
-                }
-            }
-            return $row;
-        }, $rows);
-
-        return [
-            'items' => $items,
-            'total' => $total,
-            'page' => $page,
-            'limit' => $limit
-        ];
     }
 
     private function insert(Brand $brand): Brand 

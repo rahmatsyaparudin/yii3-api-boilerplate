@@ -16,7 +16,7 @@ final readonly class NotFoundCest
         $I->seeResponseIsJson();
         $I->seeResponseContainsJson(
             [
-                'status'        => 'failed',
+                'status' => 'failed',
                 'error_message' => 'Not found.',
             ],
         );

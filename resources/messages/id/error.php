@@ -13,6 +13,7 @@ return [
     'http.too_many_requests' => 'Terlalu banyak permintaan. Silakan coba lagi nanti',
     'http.internal_error' => 'Terjadi kesalahan internal pada server',
     'http.service_unavailable' => 'Layanan sedang tidak tersedia untuk sementara waktu',
+    'http.missing_request_params' => 'Permintaan tidak valid. Parameter wajib tidak ditemukan.',
 
     // Security Prefix
     'security.host_not_allowed' => 'Akses ditolak: Host tidak diizinkan',

@@ -13,6 +13,7 @@ return [
     'http.too_many_requests' => 'Too many requests. Please try again later',
     'http.internal_error' => 'An internal server error occurred',
     'http.service_unavailable' => 'The service is temporarily unavailable',
+    'http.missing_request_params' => 'Missing request parameters.',
 
     // Security Prefix
     'security.host_not_allowed' => 'Access denied: Host not allowed',

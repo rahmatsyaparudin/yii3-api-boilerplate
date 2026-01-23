@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Migration;
 
-use App\Shared\Constants\StatusEnum;
+use App\Shared\Enums\RecordStatus;
 use App\Infrastructure\Time\AppDateTimeProvider;
 use Yiisoft\Db\Migration\MigrationBuilder;
 use Yiisoft\Db\Migration\RevertibleMigrationInterface;
@@ -27,7 +27,7 @@ final class M20240101000000CreateBrand implements RevertibleMigrationInterface
         $b->createTable('brand', [
             'id'          => $cb::primaryKey(),
             'name'        => $cb::string(255)->notNull(),
-            'status'      => $cb::smallint()->notNull()->defaultValue(StatusEnum::ACTIVE->value),
+            'status'      => $cb::smallint()->notNull()->defaultValue(RecordStatus::DRAFT->value),
             'detail_info' => $cb::json()->notNull()->defaultValue([
                 'change_log' => [
                     'created_at' => null,
@@ -47,11 +47,11 @@ final class M20240101000000CreateBrand implements RevertibleMigrationInterface
 
         // Seed dummy data
         $dummyData = [
-            ['name' => 'Asus', 'status' => StatusEnum::ACTIVE->value],
-            ['name' => 'Acer', 'status' => StatusEnum::ACTIVE->value],
-            ['name' => 'Intel', 'status' => StatusEnum::ACTIVE->value],
-            ['name' => 'AMD', 'status' => StatusEnum::ACTIVE->value],
-            ['name' => 'Klevv', 'status' => StatusEnum::ACTIVE->value],
+            ['name' => 'Asus', 'status' => RecordStatus::DRAFT->value],
+            ['name' => 'Acer', 'status' => RecordStatus::DRAFT->value],
+            ['name' => 'Intel', 'status' => RecordStatus::DRAFT->value],
+            ['name' => 'AMD', 'status' => RecordStatus::DRAFT->value],
+            ['name' => 'Klevv', 'status' => RecordStatus::DRAFT->value],
         ];
 
         foreach ($dummyData as $data) {

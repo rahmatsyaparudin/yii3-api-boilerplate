@@ -152,7 +152,14 @@ final readonly class RequestParams
     {
         $params = $request->getAttribute($attribute);
         if (!$params instanceof self) {
-            throw new \RuntimeException('RequestParams not found in request attribute.');
+            throw new BadRequestException(
+                translate: new Message(
+                    key: 'http.missing_request_params', 
+                    params: [
+                        'parameter' => 'page'
+                    ]
+                )
+            );
         }
 
         return $params;

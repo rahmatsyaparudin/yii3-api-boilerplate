@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Shared\ValueObject;
 
 use App\Shared\Exception\BadRequestException;
-use App\Domain\Shared\Trait\AuditStamp;
 use App\Domain\Shared\Contract\DateTimeProviderInterface;
+use App\Domain\Shared\Concerns\Entity\Auditable;
 
 /**
  * Generic Detail Info Value Object
@@ -16,7 +16,7 @@ use App\Domain\Shared\Contract\DateTimeProviderInterface;
  */
 final readonly class DetailInfo
 {
-    use AuditStamp;
+    use Auditable;
 
     public function __construct(public readonly array $data) {}
 
@@ -25,8 +25,8 @@ final readonly class DetailInfo
         string $user,
         array $payload = [] 
     ): self {
-        $audit = (new self([]))->createAuditLog($dateTime, $user);
-        return new self(array_merge($payload, $audit));
+        $createdLog = (new self([]))->createAuditStamp($dateTime, $user);
+        return new self(array_merge($payload, $createdLog));
     }
 
     public static function updateWithAudit(
@@ -35,12 +35,38 @@ final readonly class DetailInfo
         array $currentLog,
         array $payload = [] 
     ): self {
-        // Update audit log
-        $updatedLog = self::updateAuditLog($currentLog, $dateTime, $user);
+        $updatedLog = self::updateAuditStamp($currentLog, $dateTime, $user);
         
-        // Merge payload with updated audit
-        unset($payload['change_log']); // Remove if exists to avoid conflict
+        unset($payload['change_log']);
         $mergedData = array_merge($payload, ['change_log' => $updatedLog]);
+        
+        return new self($mergedData);
+    }
+
+    public static function deleteWithAudit(
+        DateTimeProviderInterface $dateTime,
+        string $user,
+        array $currentLog,
+        array $payload = [] 
+    ): self {
+        $deletedLog = self::deleteAuditStamp($currentLog, $dateTime, $user);
+        
+        unset($payload['change_log']); 
+        $mergedData = array_merge($payload, ['change_log' => $deletedLog]);
+        
+        return new self($mergedData);
+    }
+
+    public static function restoreWithAudit(
+        DateTimeProviderInterface $dateTime,
+        string $user,
+        array $currentLog,
+        array $payload = [] 
+    ): self {
+        $restoredLog = self::restoreAuditStamp($currentLog, $dateTime, $user);
+        
+        unset($payload['change_log']);
+        $mergedData = array_merge($payload, ['change_log' => $restoredLog]);
         
         return new self($mergedData);
     }

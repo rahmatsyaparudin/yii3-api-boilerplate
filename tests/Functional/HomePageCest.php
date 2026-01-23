@@ -24,9 +24,9 @@ final readonly class HomePageCest
         assertSame(
             [
                 'status' => 'success',
-                'data'   => ['name' => 'My Project', 'version' => '1.0'],
+                'data' => ['name' => 'My Project', 'version' => '1.0'],
             ],
-            \json_decode($output, true),
+            json_decode($output, true),
         );
     }
 }

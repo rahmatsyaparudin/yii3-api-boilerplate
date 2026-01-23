@@ -4,24 +4,25 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Security;
 
-use App\Domain\Common\Audit\Actor;
+// use App\Infrastructure\Security\Actor;
 
-final class CurrentUser
+use App\Domain\Shared\Contract\CurrentUserInterface;
+use App\Domain\Shared\Contract\ActorInterface;
+
+final class CurrentUser implements CurrentUserInterface
 {
-    private ?Actor $actor = null;
+    private ?ActorInterface $actor = null;
 
-    public function getActor(): Actor
+    public function getActor(): ActorInterface
     {
-        // Return cached actor if already set
         if ($this->actor !== null) {
             return $this->actor;
         }
 
-        // Fallback for non-authenticated requests (e.g., console commands)
         return new Actor(username: 'system');
     }
 
-    public function setActor(Actor $actor): void
+    public function setActor(ActorInterface $actor): void
     {
         $this->actor = $actor;
     }

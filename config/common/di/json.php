@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Shared\Json\JsonFieldNormalizer;
+use App\Shared\Utility\JsonDataHydrator;
 
 return [
-    JsonFieldNormalizer::class => JsonFieldNormalizer::class,
+    JsonDataHydrator::class => JsonDataHydrator::class,
 ];

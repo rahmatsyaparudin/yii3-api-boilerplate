@@ -40,5 +40,9 @@ return [
                 ->action(BrandAction\BrandDeleteAction::class)
                 ->name('v1/brand/delete')
                 ->defaults(['permission' => 'brand.delete']),
+            Route::post('/brand/{id:\d+}/restore')
+                ->action(BrandAction\BrandRestoreAction::class)
+                ->name('v1/brand/restore')
+                ->defaults(['permission' => 'brand.restore']),
         ),
 ];

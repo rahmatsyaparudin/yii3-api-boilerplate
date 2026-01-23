@@ -23,7 +23,6 @@ use Yiisoft\Router\CurrentRoute;
 
 final readonly class BrandDeleteAction
 {
-    private const RESOURCE = 'Brand';
     private const ALLOWED_KEYS = ['id'];
 
     public function __construct(
@@ -38,13 +37,15 @@ final readonly class BrandDeleteAction
     ): ResponseInterface
     {
         $id = $currentRoute->getArgument('id');
+
+        $resource = $this->brandApplicationService->getResource();
         
         if ($id === null) {
             return $this->responseFactory->fail(
                 translate: new Message(
                     key: 'route.parameter_missing',
                     params: [
-                        'resource' => self::RESOURCE,
+                        'resource' => $resource,
                         'parameter' => 'id',
                     ]
                 ),
@@ -52,17 +53,18 @@ final readonly class BrandDeleteAction
             );
         }
 
-        // Use BrandApplicationService for proper DDD architecture
-        $this->brandApplicationService->delete((int) $id);
+        $brandResponse = $this->brandApplicationService->delete(
+            id: (int) $id,
+        );
 
         return $this->responseFactory->success(
-            data: [],
+            data: $brandResponse->toArray(),
             translate: new Message(
                 key: 'resource.deleted',
                 params: [
-                    'resource' => self::RESOURCE
+                    'resource' => $resource,
                 ]
-            )
+            ),
         );
     }
 }

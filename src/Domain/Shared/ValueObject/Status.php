@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\ValueObject;
 
-use App\Shared\Constants\StatusEnum;
+use App\Shared\Enums\RecordStatus;
 
 /**
  * Status value object for domain entities.
@@ -16,187 +16,128 @@ use App\Shared\Constants\StatusEnum;
 final readonly class Status
 {
     private function __construct(
-        private StatusEnum $enum
+        private RecordStatus $enum
     ) {
     }
 
-    private const IMMUTABLE_STATUSES = [
-        StatusEnum::ACTIVE->value,
-        StatusEnum::COMPLETED->value,
-        StatusEnum::DELETED->value,
-    ];
-
-    /**
-     * Allowed status transitions for updates
-     */
-    private const ALLOWED_UPDATE_STATUS_LIST = [
-        StatusEnum::DRAFT->value => [
-            StatusEnum::INACTIVE->value,
-            StatusEnum::ACTIVE->value,
-            StatusEnum::DELETED->value,
-            StatusEnum::MAINTENANCE->value,
-        ],
-        StatusEnum::ACTIVE->value => [
-            StatusEnum::COMPLETED->value,
-            StatusEnum::APPROVED->value,
-            StatusEnum::REJECTED->value,
-        ],
-        StatusEnum::INACTIVE->value => [
-            StatusEnum::ACTIVE->value,
-            StatusEnum::DRAFT->value,
-            StatusEnum::DELETED->value,
-        ],
-        StatusEnum::MAINTENANCE->value => [
-            StatusEnum::INACTIVE->value,
-            StatusEnum::ACTIVE->value,
-            StatusEnum::DRAFT->value,
-            StatusEnum::DELETED->value,
-        ],
-        StatusEnum::APPROVED->value => [
-            StatusEnum::COMPLETED->value,
-            StatusEnum::APPROVED->value,
-            StatusEnum::REJECTED->value,
-        ],
-    ];
-
-    // ====== FACTORY METHODS ======
-    
     public static function draft(): self
     {
-        return new self(StatusEnum::DRAFT);
+        return new self(RecordStatus::DRAFT);
     }
 
     public static function active(): self
     {
-        return new self(StatusEnum::ACTIVE);
+        return new self(RecordStatus::ACTIVE);
     }
 
     public static function inactive(): self
     {
-        return new self(StatusEnum::INACTIVE);
+        return new self(RecordStatus::INACTIVE);
     }
 
     public static function deleted(): self
     {
-        return new self(StatusEnum::DELETED);
+        return new self(RecordStatus::DELETED);
     }
 
     public static function completed(): self
     {
-        return new self(StatusEnum::COMPLETED);
+        return new self(RecordStatus::COMPLETED);
     }
 
     public static function maintenance(): self
     {
-        return new self(StatusEnum::MAINTENANCE);
+        return new self(RecordStatus::MAINTENANCE);
     }
 
     public static function approved(): self
     {
-        return new self(StatusEnum::APPROVED);
+        return new self(RecordStatus::APPROVED);
     }
 
     public static function rejected(): self
     {
-        return new self(StatusEnum::REJECTED);
+        return new self(RecordStatus::REJECTED);
     }
 
-    public static function from(int|string $input): self
+    public static function from(int|string $value): self
     {
-        // StatusEnum::from() bisa otomatis handle int atau string
-        $enum = StatusEnum::from($input);
-
+        $enum = RecordStatus::from($value);
         return new self($enum);
     }
 
-    /**
-     * Check if status allows transition to new status
-     */
-    public function allowsTransitionTo(Status $newStatus): bool
+    public static function tryFrom(int|string|null $value): ?self
     {
-        $allowedTransitions = self::ALLOWED_UPDATE_STATUS_LIST[$this->value()] ?? [];
-        return in_array($newStatus->value(), $allowedTransitions, true);
+        if ($value === null || (is_string($value) && trim($value) === "")) {
+            return null;
+        }
+
+        return self::from($value);
     }
 
     public function canBeUpdated(): bool
     {
-        return !in_array($this->value(), self::IMMUTABLE_STATUSES, true);
+        return !in_array($this->value(), RecordStatus::IMMUTABLE_STATUSES, true);
     }
 
-    /**
-     * Check if status allows deletion
-     */
     public function canBeDeleted(): bool
     {
         return !$this->isActive();
     }
 
-    /**
-     * Check if status is available for use
-     */
     public function isAvailableForUse(): bool
     {
         return $this->isActive();
     }
 
-    /**
-     * Check if status allows transition to new status
-     */
     public function canTransitionTo(self $newStatus): bool
     {
-        return in_array($newStatus->value(), self::ALLOWED_UPDATE_STATUS_LIST[$this->value()] ?? [], true);
+        return in_array($newStatus->value(), RecordStatus::STATUS_TRANSITION_MAP[$this->value()] ?? [], true);
     }
 
-    /**
-     * Check if status is locked (no further transitions allowed)
-     */
     public function isLocked(): bool
     {
         return match ($this->enum) {
-            StatusEnum::COMPLETED, 
-            StatusEnum::DELETED, 
-            StatusEnum::REJECTED => true,
+            RecordStatus::ACTIVE, 
+            RecordStatus::COMPLETED, 
+            RecordStatus::DELETED, 
+            RecordStatus::REJECTED => true,
             default => false,
         };
     }
 
-    /**
-     * Check if status is valid for entity creation
-     */
     public function isValidForCreation(): bool
     {
         return $this->isActive() || $this->isDraft();
     }
 
     // ====== STATE CHECKERS ======
-
     public function isActive(): bool
     {
-        return $this->enum === StatusEnum::ACTIVE;
+        return $this->enum === RecordStatus::ACTIVE;
     }
 
     public function isDraft(): bool
     {
-        return $this->enum === StatusEnum::DRAFT;
+        return $this->enum === RecordStatus::DRAFT;
     }
 
     public function isInactive(): bool
     {
-        return $this->enum === StatusEnum::INACTIVE;
+        return $this->enum === RecordStatus::INACTIVE;
     }
 
     public function isCompleted(): bool
     {
-        return $this->enum === StatusEnum::COMPLETED;
+        return $this->enum === RecordStatus::COMPLETED;
     }
 
     public function isDeleted(): bool
     {
-        return $this->enum === StatusEnum::DELETED;
+        return $this->enum === RecordStatus::DELETED;
     }
 
     // ====== COMPARISON & CONVERSION ======
-
     public function equals(Status $other): bool
     {
         return $this->enum === $other->enum;
@@ -217,10 +158,6 @@ final readonly class Status
         return $this->enum->label();
     }
 
-    /**
-     * Get status label directly from integer value
-     * Static method for convenience without creating Status object
-     */
     public static function getLabel(int|string $value): string
     {
         $status = self::from($value);

@@ -109,9 +109,15 @@ return [
 
     // Status Prefix
     'status.forbid_update' => 'Data {resource} dengan status "{status}" tidak dapat diperbarui',
-    'status.invalid_transition' => 'Tidak dapat memperbarui {resource} dari status "{status}" ke "{current_status}"',
+    'status.invalid_transition' => 'Tidak dapat memperbarui {resource} dari status "{from}" ke "{to}"',
     'status.invalid_on_creation' => '{resource} harus berstatus "active" atau "draft" untuk melanjutkan pembuatan',
     'status.cannot_delete' => 'Tidak dapat menghapus {resource} dengan status "{status}"',
+    'status.deletion_restricted' => '{resource} dengan ID {id} tidak dapat dihapus saat berada dalam status "{status}".',
+
+    // Restore Prefix
+    'resource.restored' => '{resource} berhasil dipulihkan',
+    'resource.restore_failed' => 'Gagal memulihkan {resource}: {error}',
+    'resource.not_deleted' => '{resource} tidak dalam status terhapus',
 
     // Request Prefix
     'request.unknown_parameters' => 'Parameter tidak dikenal: {unknown_keys}. Parameter yang diizinkan: {allowed_keys}',

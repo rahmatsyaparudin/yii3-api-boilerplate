@@ -4,15 +4,20 @@ declare(strict_types=1);
 
 namespace App\Application\Brand;
 
+use App\Application\Brand\Command\CreateBrandCommand;
+use App\Application\Brand\Command\UpdateBrandCommand;
+use App\Application\Brand\Dto\BrandResponse;
+use App\Application\Shared\Factory\DetailInfoFactory;
+
 use App\Domain\Brand\Entity\Brand;
 use App\Domain\Brand\Repository\BrandRepositoryInterface;
 use App\Domain\Brand\Service\BrandDomainService;
 use App\Domain\Shared\ValueObject\Status;
-use App\Shared\Exception\BadRequestException;
-use App\Shared\Exception\NotFoundException;
-use App\Application\Shared\Factory\DetailInfoFactory;
-use App\Shared\Dto\SearchCriteria;
+use App\Domain\Shared\Security\AuthorizerInterface;
+
 use App\Shared\Dto\PaginatedResult;
+use App\Shared\Dto\SearchCriteria;
+use App\Shared\Exception\NotFoundException;
 use App\Shared\ValueObject\Message;
 
 /**
@@ -23,39 +28,19 @@ use App\Shared\ValueObject\Message;
 final class BrandApplicationService
 {
     public function __construct(
+        private AuthorizerInterface $auth,
         private DetailInfoFactory $detailInfoFactory,
         private BrandRepositoryInterface $repository,
         private BrandDomainService $domainService
-    ) {}
-
-    /**
-     * Create new brand
-     */
-    public function create(array $data): Brand
-    {
-        // Domain validation
-        $this->domainService->validateUniqueName($data['name']);
-
-        $detailInfo = $this->detailInfoFactory->create(
-            payload: []
-        );
-
-        // Create brand entity
-        $brand = Brand::create(
-            name: $data['name'],
-            status: Status::from($data['status'] ?? Status::DRAFT->value),
-            detailInfo: $detailInfo,
-            syncMdb: $data['sync_mdb'] ?? null
-        );
-
-        // Save and return
-        return $this->repository->save($brand);
+    ) {
     }
 
-    /**
-     * Get brand by ID
-     */
-    public function get(int $id): Brand
+    public function getResource(): string
+    {
+        return Brand::RESOURCE;
+    }
+
+    private function getEntityById(int $id): Brand
     {
         $brand = $this->repository->findById($id);
         
@@ -64,7 +49,7 @@ final class BrandApplicationService
                 translate: new Message(
                     key: 'resource.not_found', 
                     params: [
-                        'resource' => 'Brand',
+                        'resource' => $this->getResource(),
                         'field' => 'id',
                         'value' => $id
                     ]
@@ -74,63 +59,150 @@ final class BrandApplicationService
         
         return $brand;
     }
-
-    /**
-     * Update brand
-     */
-    public function update(int $id, array $data): Brand
-    {
-        $brand = $this->get($id);
-
-        // Update name if provided
-        if (isset($data['name'])) {
-            $this->domainService->validateNameChange($brand, $data['name']);
-            $brand->changeName($data['name']);
-        }
-
-        // Update status if provided
-        if (isset($data['status'])) {
-            $newStatus = Status::from($data['status']);
-            if ($brand->getStatus()->value() !== $newStatus->value()) {
-                $this->domainService->validateStatusTransition($brand->getStatus(), $newStatus);
-                $brand->changeStatus($newStatus);
-            }
-        }
-
-        // Update sync_mdb if provided
-        if (isset($data['sync_mdb'])) {
-            $brand->updateSyncMdb($data['sync_mdb']);
-        }
-
-        $detailInfo = $this->detailInfoFactory->update(
-            detailInfo: $brand->getDetailInfo(), 
-            payload: []
-        );
-        $brand->updateDetailInfo($detailInfo);
-
-        // Save and return
-        $this->repository->save($brand);
-        return $brand;
-    }
-
-    /**
-     * Delete brand
-     */
-    public function delete(int $id): void
-    {
-        $brand = $this->get($id);
-        
-        // Domain validation
-        $this->domainService->canDeleteBrand($brand);
-        
-        $this->repository->delete($brand);
-    }
-
-    /**
-     * List brands with filtering, pagination, sorting
-     */
+    
     public function list(SearchCriteria $criteria): PaginatedResult
     {
         return $this->repository->list($criteria);
+    }
+
+    public function viewBrand(int $id): BrandResponse
+    {
+        $brand = $this->getEntityById($id);
+        return BrandResponse::fromEntity($brand);
+    }
+
+    public function get(int $id): BrandResponse
+    {
+        return $this->viewBrand($id);
+    }
+
+    public function create(CreateBrandCommand $command): BrandResponse
+    {
+        $this->domainService->validateUniqueValue(
+            value: $command->name,
+            field: 'name',
+            resource: Brand::RESOURCE,
+            repository: $this->repository,
+            excludeId: null
+        );
+
+        $detailInfo = $this->detailInfoFactory->create(
+            payload: []
+        );
+
+        $brand = Brand::create(
+            name: $command->name,
+            status: Status::from($command->status),
+            detailInfo: $detailInfo,
+            syncMdb: $command->syncMdb ?? null
+        );
+
+        return BrandResponse::fromEntity(brand: $this->repository->save($brand));
+    }
+
+    public function update(int $id, UpdateBrandCommand $command): BrandResponse
+    {
+        $brand = $this->getEntityById($id);
+
+        $newStatus = Status::tryFrom($command->status);
+
+        $hasFieldChanges = $brand->hasFieldChanges(
+            data: (array) $command,
+            removeNulls: true
+        );
+
+        $brand->validateStateTransition(
+            hasFieldChanges: $hasFieldChanges,
+            newStatus: $newStatus
+        );
+
+        if (isset($command->name)) {
+            $this->domainService->validateUniqueValue(
+                field: 'name',
+                value: $command->name,
+                resource: $this->getResource(),
+                repository: $this->repository,
+                excludeId: $id
+            );
+
+            $brand->changeName($command->name);
+        }
+
+        if ($newStatus !== null) {
+            $brand->transitionTo($newStatus);
+        }
+
+        $brand->updateDetailInfo(
+            $this->detailInfoFactory->update(
+                detailInfo: $brand->getDetailInfo(), 
+                payload: $command->detailInfo ?? [],
+            )
+        );
+
+        return BrandResponse::fromEntity($this->repository->save($brand));
+    }
+
+    public function delete(int $id): BrandResponse
+    {
+        $brand = $this->getEntityById($id);
+
+        $this->domainService->guardPermission(
+            authorizer: $this->auth,
+            permission: 'brand.delete',
+            resource: $this->getResource(),
+            id: $id
+        );
+        
+        $this->domainService->validateCanBeDeleted(
+            entity: $brand,
+            resource: $this->getResource(),
+        );
+
+        $brand->updateDetailInfo(
+            $this->detailInfoFactory->delete(
+                detailInfo: $brand->getDetailInfo(), 
+                payload: [],
+            )
+        );
+        
+        return BrandResponse::fromEntity($this->repository->delete($brand));
+    }
+
+    public function restore(int $id): BrandResponse
+    {
+        $brand = $this->repository->restore($id);
+        
+        if ($brand === null) {
+            throw new NotFoundException(
+                translate: new Message(
+                    key: 'resource.not_found', 
+                    params: [
+                        'resource' => $this->getResource(),
+                        'field' => 'id',
+                        'value' => $id
+                    ]
+                )
+            );
+        }
+
+        $newStatus = Status::draft();
+
+        $brand->validateStateTransition(
+            hasFieldChanges: false,
+            newStatus: $newStatus
+        );
+
+        if ($newStatus !== null) {
+            $brand->transitionTo($newStatus);
+        }
+
+        $brand->updateDetailInfo(
+            $this->detailInfoFactory->update(
+                detailInfo: $brand->getDetailInfo(), 
+                payload: $command->detailInfo ?? [],
+            )
+        );
+
+        return BrandResponse::fromEntity($this->repository->save($brand));
     }
 }

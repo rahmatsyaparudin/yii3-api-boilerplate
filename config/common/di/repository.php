@@ -3,21 +3,16 @@
 declare(strict_types=1);
 
 use App\Domain\Brand\Repository\BrandRepositoryInterface;
-use App\Domain\Brand\Repository\BrandQueryServiceInterface;
 use App\Infrastructure\Persistence\Brand\BrandRepository;
-use App\Infrastructure\Persistence\Brand\BrandQueryService;
 use App\Shared\Query\QueryConditionApplier;
 use Yiisoft\Db\Connection\ConnectionInterface;
+use App\Infrastructure\Security\CurrentUserAwareInterface;
+use App\Infrastructure\Security\CurrentUser;
+use Yiisoft\Definitions\Reference;
 
 return [
-    // Brand Repository (Yiisoft/Db)
-    BrandRepositoryInterface::class => static function (
-        QueryConditionApplier $queryConditionApplier,
-        ConnectionInterface $db
-    ) {
-        return new BrandRepository($queryConditionApplier, $db);
-    },
-    
-    // Brand Query Service (Simplified)
-    BrandQueryServiceInterface::class => BrandQueryService::class,
+    BrandRepositoryInterface::class => [
+        'class' => BrandRepository::class,
+        'setCurrentUser()' => [Reference::to(CurrentUser::class)],
+    ],
 ];

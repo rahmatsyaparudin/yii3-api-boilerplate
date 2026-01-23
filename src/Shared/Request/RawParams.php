@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Shared\Request;
 
+use App\Shared\Exception\BadRequestException;
+use App\Shared\ValueObject\Message;
+use App\Shared\Security\InputSanitizer;
+
 /**
  * Raw Request Parameters
  * 
@@ -60,5 +64,31 @@ final readonly class RawParams
     public function __debugInfo(): array
     {
         return $this->params;
+    }
+
+    public function onlyAllowed(array $allowedKeys): self
+    {
+        $unknown = array_diff(array_keys($this->params), $allowedKeys);
+
+        if ($unknown !== []) {
+            throw new BadRequestException(
+                translate: new Message(
+                    key: 'request.unknown_parameters',
+                    domain: 'validation',
+                    params: [
+                        'unknown_keys' => implode(', ', $unknown),
+                        'allowed_keys' => implode(', ', $allowedKeys),
+                    ]
+                )
+            );
+        }
+
+        $filtered = array_intersect_key($this->params, array_flip($allowedKeys));
+        return new self($filtered);
+    }
+
+    public function sanitize(): self
+    {
+        return new self(InputSanitizer::process($this->params));
     }
 }
