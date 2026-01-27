@@ -87,6 +87,7 @@ return [
     'resource.cannot_update' => 'Tidak dapat memperbarui {resource}. Perubahan status dari "{current_status}" ke "{status}" tidak diizinkan',
     'resource.update_not_allowed_by_status' => 'Perubahan data tidak diizinkan untuk {resource} saat berstatus "{current_status}"',
     'resource.status_already_set' => 'Tidak dapat memperbarui {resource}. Status sudah bernilai "{current_status}"',
+    'resource.modification_denied_on_deleted' => 'Tindakan dilarang: Operasi yang diminta tidak dapat dilakukan karena {resource} ditandai sebagai "{status}".',
 
     // Access & Rate Limit
     'operation.not_allowed' => 'Operasi ini tidak diizinkan',
@@ -103,4 +104,6 @@ return [
     'service.error' => 'Gagal memproses permintaan: {reason}',
     'service.unavailable' => 'Layanan "{service}" tidak tersedia',
     'service.failed' => 'Proses layanan gagal dilakukan',
+
+    'factory.detail_info.uninitialized_state' => 'Kesalahan internal: Factory belum diinisialisasi. Anda harus memanggil {methods} sebelum melakukan operasi ini.',
 ];

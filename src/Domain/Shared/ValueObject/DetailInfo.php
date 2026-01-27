@@ -6,7 +6,7 @@ namespace App\Domain\Shared\ValueObject;
 
 use App\Shared\Exception\BadRequestException;
 use App\Domain\Shared\Contract\DateTimeProviderInterface;
-use App\Domain\Shared\Concerns\Entity\Auditable;
+use App\Domain\Shared\Concerns\Entity\ChangeLogged;
 
 /**
  * Generic Detail Info Value Object
@@ -16,26 +16,26 @@ use App\Domain\Shared\Concerns\Entity\Auditable;
  */
 final readonly class DetailInfo
 {
-    use Auditable;
+    use ChangeLogged;
 
     public function __construct(public readonly array $data) {}
 
-    public static function createWithAudit(
+    public static function createdLog(
         DateTimeProviderInterface $dateTime,
         string $user,
         array $payload = [] 
     ): self {
-        $createdLog = (new self([]))->createAuditStamp($dateTime, $user);
+        $createdLog = (new self([]))->createdChangeLog($dateTime, $user);
         return new self(array_merge($payload, $createdLog));
     }
 
-    public static function updateWithAudit(
+    public static function updatedLog(
         DateTimeProviderInterface $dateTime,
         string $user,
         array $currentLog,
         array $payload = [] 
     ): self {
-        $updatedLog = self::updateAuditStamp($currentLog, $dateTime, $user);
+        $updatedLog = self::updatedChangeLog($currentLog, $dateTime, $user);
         
         unset($payload['change_log']);
         $mergedData = array_merge($payload, ['change_log' => $updatedLog]);
@@ -43,13 +43,13 @@ final readonly class DetailInfo
         return new self($mergedData);
     }
 
-    public static function deleteWithAudit(
+    public static function deletedLog(
         DateTimeProviderInterface $dateTime,
         string $user,
         array $currentLog,
         array $payload = [] 
     ): self {
-        $deletedLog = self::deleteAuditStamp($currentLog, $dateTime, $user);
+        $deletedLog = self::deletedChangeLog($currentLog, $dateTime, $user);
         
         unset($payload['change_log']); 
         $mergedData = array_merge($payload, ['change_log' => $deletedLog]);
@@ -57,13 +57,13 @@ final readonly class DetailInfo
         return new self($mergedData);
     }
 
-    public static function restoreWithAudit(
+    public static function restoredLog(
         DateTimeProviderInterface $dateTime,
         string $user,
         array $currentLog,
         array $payload = [] 
     ): self {
-        $restoredLog = self::restoreAuditStamp($currentLog, $dateTime, $user);
+        $restoredLog = self::restoredChangeLog($currentLog, $dateTime, $user);
         
         unset($payload['change_log']);
         $mergedData = array_merge($payload, ['change_log' => $restoredLog]);
@@ -83,25 +83,32 @@ final readonly class DetailInfo
         return new self($data);
     }
 
-    public static function withEmptyApproval(): self
-    {
-        return (new self([]))->with([
-            'approved_at' => null,
-            'approved_by' => null,
-        ]);
+    public static function approvedLog(
+        DateTimeProviderInterface $dateTime,
+        string $user,
+        array $currentLog,
+        array $payload = [] 
+    ): self {
+        $approvedLog = self::approvedChangeLog($currentLog, $dateTime, $user);
+        
+        unset($payload['change_log']);
+        $mergedData = array_merge($payload, ['change_log' => $approvedLog]);
+        
+        return new self($mergedData);
     }
 
-    public static function withEmptyRejection(): self
-    {
-        return (new self([]))->with([
-            'rejected_at' => null,
-            'rejected_by' => null,
-        ]);
-    }
-
-    public static function withChangeLog(array $fields): self
-    {
-        return (new self([]))->with($fields);
+    public static function rejectedLog(
+        DateTimeProviderInterface $dateTime,
+        string $user,
+        array $currentLog,
+        array $payload = [] 
+    ): self {
+        $rejectedLog = self::rejectedChangeLog($currentLog, $dateTime, $user);
+        
+        unset($payload['change_log']);
+        $mergedData = array_merge($payload, ['change_log' => $rejectedLog]);
+        
+        return new self($mergedData);
     }
 
     /**

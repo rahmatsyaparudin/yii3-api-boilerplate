@@ -56,7 +56,7 @@ final class BrandInputValidator extends AbstractValidator
                 ],
                 'status' => [
                     new Integer(
-                        // skipOnEmpty: true,
+                        skipOnEmpty: true,
                     ),
                     new In(
                         RecordStatus::searchableStates(),

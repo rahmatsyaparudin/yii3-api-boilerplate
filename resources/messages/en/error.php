@@ -88,6 +88,7 @@ return [
     'resource.cannot_update' => 'Cannot update {resource}. Status change from "{current_status}" to "{status}" is not allowed',
     'resource.update_not_allowed_by_status' => 'Data changes are not allowed for {resource} when its status is "{current_status}"',
     'resource.status_already_set' => 'Cannot update {resource}. The status is already "{current_status}"',
+    'resource.modification_denied_on_deleted' => 'Action prohibited: The requested operation cannot be performed because the {resource} is marked as "{status}".',
 
     // Access & Rate Limit
     'operation.not_allowed' => 'This operation is not allowed',
@@ -104,4 +105,6 @@ return [
     'service.error' => 'Failed to process request: {reason}',
     'service.unavailable' => 'Service "{service}" is unavailable',
     'service.failed' => 'The service process failed',
+
+    'factory.detail_info.uninitialized_state' => 'Internal error: The factory state is uninitialized. You must call {methods} before performing this operation.',
 ];

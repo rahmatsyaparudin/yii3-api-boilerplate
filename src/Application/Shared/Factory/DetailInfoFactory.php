@@ -7,24 +7,31 @@ namespace App\Application\Shared\Factory;
 use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\Contract\DateTimeProviderInterface;
 use App\Infrastructure\Security\CurrentUser;
+use App\Shared\Exception\ServiceException;
+use App\Shared\ValueObject\Message;
+use Yiisoft\Http\Status;
 
-final readonly class DetailInfoFactory
+final class DetailInfoFactory
 {
+    private ?DetailInfo $current = null;
+
     public function __construct(
         private DateTimeProviderInterface $dateTime,
         private CurrentUser $currentUser
     ) {}
 
-    public function create(array $payload = []): DetailInfo
+    public function create(array $detailInfo = []): self
     {
-        return DetailInfo::createWithAudit(
+        $this->current = DetailInfo::createdLog(
             dateTime: $this->dateTime,
             user: $this->currentUser->getActor()->username,
-            payload: $payload
+            payload: $detailInfo
         );
+
+        return $this;
     }
 
-    public function update(DetailInfo $detailInfo, array $payload = []): DetailInfo
+    public function update(DetailInfo $detailInfo, array $payload = []): self
     {
         $username = $this->currentUser->getActor()->username;
         $oldData = $detailInfo->toArray();
@@ -34,12 +41,14 @@ final readonly class DetailInfoFactory
         unset($oldData['change_log']);
         $mergedPayload = array_merge($oldData, $payload);
         
-        return DetailInfo::updateWithAudit(
+        $this->current = DetailInfo::updatedLog(
             dateTime: $this->dateTime,
             user: $username,
             currentLog: $changeLog,
             payload: $mergedPayload
         );
+        
+        return $this;
     }
 
     public function delete(DetailInfo $detailInfo, array $payload = []): DetailInfo
@@ -52,12 +61,14 @@ final readonly class DetailInfoFactory
         unset($oldData['change_log']);
         $mergedPayload = array_merge($oldData, $payload);
         
-        return DetailInfo::updateWithAudit(
+        $this->current = DetailInfo::deletedLog(
             dateTime: $this->dateTime,
             user: $username,
             currentLog: $changeLog,
             payload: $mergedPayload
         );
+        
+        return $this;
     }
 
     public function restore(DetailInfo $detailInfo, array $payload = []): DetailInfo
@@ -70,59 +81,115 @@ final readonly class DetailInfoFactory
         unset($oldData['change_log']);
         $mergedPayload = array_merge($oldData, $payload);
         
-        return DetailInfo::restoreWithAudit(
+        $this->current = DetailInfo::restoredLog(
             dateTime: $this->dateTime,
             user: $username,
             currentLog: $changeLog,
             payload: $mergedPayload
         );
+        
+        return $this;
     }
 
-    /**
-     * Create DetailInfo with approval
-     */
-    public function createWithApproval(array $payload = []): DetailInfo
+    public function withEmptyApproval(): self
     {
-        return $this->create($payload)->withApprovedExplicit($this->dateTime, $this->currentUser->getActor()->username);
+        $this->ensureInstanceExists();
+
+        $this->current = $this->current->with([
+            'approved_at' => null,
+            'approved_by' => null,
+        ]);
+
+        return $this;
     }
 
-    /**
-     * Create DetailInfo with rejection
-     */
-    public function createWithRejection(array $payload = []): DetailInfo
+    public function withEmptyRejection(): self
     {
-        return $this->create($payload)->withRejectedExplicit($this->dateTime, $this->currentUser->getActor()->username);
+        $this->ensureInstanceExists();
+
+        $this->current = $this->current->with([
+            'rejected_at' => null,
+            'rejected_by' => null,
+        ]);
+
+        return $this;
     }
 
-    /**
-     * Create DetailInfo with custom field
-     */
-    public function createWithField(string $field, mixed $value, array $payload = []): DetailInfo
+    public function withApproved(): self
     {
-        return $this->create($payload)->withFieldExplicit($field, $value, $this->dateTime, $this->currentUser->getActor()->username);
+        $this->ensureInstanceExists();
+        $this->ensureNotDeleted();
+
+        $username = $this->currentUser->getActor()->username;
+        $data = $this->current->toArray();
+        $changeLog = $data['change_log'] ?? [];
+        
+        $this->current = DetailInfo::approvedLog(
+            dateTime: $this->dateTime,
+            user: $username,
+            currentLog: $changeLog,
+            payload: $data
+        );
+
+        return $this;
     }
 
-    /**
-     * Update DetailInfo with approval
-     */
-    public function updateWithApproval(DetailInfo $detailInfo, array $payload = []): DetailInfo
+    public function withRejected(): self
     {
-        return $this->update($detailInfo, $payload)->withApprovedExplicit($this->dateTime, $this->currentUser->getActor()->username);
+        $this->ensureInstanceExists();
+
+        $username = $this->currentUser->getActor()->username;
+        $data = $this->current->toArray();
+        $changeLog = $data['change_log'] ?? [];
+        
+        $this->current = DetailInfo::rejectedLog(
+            dateTime: $this->dateTime,
+            user: $username,
+            currentLog: $changeLog,
+            payload: $data
+        );
+
+        return $this;
     }
 
-    /**
-     * Update DetailInfo with rejection
-     */
-    public function updateWithRejection(DetailInfo $detailInfo, array $payload = []): DetailInfo
+    public function build(): DetailInfo
     {
-        return $this->update($detailInfo, $payload)->withRejectedExplicit($this->dateTime, $this->currentUser->getActor()->username);
+        $result = $this->current;
+        $this->current = null;
+        return $result;
     }
 
-    /**
-     * Update DetailInfo with custom field
-     */
-    public function updateWithField(DetailInfo $detailInfo, string $field, mixed $value, array $payload = []): DetailInfo
+    private function ensureInstanceExists(): void
     {
-        return $this->update($detailInfo, $payload)->withFieldExplicit($field, $value, $this->dateTime, $this->currentUser->getActor()->username);
+        if (!$this->current) {
+            throw new ServiceException(
+                translate: new Message(
+                    key: "factory.detail_info.uninitialized_state",
+                    params: [
+                        'methods' => 'create() or update()'
+                    ]
+                ),
+                code: Status::INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    private function ensureNotDeleted(): void
+    {
+        $data = $this->current->toArray();
+        $isDeleted = !empty($data['change_log']['deleted_at']);
+
+        if ($isDeleted) {
+            throw new ServiceException(
+                translate: new Message(
+                    key: "resource.modification_denied_on_deleted",
+                    params: [
+                        'resource' => 'Resource',
+                        'status' => 'Deleted',
+                    ]
+                ),
+                code: Status::INTERNAL_SERVER_ERROR
+            );
+        }
     }
 }

@@ -86,21 +86,12 @@ final class BrandApplicationService
             excludeId: null
         );
 
-        $detailInfo = $this->detailInfoFactory->create(
-            payload: []
-        )->with([
-            'approved_at' => null,
-            'approved_by' => null,
-            'rejected_at' => null,
-            'rejected_by' => null,
-            'reviewed_at' => null,
-            'reviewed_by' => null,
-        ]);
-
-        // Alternative methods:
-        // $detailInfo = $this->detailInfoFactory->create([])->withEmptyApproval();
-        // $detailInfo = DetailInfo::withEmptyApproval();
-        // $detailInfo = DetailInfo::withChangeLog(['approved_at' => null, 'approved_by' => null]);
+        $detailInfo = $this->detailInfoFactory
+            ->create(
+                detailInfo: []
+            )
+            ->withApproved()
+            ->build();
 
         $brand = Brand::create(
             name: $command->name,
@@ -144,12 +135,14 @@ final class BrandApplicationService
             $brand->transitionTo($newStatus);
         }
 
-        $brand->updateDetailInfo(
-            $this->detailInfoFactory->update(
-                detailInfo: $brand->getDetailInfo(), 
+        $detailInfo = $this->detailInfoFactory
+            ->update(
+                detailInfo: $brand->getDetailInfo(),
                 payload: $command->detailInfo ?? [],
             )
-        );
+            ->build();
+
+        $brand->updateDetailInfo(detailInfo: $detailInfo);
 
         return BrandResponse::fromEntity($this->repository->save($brand));
     }
@@ -170,13 +163,15 @@ final class BrandApplicationService
             resource: $this->getResource(),
         );
 
-        $brand->updateDetailInfo(
-            $this->detailInfoFactory->delete(
-                detailInfo: $brand->getDetailInfo(), 
+        $detailInfo = $this->detailInfoFactory
+            ->delete(
+                detailInfo: $brand->getDetailInfo(),
                 payload: [],
             )
-        );
-        
+            ->build();
+
+        $brand->updateDetailInfo(detailInfo: $detailInfo);
+
         return BrandResponse::fromEntity($this->repository->delete($brand));
     }
 
@@ -208,12 +203,14 @@ final class BrandApplicationService
             $brand->transitionTo($newStatus);
         }
 
-        $brand->updateDetailInfo(
-            $this->detailInfoFactory->update(
-                detailInfo: $brand->getDetailInfo(), 
-                payload: $command->detailInfo ?? [],
+        $detailInfo = $this->detailInfoFactory
+            ->restore(
+                detailInfo: $brand->getDetailInfo(),
+                payload: [],
             )
-        );
+            ->build();
+
+        $brand->updateDetailInfo(detailInfo: $detailInfo);
 
         return BrandResponse::fromEntity($this->repository->save($brand));
     }

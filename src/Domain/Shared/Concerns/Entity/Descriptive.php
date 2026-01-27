@@ -19,9 +19,9 @@ trait Descriptive
     /**
      * Update the descriptive information
      */
-    public function updateDetailInfo(DetailInfo $newDetailInfo): void
+    public function updateDetailInfo(DetailInfo $detailInfo): void
     {
-        $this->detailInfo = $newDetailInfo;
+        $this->detailInfo = $detailInfo;
     }
 
     /**
