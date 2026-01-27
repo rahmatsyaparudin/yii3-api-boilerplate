@@ -107,6 +107,8 @@ final class BrandApplicationService
     {
         $brand = $this->getEntityById($id);
 
+        $brand->verifyLockVersion($command->lockVersion);
+
         $newStatus = Status::tryFrom($command->status);
 
         $hasFieldChanges = $brand->hasFieldChanges(

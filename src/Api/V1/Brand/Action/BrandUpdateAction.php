@@ -29,7 +29,7 @@ use Yiisoft\Router\CurrentRoute;
  */
 final class BrandUpdateAction
 {
-    private const ALLOWED_KEYS = ['name', 'status'];
+    private const ALLOWED_KEYS = ['name', 'status', 'lock_version'];
 
     public function __construct(
         private BrandInputValidator $brandInputValidator,
@@ -79,7 +79,8 @@ final class BrandUpdateAction
             name: $params->get('name'),
             status: $params->get('status'),
             detailInfo: $params->get('detail_info'),
-            syncMdb: $params->get('sync_mdb')
+            syncMdb: $params->get('sync_mdb'),
+            lockVersion: $params->get('lock_version'),
         );
 
         $brandResponse = $this->brandApplicationService->update(

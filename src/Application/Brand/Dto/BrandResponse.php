@@ -17,6 +17,7 @@ final readonly class BrandResponse
         public int $status,
         public bool $sync_mdb,
         public array $detail_info,
+        public int $lock_version,
     ) {}
 
     /**
@@ -30,7 +31,8 @@ final readonly class BrandResponse
             name: $brand->getName(),
             status: $brand->getStatus()->value(),
             sync_mdb: $brand->getSyncMdb() !== null,
-            detail_info: $brand->getDetailInfo()->toArray()
+            detail_info: $brand->getDetailInfo()->toArray(),
+            lock_version: $brand->getLockVersion()->getValue(),
         );
     }
 

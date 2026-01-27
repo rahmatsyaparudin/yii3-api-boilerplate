@@ -13,8 +13,6 @@ final readonly class ErrorHandlerResponse implements ThrowableRendererInterface
 {
     public function render(Throwable $t, ?ServerRequestInterface $request = null): ErrorData
     {
-        error_log('ErrorHandlerResponse::render() called - ' . get_class($t));
-        
         $response = $this->formatErrorResponse($t);
         
         return new ErrorData(

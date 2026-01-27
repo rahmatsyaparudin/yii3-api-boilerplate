@@ -15,6 +15,7 @@ use App\Shared\Dto\SearchCriteria;
 use App\Shared\Dto\PaginatedResult;
 use App\Infrastructure\Concerns\HasCoreFeatures;
 use App\Infrastructure\Security\CurrentUserAwareInterface;
+use App\Shared\Exception\OptimisticLockException;
 
 /**
  * Brand Repository using Yiisoft/Db Query Builder
@@ -50,7 +51,8 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
             name: $row['name'],
             status: Status::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
-            syncMdb: $row['sync_mdb'] ?? null
+            syncMdb: $row['sync_mdb'] ?? null,
+            lockVersion: (int) $row['lock_version']
         ) : null;
     }
 
@@ -69,7 +71,8 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
             name: $row['name'],
             status: Status::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
-            syncMdb: $row['sync_mdb'] ?? null
+            syncMdb: $row['sync_mdb'] ?? null,
+            lockVersion: (int) $row['lock_version']
         ) : null;
     }
 
@@ -86,7 +89,8 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
             name: $row['name'],
             status: Status::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
-            syncMdb: $row['sync_mdb'] ?? null
+            syncMdb: $row['sync_mdb'] ?? null,
+            lockVersion: (int) $row['lock_version']
         ) : null;
     }
 
@@ -135,6 +139,7 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
                 'status',
                 'detail_info',
                 'sync_mdb',
+                'lock_version',
             ])
             ->from(self::TABLE)
             ->where($this->scopeWhereNotDeleted());
@@ -196,6 +201,7 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
                 'status' => $brand->getStatus()->value(),
                 'detail_info' => $brand->getDetailInfo()->toArray(),
                 'sync_mdb' => $brand->getSyncMdb(),
+                'lock_version' => 1, 
             ])
             ->execute();
 
@@ -206,20 +212,37 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
             name: $brand->getName(),
             status: $brand->getStatus(),
             detailInfo: $brand->getDetailInfo(),
-            syncMdb: $brand->getSyncMdb()
+            syncMdb: $brand->getSyncMdb(),
+            lockVersion: 1
         );
     }
 
     private function update(Brand $brand): Brand
     {
-        $this->db->createCommand()
+        // Get current and new lock versions
+        $currentLockVersion = $brand->getLockVersion();
+        $newLockVersion = $currentLockVersion->increment();
+        
+        $result = $this->db->createCommand()
             ->update(self::TABLE, [
                 'name' => $brand->getName(),
                 'status' => $brand->getStatus()->value(),
                 'detail_info' => $brand->getDetailInfo()->toArray(),
                 'sync_mdb' => $brand->getSyncMdb(),
-            ], ['id' => $brand->getId()])
+                'lock_version' => $newLockVersion->getValue(),
+            ], [
+                'id' => $brand->getId(),
+                'lock_version' => $currentLockVersion->getValue()
+            ])
             ->execute();
+            
+        // Check if update was successful (optimistic locking)
+        if ($result === 0) {
+            throw new OptimisticLockException('Brand');
+        }
+        
+        // Update the entity's lock version
+        $brand->upgradeVersion();
             
         return $brand;
     }

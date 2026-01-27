@@ -38,7 +38,8 @@ final class M20240101000000CreateBrand implements RevertibleMigrationInterface
                     'updated_by' => null,
                 ],
             ]),
-            'sync_mdb' => $cb::smallint()->null(),
+            'sync_mdb'    => $cb::smallint()->null(),
+            'lock_version'=> $cb::integer()->notNull()->defaultValue(1)->comment('Optimistic locking version'),
         ]);
 
         $user = 'system';
@@ -68,7 +69,8 @@ final class M20240101000000CreateBrand implements RevertibleMigrationInterface
                         'updated_by' => null,
                     ],
                 ],
-                'sync_mdb' => null,
+                'sync_mdb'    => null,
+                'lock_version'=> 1,
             ]);
         }
     }

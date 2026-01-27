@@ -107,4 +107,8 @@ return [
     'service.failed' => 'The service process failed',
 
     'factory.detail_info.uninitialized_state' => 'Internal error: The factory state is uninitialized. You must call {methods} before performing this operation.',
+
+    // Optimistic Locking
+    'optimistic.lock.failed' => '{resource} data has been modified by another user. Please refresh and try again.',
+    'lock_version.invalid_negative' => 'Lock version cannot be negative: {value}',
 ];

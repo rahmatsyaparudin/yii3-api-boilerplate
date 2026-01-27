@@ -106,4 +106,8 @@ return [
     'service.failed' => 'Proses layanan gagal dilakukan',
 
     'factory.detail_info.uninitialized_state' => 'Kesalahan internal: Factory belum diinisialisasi. Anda harus memanggil {methods} sebelum melakukan operasi ini.',
+
+    // Optimistic Locking
+    'optimistic.lock.failed' => 'Data {resource} telah dimodifikasi oleh pengguna lain. Silakan refresh dan coba lagi.',
+    'lock_version.invalid_negative' => 'Lock version tidak boleh negatif: {value}',
 ];

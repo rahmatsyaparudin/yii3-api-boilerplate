@@ -6,16 +6,16 @@ namespace App\Domain\Brand\Entity;
 
 use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\Status;
+use App\Domain\Shared\ValueObject\LockVersion;
 use App\Domain\Shared\Concerns\Entity\Stateful;
 use App\Domain\Shared\Concerns\Entity\Identifiable;
 use App\Domain\Shared\Concerns\Entity\Descriptive;
-
-use App\Shared\Exception\BadRequestException;
+use App\Domain\Shared\Concerns\Entity\OptimisticLock;
 use App\Shared\ValueObject\Message;
 
 final class Brand
 {
-    use Identifiable, Stateful, Descriptive;
+    use Identifiable, Stateful, Descriptive, OptimisticLock;
 
     public const RESOURCE = 'Brand';
 
@@ -24,9 +24,11 @@ final class Brand
         private string $name,
         private Status $status,
         private DetailInfo $detailInfo,
-        private ?int $syncMdb = null
+        private ?int $syncMdb = null,
+        ?LockVersion $lockVersion = null
     ) {
         $this->resource = self::RESOURCE;
+        $this->lockVersion = $lockVersion ?? LockVersion::create();
     }
 
     public static function create(
@@ -37,7 +39,7 @@ final class Brand
     ): self {
         self::guardInitialStatus($status);
 
-        return new self(null, $name, $status, $detailInfo, $syncMdb);
+        return new self(null, $name, $status, $detailInfo, $syncMdb, LockVersion::create());
     }
 
     public static function reconstitute(
@@ -45,10 +47,11 @@ final class Brand
         string $name,
         Status $status,
         DetailInfo $detailInfo,
-        ?int $syncMdb = null
+        ?int $syncMdb = null,
+        int $lockVersion = LockVersion::DEFAULT_VALUE,
     ): self {
         // Create instance without validation for database-loaded entities
-        return new self($id, $name, $status, $detailInfo, $syncMdb);
+        return new self($id, $name, $status, $detailInfo, $syncMdb, LockVersion::fromInt($lockVersion));
     }
 
     public function getSyncMdb(): ?int
@@ -64,6 +67,7 @@ final class Brand
             'status' => $this->status->value(),
             'detail_info' => $this->detailInfo->toArray(),
             'sync_mdb' => $this->syncMdb,
+            'lock_version' => $this->lockVersion->getValue(),
         ];
     }
 

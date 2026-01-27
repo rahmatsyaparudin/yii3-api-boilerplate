@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Shared\Exception;
 
+use Yiisoft\Http\Status;
 use App\Shared\ValueObject\Message;
 
 abstract class HttpException extends \RuntimeException

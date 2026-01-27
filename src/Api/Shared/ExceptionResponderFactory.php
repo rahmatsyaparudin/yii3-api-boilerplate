@@ -28,8 +28,6 @@ final readonly class ExceptionResponderFactory
 
     public function create(): ExceptionResponder
     {
-        error_log('ExceptionResponderFactory::create() called');
-        
         return new ExceptionResponder(
             [
                 InputValidationException::class => $this->inputValidationException(...),
@@ -56,8 +54,6 @@ final readonly class ExceptionResponderFactory
 
     private function throwable(\Throwable $exception): ResponseInterface
     {
-        error_log('ExceptionResponderFactory::throwable() called - ' . get_class($exception));
-        
         // Format error yang diinginkan untuk semua exception
         $statusCode = 500;
         $message = 'Internal Server Error';
@@ -126,8 +122,6 @@ final readonly class ExceptionResponderFactory
             }
         }
 
-        error_log('ExceptionResponderFactory: Returning formatted error response - Show details: ' . ($showErrors ? 'YES' : 'NO'));
-        
         $response = $this->psrResponseFactory->createResponse($statusCode);
         $response->getBody()->write(json_encode($errorData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         
@@ -160,13 +154,8 @@ final readonly class ExceptionResponderFactory
         // Exception: ValidationException boleh menampilkan detail error di development
         $isValidationException = $exception instanceof ValidationException;
         
-        // Debug: Log nilai environment variables yang terbaca
-        error_log("Environment Check - APP_ENV: '{$env}', APP_DEBUG: '{$debug}', Is Business Exception: " . ($isBusinessException ? 'YES' : 'NO') . ", Is Validation Exception: " . ($isValidationException ? 'YES' : 'NO'));
-        
         // Tampilkan detail jika: environment allows + (bukan business exception ATAU validation exception)
         $showDetails = $environmentAllowsDetails && (!$isBusinessException || $isValidationException);
-        
-        error_log("Show Error Details: " . ($showDetails ? 'YES' : 'NO'));
         
         return $showDetails;
     }

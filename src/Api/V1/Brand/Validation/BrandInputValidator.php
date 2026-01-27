@@ -62,6 +62,12 @@ final class BrandInputValidator extends AbstractValidator
                         RecordStatus::searchableStates(),
                     ),
                 ],
+                'lock_version' => [
+                    new Integer(
+                        min: 1,
+                        // skipOnEmpty: true,
+                    ),
+                ],
             ],
             ValidationContext::DELETE => [
                 'id' => [
