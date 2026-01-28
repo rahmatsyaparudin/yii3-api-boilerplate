@@ -51,7 +51,7 @@ final class DetailInfoFactory
         return $this;
     }
 
-    public function delete(DetailInfo $detailInfo, array $payload = []): DetailInfo
+    public function delete(DetailInfo $detailInfo, array $payload = []): self
     {
         $username = $this->currentUser->getActor()->username;
         $oldData = $detailInfo->toArray();
@@ -71,7 +71,7 @@ final class DetailInfoFactory
         return $this;
     }
 
-    public function restore(DetailInfo $detailInfo, array $payload = []): DetailInfo
+    public function restore(DetailInfo $detailInfo, array $payload = []): self
     {
         $username = $this->currentUser->getActor()->username;
         $oldData = $detailInfo->toArray();
