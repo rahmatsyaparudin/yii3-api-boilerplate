@@ -56,7 +56,7 @@ final class M20240101000000CreateExample implements RevertibleMigrationInterface
         ];
 
         foreach ($dummyData as $data) {
-            $b->insert('brand', [
+            $b->insert('example', [
                 'name'        => $data['name'],
                 'status'      => $data['status'],
                 'detail_info' => [
