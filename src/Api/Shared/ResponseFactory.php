@@ -4,17 +4,24 @@ declare(strict_types=1);
 
 namespace App\Api\Shared;
 
+// Shared Layer
 use App\Api\Shared\Presenter\AsIsPresenter;
 use App\Api\Shared\Presenter\FailPresenter;
 use App\Api\Shared\Presenter\PresenterInterface;
 use App\Api\Shared\Presenter\SuccessPresenter;
 use App\Api\Shared\Presenter\SuccessWithMetaPresenter;
 use App\Api\Shared\Presenter\ValidationResultPresenter;
+
+// PSR Interfaces
 use Psr\Http\Message\ResponseInterface;
+
+// Vendor Layer
 use Yiisoft\DataResponse\DataResponseFactoryInterface;
 use Yiisoft\Http\Status;
 use Yiisoft\Translator\TranslatorInterface;
 use Yiisoft\Validator\Result;
+
+// Shared Layer
 use App\Shared\ValueObject\Message;
 
 final readonly class ResponseFactory

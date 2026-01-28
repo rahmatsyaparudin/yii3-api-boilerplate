@@ -4,15 +4,22 @@ declare(strict_types=1);
 
 namespace App\Shared\Middleware;
 
+// Infrastructure Layer
 use App\Infrastructure\Security\CurrentUser;
+
+// Shared Layer
 use App\Shared\Exception\ForbiddenException;
 use App\Shared\ValueObject\Message;
+
+// PSR Interfaces
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+
+// Vendor Layer
 use Yiisoft\Access\AccessCheckerInterface;
-use Yiisoft\Router\FastRoute\CurrentRoute;
+use Yiisoft\Router\CurrentRoute;
 use Yiisoft\Router\FastRoute\UrlMatcher;
 use Yiisoft\Router\Route;
 

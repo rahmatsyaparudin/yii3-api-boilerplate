@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\ValueObject;
 
+// Shared Layer
 use App\Shared\Exception\OptimisticLockException;
 use App\Shared\ValueObject\Message;
 
@@ -51,7 +52,7 @@ final readonly class LockVersion
     /**
      * Get current value
      */
-    public function getValue(): int
+    public function value(): int
     {
         return $this->value;
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Concerns\Entity;
 
+// Domain Layer
 use App\Domain\Shared\ValueObject\DetailInfo;
 
 trait Descriptive

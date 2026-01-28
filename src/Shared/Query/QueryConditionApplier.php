@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Shared\Query;
 
+// Vendor Layer
 use Yiisoft\Db\Query\Query;
 
 /**

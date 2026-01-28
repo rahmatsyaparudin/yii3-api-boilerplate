@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace App\Shared\Middleware;
 
+// Application Layer
 use App\Shared\Request\RequestDataParser;
 use App\Shared\Request\RequestParams;
+
+// PSR Interfaces
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+
+// PSR Middlewares
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 

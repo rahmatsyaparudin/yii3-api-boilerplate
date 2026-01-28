@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\ValueObject;
 
+// Shared Layer
 use App\Shared\Exception\BadRequestException;
+
+// Domain Layer
 use App\Domain\Shared\Contract\DateTimeProviderInterface;
 use App\Domain\Shared\Concerns\Entity\ChangeLogged;
 

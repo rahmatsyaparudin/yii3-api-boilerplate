@@ -4,14 +4,20 @@ declare(strict_types=1);
 
 namespace App\Shared\Middleware;
 
+// Shared Layer
 use App\Shared\Exception\ForbiddenException;
 use App\Shared\ValueObject\Message;
+
+// PSR Interfaces
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+
+// Vendor Layer
 use Yiisoft\Http\Status;
+use Yiisoft\Router\CurrentRoute;
 
 final class CorsMiddleware implements MiddlewareInterface
 {

@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Concerns;
 
+// Domain Layer
 use App\Domain\Shared\Contract\CurrentUserInterface;
-use Yiisoft\Db\Query\Query;
+
+// Vendor Layer
 use Yiisoft\Db\Expression\Expression;
+use Yiisoft\Db\Query\Query;
 
 /**
  * Trait Auditable menyediakan kemampuan pencatatan log otomatis

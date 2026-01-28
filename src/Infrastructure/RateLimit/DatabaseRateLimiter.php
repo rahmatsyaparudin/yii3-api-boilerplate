@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\RateLimit;
 
+// Infrastructure Layer
 use Yiisoft\Cache\CacheInterface;
+
+// Vendor Layer
 use Yiisoft\Db\Connection\ConnectionInterface;
 use Yiisoft\Db\Query\Query;
 

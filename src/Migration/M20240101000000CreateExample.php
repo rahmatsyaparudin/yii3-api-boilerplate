@@ -4,11 +4,18 @@ declare(strict_types=1);
 
 namespace App\Migration;
 
+// Domain Layer
 use App\Shared\Enums\RecordStatus;
+
+// Infrastructure Layer
 use App\Infrastructure\Time\AppDateTimeProvider;
+
+// PSR Interfaces
+use Psr\Clock\ClockInterface;
+
+// Vendor Layer
 use Yiisoft\Db\Migration\MigrationBuilder;
 use Yiisoft\Db\Migration\RevertibleMigrationInterface;
-use Psr\Clock\ClockInterface;
 use Yiisoft\Db\Connection\Connection;
 
 /**

@@ -4,15 +4,20 @@ declare(strict_types=1);
 
 namespace App\Api\V1\Example\Action;
 
+// Application Layer
 use App\Application\Example\ExampleApplicationService;
+
+// API Layer
 use App\Api\Shared\ResponseFactory;
+
+// Shared Layer
 use App\Shared\ValueObject\Message;
 
 // PSR Interfaces
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-// Yiisoft Interfaces
+// Vendor Layer
 use Yiisoft\Router\CurrentRoute;
 
 /**

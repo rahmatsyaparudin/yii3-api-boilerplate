@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+// Vendor Layer
 use Yiisoft\Translator\CategorySource;
 use Yiisoft\Translator\IntlMessageFormatter;
 use Yiisoft\Translator\Message\Php\MessageSource;

@@ -32,7 +32,7 @@ final readonly class ExampleResponse
             status: $example->getStatus()->value(),
             sync_mdb: $example->getSyncMdb() !== null,
             detail_info: $example->getDetailInfo()->toArray(),
-            lock_version: $example->getLockVersion()->getValue(),
+            lock_version: $example->getLockVersion()->value(),
         );
     }
 

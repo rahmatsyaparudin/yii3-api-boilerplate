@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Concerns\Entity;
 
+// Domain Layer
+use App\Domain\Shared\ValueObject\Message;
+
+// Shared Layer
 use App\Shared\Exception\BadRequestException;
-use App\Shared\ValueObject\Message;
 
 trait Identifiable
 {

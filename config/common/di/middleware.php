@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+// Infrastructure Layer
 use App\Infrastructure\Monitoring\ErrorMonitoringMiddleware;
 use App\Infrastructure\Monitoring\MetricsMiddleware;
 use App\Infrastructure\Monitoring\RequestIdMiddleware;
@@ -9,12 +10,18 @@ use App\Infrastructure\Monitoring\StructuredLoggingMiddleware;
 use App\Infrastructure\Security\AccessChecker;
 use App\Infrastructure\Security\CurrentUser;
 use App\Infrastructure\Security\HstsMiddleware;
+
+// Shared Layer
 use App\Shared\Middleware\AccessMiddleware;
 use App\Shared\Middleware\CorsMiddleware;
 use App\Shared\Middleware\RateLimitMiddleware;
 use App\Shared\Middleware\RequestParamsMiddleware;
 use App\Shared\Middleware\SecureHeadersMiddleware;
+
+// PSR Interfaces
 use Psr\Http\Message\ResponseFactoryInterface;
+
+// Vendor Layer
 use Yiisoft\Router\FastRoute\UrlMatcher;
 
 // @var array $params

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+// Vendor Layer
 use Yiisoft\Hydrator\AttributeHandling\ResolverFactory\AttributeResolverFactoryInterface;
 use Yiisoft\Hydrator\AttributeHandling\ResolverFactory\ContainerAttributeResolverFactory;
 use Yiisoft\Hydrator\ObjectFactory\ContainerObjectFactory;

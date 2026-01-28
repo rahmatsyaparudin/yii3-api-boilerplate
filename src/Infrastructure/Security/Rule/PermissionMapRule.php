@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Security\Rule;
 
+// Infrastructure Layer
 use App\Infrastructure\Security\Actor;
+
+// Vendor Layer
 use Yiisoft\Access\Context\ContextInterface;
 use Yiisoft\Access\Rule\RuleInterface;
 

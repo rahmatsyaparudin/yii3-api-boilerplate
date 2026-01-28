@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Example\Repository;
 
+// Domain Layer
 use App\Domain\Example\Entity\Example;
+
+// Shared Layer
 use App\Shared\Dto\SearchCriteria;
 use App\Shared\Dto\PaginatedResult;
 

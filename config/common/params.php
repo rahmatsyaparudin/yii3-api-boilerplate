@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+// Vendor Layer
 use Yiisoft\Db\Pgsql\Dsn;
 
 $isDev           = $_ENV['APP_ENV'] === 'dev';
@@ -33,6 +34,11 @@ return [
     'yiisoft/db-migration' => [
         'newMigrationNamespace' => 'App\\Migration',
         'sourceNamespaces'      => ['App\\Migration'],
+    ],
+    'mongodb/mongodb' => [
+        'enabled' => filter_var($_ENV['db.mongodb.enabled'] ?? true, FILTER_VALIDATE_BOOLEAN),
+        'dsn' => "mongodb://{$_ENV['db.mongodb.dsn']}",
+        'database' => $_ENV['db.mongodb.name'],
     ],
     'app/config'  => [
         'code'     => 'enterEDC',

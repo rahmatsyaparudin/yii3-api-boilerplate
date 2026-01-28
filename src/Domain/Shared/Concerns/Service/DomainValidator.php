@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Concerns\Service;
 
+// Domain Layer
 use App\Domain\Shared\Security\AuthorizerInterface;
+
+// Shared Layer
 use App\Shared\Exception\BadRequestException;
 use App\Shared\Exception\ConflictException;
 use App\Shared\Exception\ForbiddenException;

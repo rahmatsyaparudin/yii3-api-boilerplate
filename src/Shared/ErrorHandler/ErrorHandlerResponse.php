@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace App\Shared\ErrorHandler;
 
+// Vendor Layer
 use Throwable;
+
+// PSR Interfaces
 use Psr\Http\Message\ServerRequestInterface;
+
+// Domain Layer
 use Yiisoft\ErrorHandler\ErrorData;
 use Yiisoft\ErrorHandler\ThrowableRendererInterface;
 

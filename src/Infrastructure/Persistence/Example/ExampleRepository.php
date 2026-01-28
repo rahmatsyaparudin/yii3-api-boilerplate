@@ -4,18 +4,29 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Persistence\Example;
 
+// Domain Layer
 use App\Domain\Example\Entity\Example;
 use App\Domain\Example\Repository\ExampleRepositoryInterface;
 use App\Domain\Shared\ValueObject\Status;
 use App\Domain\Shared\ValueObject\DetailInfo;
+
+// Infrastructure Layer
+use App\Infrastructure\Concerns\HasCoreFeatures;
+use App\Infrastructure\Database\MongoService;
+use App\Infrastructure\Persistence\Example\MdbExampleSchema;
+use App\Infrastructure\Security\CurrentUserAwareInterface;
+
+// Shared Layer
+use App\Shared\Dto\PaginatedResult;
+use App\Shared\Dto\SearchCriteria;
+use App\Shared\Exception\OptimisticLockException;
+use App\Shared\Query\QueryConditionApplier;
+
+// Vendor Layer
 use Yiisoft\Db\Connection\ConnectionInterface;
 use Yiisoft\Db\Query\Query;
-use App\Shared\Query\QueryConditionApplier;
-use App\Shared\Dto\SearchCriteria;
-use App\Shared\Dto\PaginatedResult;
-use App\Infrastructure\Concerns\HasCoreFeatures;
-use App\Infrastructure\Security\CurrentUserAwareInterface;
-use App\Shared\Exception\OptimisticLockException;
+
+// use MongoDB\Collection;
 
 /**
  * Example Repository using Yiisoft/Db Query Builder
@@ -25,6 +36,10 @@ use App\Shared\Exception\OptimisticLockException;
 final class ExampleRepository implements ExampleRepositoryInterface, CurrentUserAwareInterface
 {
     use HasCoreFeatures;
+
+    private const SEQUENCE_ID = 'example_id_seq';
+
+    private $collection;
     
     private const TABLE = 'example';
     private const LIKE_OPERATOR = 'ilike';
@@ -32,7 +47,10 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
     public function __construct(
         private QueryConditionApplier $queryConditionApplier,
         private ConnectionInterface $db,
-    ) {}
+        private MongoService $mongoService,
+    ) {
+        $this->collection = $this->mongoService->getCollection(Example::RESOURCE);
+    }
 
     public function findById(int $id): ?Example
     {
@@ -94,6 +112,15 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
         ) : null;
     }
 
+    private function syncToMongo(Example $example): void
+    {
+        $this->collection->updateOne(
+            ['id' => $example->getId()],
+            ['$set' => MdbExampleSchema::toArray($example)],
+            ['upsert' => true]
+        );
+    }
+
     public function save(Example $example): Example
     {
         return $this->db->transaction(function() use ($example) {
@@ -102,23 +129,34 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
                 ->where(['id' => $example->getId()])
                 ->exists();
             
-            return $exists ? $this->update($example) : $this->insert($example);
+            $result = $exists ? $this->update($example) : $this->insert($example);
+
+            $this->syncToMongo($result);
+
+            return $result;
         });
     }
 
     public function delete(Example $example): Example
     {
-        $this->db->createCommand()
-            ->update(
-                self::TABLE,
-                $this->getDeletedState(), 
-                [
-                    'id' => $example->getId(),
-                ]
-            )
-            ->execute();
+        return $this->db->transaction(function() use ($example) {
+            // 1. Update di PostgreSQL
+            $this->db->createCommand()
+                ->update(
+                    self::TABLE,
+                    $this->getDeletedState(), 
+                    [
+                        'id' => $example->getId(),
+                    ]
+                )
+                ->execute();
 
-        return $example->markAsDeleted();
+            $deletedExample = $example->markAsDeleted();
+
+            $this->syncToMongo($deletedExample);
+
+            return $deletedExample;
+        });
     }
 
     public function existsByName(string $name): bool
@@ -205,7 +243,7 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
             ])
             ->execute();
 
-        $newId = (int) $this->db->getLastInsertID('example_id_seq');
+        $newId = (int) $this->db->getLastInsertID(self::SEQUENCE_ID);
 
         return Example::reconstitute(
             id: $newId,
@@ -229,10 +267,10 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
                 'status' => $example->getStatus()->value(),
                 'detail_info' => $example->getDetailInfo()->toArray(),
                 'sync_mdb' => $example->getSyncMdb(),
-                'lock_version' => $newLockVersion->getValue(),
+                'lock_version' => $newLockVersion->value(),
             ], [
                 'id' => $example->getId(),
-                'lock_version' => $currentLockVersion->getValue()
+                'lock_version' => $currentLockVersion->value()
             ])
             ->execute();
             

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+// Vendor Layer
 use Yiisoft\Security\TrustedHosts\TrustedHosts;
 
 return [

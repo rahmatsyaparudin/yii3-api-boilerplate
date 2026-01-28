@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Shared\Exception;
 
+// Vendor Layer
 use Yiisoft\Http\Status;
+
+// Shared Layer
 use App\Shared\ValueObject\Message;
 
 final class TooManyRequestsException extends HttpException

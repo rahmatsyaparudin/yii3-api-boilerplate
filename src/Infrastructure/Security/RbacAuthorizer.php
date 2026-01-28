@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Security;
 
+// Infrastructure Layer
+use App\Infrastructure\Security\Actor;
+
+// Domain Layer
 use App\Domain\Shared\Security\AuthorizerInterface;
 
 class RbacAuthorizer implements AuthorizerInterface

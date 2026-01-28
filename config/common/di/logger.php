@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
+// PSR Interfaces
 use Psr\Log\LoggerInterface;
+
+// Vendor Layer
 use Yiisoft\Definitions\ReferencesArray;
 use Yiisoft\Log\Logger;
 use Yiisoft\Log\StreamTarget;

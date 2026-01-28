@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Migration;
 
+// Vendor Layer
 use Yiisoft\Db\Migration\MigrationBuilder;
 use Yiisoft\Db\Migration\RevertibleMigrationInterface;
 

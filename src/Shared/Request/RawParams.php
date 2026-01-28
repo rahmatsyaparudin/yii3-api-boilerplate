@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Shared\Request;
 
+// PSR Interfaces
+use Psr\Http\Message\ServerRequestInterface;
+
+// Shared Layer
 use App\Shared\Exception\BadRequestException;
 use App\Shared\ValueObject\Message;
 use App\Shared\Security\InputSanitizer;

@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Shared\Validation;
 
-use App\Shared\Exception\ValidationException;
-use App\Shared\Request\RawParams;
+// Vendor Layer
 use Yiisoft\Validator\Result;
 use Yiisoft\Validator\Validator;
+
+// Shared Layer
+use App\Shared\Exception\ValidationException;
+use App\Shared\Request\RawParams;
 
 abstract class AbstractValidator
 {

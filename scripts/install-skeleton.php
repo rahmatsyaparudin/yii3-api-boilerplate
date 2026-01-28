@@ -59,7 +59,7 @@ class SkeletonInstaller
         
         echo "✅ Shared classes installation completed!\n";
         echo "\n🎯 Shared classes copied to src/Shared/\n";
-        echo "📁 Directories created: Dto, Enums, ErrorHandler, Exception, Middleware, Query, Repository, Request, Security, Utility, Validation, ValueObject\n";
+        echo "📁 Directories created: Dto, Enums, ErrorHandler, Exception, Middleware, Query, Request, Security, Utility, Validation, ValueObject\n";
         echo "🏗️  Infrastructure classes copied to src/Infrastructure/\n";
         echo "📁 Directories created: Audit, Clock, Concerns, Monitoring, RateLimit, Security, Time, Persistence\n";
         echo "🧠 Domain Shared classes copied to src/Domain/Shared/\n";
@@ -99,7 +99,6 @@ class SkeletonInstaller
             'Exception',
             'Middleware',
             'Query',
-            'Repository',
             'Request',
             'Security',
             'Utility',

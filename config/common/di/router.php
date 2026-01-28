@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+// Vendor Layer
 use Yiisoft\Config\Config;
 use Yiisoft\Router\RouteCollection;
 use Yiisoft\Router\RouteCollectionInterface;

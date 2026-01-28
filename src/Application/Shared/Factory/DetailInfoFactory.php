@@ -4,11 +4,18 @@ declare(strict_types=1);
 
 namespace App\Application\Shared\Factory;
 
+// Domain Layer
 use App\Domain\Shared\ValueObject\DetailInfo;
+
+// Shared Layer
 use App\Domain\Shared\Contract\DateTimeProviderInterface;
-use App\Infrastructure\Security\CurrentUser;
 use App\Shared\Exception\ServiceException;
 use App\Shared\ValueObject\Message;
+
+// Infrastructure Layer
+use App\Infrastructure\Security\CurrentUser;
+
+// Vendor Layer
 use Yiisoft\Http\Status;
 
 final class DetailInfoFactory

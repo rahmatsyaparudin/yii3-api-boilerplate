@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace App\Application\Example;
 
+// Application Layer
 use App\Application\Example\Command\CreateExampleCommand;
 use App\Application\Example\Command\UpdateExampleCommand;
 use App\Application\Example\Dto\ExampleResponse;
 use App\Application\Shared\Factory\DetailInfoFactory;
 
+// Domain Layer
 use App\Domain\Example\Entity\Example;
 use App\Domain\Example\Repository\ExampleRepositoryInterface;
 use App\Domain\Example\Service\ExampleDomainService;
 use App\Domain\Shared\ValueObject\Status;
 use App\Domain\Shared\Security\AuthorizerInterface;
 
+// Shared Layer
 use App\Shared\Dto\PaginatedResult;
 use App\Shared\Dto\SearchCriteria;
 use App\Shared\Exception\NotFoundException;

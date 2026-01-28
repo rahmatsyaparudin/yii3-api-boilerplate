@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Time;
 
+// Vendor Layer
 use DateTimeImmutable;
+
+// PSR Interfaces
 use Psr\Clock\ClockInterface;
+
+// Domain Layer
 use App\Domain\Shared\Contract\DateTimeProviderInterface;
 
 final class AppDateTimeProvider implements DateTimeProviderInterface

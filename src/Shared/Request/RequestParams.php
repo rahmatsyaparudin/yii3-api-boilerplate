@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Shared\Request;
 
+// Shared Layer
 use App\Shared\Request\PaginationParams;
 use App\Shared\Request\SortParams;
 use App\Shared\Exception\BadRequestException;
 use App\Shared\ValueObject\Message;
+
+// PSR Interfaces
 use Psr\Http\Message\ServerRequestInterface;
 
 /**

@@ -4,16 +4,23 @@ declare(strict_types=1);
 
 namespace App\Api\Shared;
 
+// Domain Layer
 use App\Shared\Exception\HttpException;
 use App\Shared\Exception\NoChangesException;
 use App\Shared\Exception\ValidationException;
+
+// PSR Interfaces
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
+
+// Vendor Layer
 use Yiisoft\ErrorHandler\Exception\UserException;
 use Yiisoft\ErrorHandler\Middleware\ExceptionResponder;
 use Yiisoft\Injector\Injector;
 use Yiisoft\Input\Http\InputValidationException;
 use Yiisoft\Translator\TranslatorInterface;
+
+// Shared Layer
 use App\Shared\ValueObject\Message;
 
 final readonly class ExceptionResponderFactory

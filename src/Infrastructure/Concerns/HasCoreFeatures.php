@@ -2,7 +2,10 @@
 
 namespace App\Infrastructure\Concerns;
 
+// Shared Layer
 use App\Shared\Enums\RecordStatus;
+
+// Infrastructure Layer
 use App\Infrastructure\Security\CurrentUser;
 
 trait HasCoreFeatures

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Security;
 
+// Infrastructure Layer
 use App\Infrastructure\Security\CurrentUser;
 
 /**

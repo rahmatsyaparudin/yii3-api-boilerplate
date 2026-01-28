@@ -4,15 +4,23 @@ declare(strict_types=1);
 
 namespace App\Shared\Middleware;
 
+// Infrastructure Layer
 use App\Infrastructure\Security\ActorProvider;
 use App\Infrastructure\Security\CurrentUser;
 use App\Infrastructure\Security\JwtService;
+
+// Shared Layer
 use App\Shared\Exception\UnauthorizedException;
 use App\Shared\ValueObject\Message;
+
+// PSR Interfaces
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+
+// Vendor Layer
+use Yiisoft\Router\CurrentRoute;
 
 final class JwtMiddleware implements MiddlewareInterface
 {

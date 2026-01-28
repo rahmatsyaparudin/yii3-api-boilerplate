@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Security;
 
+// Infrastructure Layer
 use App\Shared\Exception\UnauthorizedException;
+
+// Shared Layer
 use App\Shared\ValueObject\Message;
+
+// Vendor Layer
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 

@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Shared\Middleware;
 
-use App\Shared\Exception\UnauthorizedException;
-use App\Shared\ValueObject\Message;
+// PSR Interfaces
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+
+// Shared Layer
+use App\Shared\Exception\UnauthorizedException;
+use App\Shared\ValueObject\Message;
 
 final class TrustedHostMiddleware implements MiddlewareInterface
 {

@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
-use App\Environment;
+// Yii3 Vendor Layer
 use Yiisoft\ErrorHandler\Renderer\HtmlRenderer;
+
+// Shared Layer
+use App\Environment;
 
 // @var array $params
 

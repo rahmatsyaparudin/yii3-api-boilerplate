@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+// Infrastructure Layer
 use App\Infrastructure\Security\JwtService;
 
 // @var array $params

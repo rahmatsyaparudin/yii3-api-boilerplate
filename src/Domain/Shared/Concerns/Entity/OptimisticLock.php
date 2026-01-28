@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Concerns\Entity;
 
+// Domain Layer
 use App\Domain\Shared\ValueObject\LockVersion;
+
+// Shared Layer
 use App\Shared\ValueObject\Message;
 use App\Shared\Exception\OptimisticLockException;
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Security;
 
+// Domain Layer
 use App\Domain\Shared\Contract\ActorInterface;
 
 final class Actor implements ActorInterface

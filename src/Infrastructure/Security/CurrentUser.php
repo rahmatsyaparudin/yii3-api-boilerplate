@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Security;
 
-// use App\Infrastructure\Security\Actor;
+// Infrastructure Layer
+use App\Infrastructure\Security\Actor;
 
+// Domain Layer
 use App\Domain\Shared\Contract\CurrentUserInterface;
 use App\Domain\Shared\Contract\ActorInterface;
 

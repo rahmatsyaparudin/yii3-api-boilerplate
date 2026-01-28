@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Shared\Security;
 
+// Shared Layer
 use App\Shared\Exception\BadRequestException;
 use App\Shared\Dto\Message;
 

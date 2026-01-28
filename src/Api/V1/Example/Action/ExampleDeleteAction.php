@@ -17,7 +17,7 @@ use App\Shared\ValueObject\Message;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-// Third Party Libraries
+// Vendor Layer
 use Yiisoft\Http\Status;
 use Yiisoft\Router\CurrentRoute;
 

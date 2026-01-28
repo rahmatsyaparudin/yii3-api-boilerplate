@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Security;
 
+// Infrastructure Layer
 use App\Infrastructure\Security\Actor;
+
+// Shared Layer
 use App\Shared\Exception\UnauthorizedException;
 use App\Shared\ValueObject\Message;
 

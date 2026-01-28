@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Api\V1\Example\Validation;
 
+// Shared Layer
 use App\Shared\Validation\AbstractValidator;
 use App\Shared\Validation\ValidationContext;
 use App\Shared\Enums\RecordStatus;
 
+// Vendor Layer
 use Yiisoft\Validator\Rule\Required;
 use Yiisoft\Validator\Rule\Integer;
 use Yiisoft\Validator\Rule\StringValue;
