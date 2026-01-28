@@ -9,6 +9,7 @@
 # Environment files
 .env
 .env.*
+!.env.example
 
 # Environment-specific configs
 /config/environments/dev/
