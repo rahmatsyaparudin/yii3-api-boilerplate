@@ -22,9 +22,9 @@ interface ExampleRepositoryInterface
 
     public function existsByName(string $name): bool;
 
-    public function save(Example $brand): Example;
+    public function save(Example $example): Example;
 
-    public function delete(Example $brand): Example;
+    public function delete(Example $example): Example;
 
     public function restore(int $id): ?Example;
 

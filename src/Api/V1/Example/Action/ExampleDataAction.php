@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Api\V1\Brand\Action;
+namespace App\Api\V1\Example\Action;
 
 // Application Layer
-use App\Application\Brand\BrandApplicationService;
+use App\Application\Example\ExampleApplicationService;
 use App\Application\Shared\Factory\SearchCriteriaFactory;
 
 // API Layer
 use App\Api\Shared\ResponseFactory;
-use App\Api\V1\Brand\Validation\BrandInputValidator;
+use App\Api\V1\Example\Validation\ExampleInputValidator;
 
 // Shared Layer
 use App\Shared\Enums\RecordStatus;
@@ -23,7 +23,7 @@ use App\Shared\ValueObject\Message;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-final class BrandDataAction
+final class ExampleDataAction
 {
     private const ALLOWED_KEYS = ['id', 'name', 'status'];
     private const ALLOWED_SORT = [
@@ -34,8 +34,8 @@ final class BrandDataAction
 
     public function __construct(
         private SearchCriteriaFactory $factory,
-        private BrandInputValidator $brandInputValidator,
-        private BrandApplicationService $brandApplicationService,
+        private ExampleInputValidator $exampleInputValidator,
+        private ExampleApplicationService $exampleApplicationService,
         private ResponseFactory $responseFactory,
     ) {
     }   
@@ -50,15 +50,15 @@ final class BrandDataAction
                 allowedKeys: self::ALLOWED_KEYS
             )->with('status', RecordStatus::DRAFT->value);
 
-        $this->brandInputValidator->validate(
+        $this->exampleInputValidator->validate(
             data: $filter,
             context: ValidationContext::SEARCH,
         );
 
         $criteria = $this->factory->createFromRequest($payload, self::ALLOWED_SORT);
 
-        $resource = $this->brandApplicationService->getResource();
-        $result = $this->brandApplicationService->list(criteria: $criteria);
+        $resource = $this->exampleApplicationService->getResource();
+        $result = $this->exampleApplicationService->list(criteria: $criteria);
 
         return $this->responseFactory->success(
             data: $result->data,

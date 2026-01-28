@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Api\V1\Brand\Action;
+namespace App\Api\V1\Example\Action;
 
 // Application Layer
-use App\Application\Brand\BrandApplicationService;
+use App\Application\Example\ExampleApplicationService;
 
 // API Layer
 use App\Api\Shared\ResponseFactory;
@@ -14,10 +14,10 @@ use App\Api\Shared\ResponseFactory;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-final readonly class BrandViewAction
+final readonly class ExampleViewAction
 {
     public function __construct(
-        private BrandApplicationService $brandApplicationService,
+        private ExampleApplicationService $exampleApplicationService,
         private ResponseFactory $responseFactory,
     ) {
     }
@@ -28,19 +28,19 @@ final readonly class BrandViewAction
 
         if (!$id) {
             return $this->responseFactory->fail(
-                message: 'Brand ID is required',
+                message: 'Example ID is required',
                 httpCode: Status::NOT_FOUND
             );
         }
 
-        // Use BrandApplicationService for proper DDD architecture
-        $brand = $this->brandApplicationService->get($id);
+        // Use ExampleApplicationService for proper DDD architecture
+        $example = $this->exampleApplicationService->get($id);
 
         return $this->responseFactory->success(
-            data: $brand->toArray(),
+            data: $example->toArray(),
             message: 'resource.details_retrieved',
             params: [
-                'resource' => 'Brand'
+                'resource' => 'Example'
             ]
         );
     }

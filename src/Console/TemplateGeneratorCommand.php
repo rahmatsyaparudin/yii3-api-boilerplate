@@ -37,8 +37,8 @@ final class TemplateGeneratorCommand extends Command
                 'Yii3Api' => '{ProjectName}',
                 'YII3_API' => '{PROJECT_NAME}',
                 'rahmatsyaparudin/yii3-api' => '{vendor}/{project_name}',
-                'Brand' => '{Entity}',
-                'brand' => '{entity}',
+                'Example' => '{Entity}',
+                'example' => '{entity}',
                 'Example' => '{Entity}',
                 'example' => '{entity}',
             ])

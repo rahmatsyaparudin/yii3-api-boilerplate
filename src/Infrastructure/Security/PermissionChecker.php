@@ -24,12 +24,12 @@ class PermissionChecker
 
         $rule = $this->rules[$permission];
 
-        // Scenario A: Rule is a single Closure (e.g: 'brand.view' => $isKasir)
+        // Scenario A: Rule is a single Closure (e.g: 'example.view' => $isKasir)
         if (is_callable($rule)) {
             return $rule($actor);
         }
 
-        // Scenario B: Rule is an Array (e.g: 'brand.data' => [$isSuperAdmin, $isKasir])
+        // Scenario B: Rule is an Array (e.g: 'example.data' => [$isSuperAdmin, $isKasir])
         if (is_array($rule)) {
             foreach ($rule as $check) {
                 if (is_callable($check) && $check($actor)) {
@@ -38,7 +38,7 @@ class PermissionChecker
             }
         }
         
-        // Scenario C: Rule is a pure Boolean (e.g: 'brand.index' => true)
+        // Scenario C: Rule is a pure Boolean (e.g: 'example.index' => true)
         if (is_bool($rule)) {
             return $rule;
         }

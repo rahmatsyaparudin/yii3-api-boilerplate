@@ -94,31 +94,31 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
         ) : null;
     }
 
-    public function save(Example $brand): Example
+    public function save(Example $example): Example
     {
-        return $this->db->transaction(function() use ($brand) {
+        return $this->db->transaction(function() use ($example) {
             $exists = (new Query($this->db))
                 ->from(self::TABLE)
-                ->where(['id' => $brand->getId()])
+                ->where(['id' => $example->getId()])
                 ->exists();
             
-            return $exists ? $this->update($brand) : $this->insert($brand);
+            return $exists ? $this->update($example) : $this->insert($example);
         });
     }
 
-    public function delete(Example $brand): Example
+    public function delete(Example $example): Example
     {
         $this->db->createCommand()
             ->update(
                 self::TABLE,
                 $this->getDeletedState(), 
                 [
-                    'id' => $brand->getId(),
+                    'id' => $example->getId(),
                 ]
             )
             ->execute();
 
-        return $brand->markAsDeleted();
+        return $example->markAsDeleted();
     }
 
     public function existsByName(string $name): bool
@@ -193,14 +193,14 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
         }
     }
 
-    private function insert(Example $brand): Example 
+    private function insert(Example $example): Example 
     {
         $this->db->createCommand()
             ->insert(self::TABLE, [
-                'name' => $brand->getName(),
-                'status' => $brand->getStatus()->value(),
-                'detail_info' => $brand->getDetailInfo()->toArray(),
-                'sync_mdb' => $brand->getSyncMdb(),
+                'name' => $example->getName(),
+                'status' => $example->getStatus()->value(),
+                'detail_info' => $example->getDetailInfo()->toArray(),
+                'sync_mdb' => $example->getSyncMdb(),
                 'lock_version' => 1, 
             ])
             ->execute();
@@ -209,29 +209,29 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
 
         return Example::reconstitute(
             id: $newId,
-            name: $brand->getName(),
-            status: $brand->getStatus(),
-            detailInfo: $brand->getDetailInfo(),
-            syncMdb: $brand->getSyncMdb(),
+            name: $example->getName(),
+            status: $example->getStatus(),
+            detailInfo: $example->getDetailInfo(),
+            syncMdb: $example->getSyncMdb(),
             lockVersion: 1
         );
     }
 
-    private function update(Example $brand): Example
+    private function update(Example $example): Example
     {
         // Get current and new lock versions
-        $currentLockVersion = $brand->getLockVersion();
+        $currentLockVersion = $example->getLockVersion();
         $newLockVersion = $currentLockVersion->increment();
         
         $result = $this->db->createCommand()
             ->update(self::TABLE, [
-                'name' => $brand->getName(),
-                'status' => $brand->getStatus()->value(),
-                'detail_info' => $brand->getDetailInfo()->toArray(),
-                'sync_mdb' => $brand->getSyncMdb(),
+                'name' => $example->getName(),
+                'status' => $example->getStatus()->value(),
+                'detail_info' => $example->getDetailInfo()->toArray(),
+                'sync_mdb' => $example->getSyncMdb(),
                 'lock_version' => $newLockVersion->getValue(),
             ], [
-                'id' => $brand->getId(),
+                'id' => $example->getId(),
                 'lock_version' => $currentLockVersion->getValue()
             ])
             ->execute();
@@ -249,8 +249,8 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
         }
         
         // Update the entity's lock version
-        $brand->upgradeVersion();
+        $example->upgradeVersion();
             
-        return $brand;
+        return $example;
     }
 }

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Api\V1\Brand\Action;
+namespace App\Api\V1\Example\Action;
 
 // Application Layer
-use App\Application\Brand\BrandApplicationService;
+use App\Application\Example\ExampleApplicationService;
 
 // API Layer
 use App\Api\Shared\ResponseFactory;
@@ -21,12 +21,12 @@ use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Http\Status;
 use Yiisoft\Router\CurrentRoute;
 
-final readonly class BrandDeleteAction
+final readonly class ExampleDeleteAction
 {
     private const ALLOWED_KEYS = ['id'];
 
     public function __construct(
-        private BrandApplicationService $brandApplicationService,
+        private ExampleApplicationService $exampleApplicationService,
         private ResponseFactory $responseFactory,
     ) {
     }
@@ -38,7 +38,7 @@ final readonly class BrandDeleteAction
     {
         $id = $currentRoute->getArgument('id');
 
-        $resource = $this->brandApplicationService->getResource();
+        $resource = $this->exampleApplicationService->getResource();
         
         if ($id === null) {
             return $this->responseFactory->fail(
@@ -53,12 +53,12 @@ final readonly class BrandDeleteAction
             );
         }
 
-        $brandResponse = $this->brandApplicationService->delete(
+        $exampleResponse = $this->exampleApplicationService->delete(
             id: (int) $id,
         );
 
         return $this->responseFactory->success(
-            data: $brandResponse->toArray(),
+            data: $exampleResponse->toArray(),
             translate: new Message(
                 key: 'resource.deleted',
                 params: [

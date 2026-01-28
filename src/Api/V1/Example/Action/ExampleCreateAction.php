@@ -28,8 +28,8 @@ final class ExampleCreateAction
     private const ALLOWED_KEYS = ['name', 'status', 'sync_mdb'];
 
     public function __construct(
-        private ExampleInputValidator $brandInputValidator,
-        private ExampleApplicationService $brandApplicationService,
+        private ExampleInputValidator $exampleInputValidator,
+        private ExampleApplicationService $exampleApplicationService,
         private ResponseFactory $responseFactory,
     ) {
     }
@@ -45,7 +45,7 @@ final class ExampleCreateAction
             )->with('status', RecordStatus::DRAFT->value)
             ->sanitize();
 
-        $this->brandInputValidator->validate(
+        $this->exampleInputValidator->validate(
             data: $params,
             context: ValidationContext::CREATE,
         );
@@ -57,11 +57,11 @@ final class ExampleCreateAction
             syncMdb: $params->get('sync_mdb')
         );
 
-        $resource = $this->brandApplicationService->getResource();
-        $brandResponse = $this->brandApplicationService->create(command: $command);
+        $resource = $this->exampleApplicationService->getResource();
+        $exampleResponse = $this->exampleApplicationService->create(command: $command);
 
         return $this->responseFactory->success(
-            data: $brandResponse->toArray(),
+            data: $exampleResponse->toArray(),
             translate: new Message(
                 key: 'resource.created',
                 params: [

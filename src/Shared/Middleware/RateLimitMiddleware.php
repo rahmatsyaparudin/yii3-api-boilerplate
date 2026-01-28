@@ -99,8 +99,8 @@ final class RateLimitMiddleware implements MiddlewareInterface
         $path = $uri->getPath();
 
         // Different rate limits for different endpoints
-        if (\str_starts_with($path, '/v1/brand')) {
-            return "brand:$clientIp";
+        if (\str_starts_with($path, '/v1/example')) {
+            return "example:$clientIp";
         }
 
         if (\str_starts_with($path, '/v1/auth')) {

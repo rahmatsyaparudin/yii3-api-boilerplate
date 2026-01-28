@@ -12,7 +12,7 @@ use Psr\Clock\ClockInterface;
 use Yiisoft\Db\Connection\Connection;
 
 /**
- * Creates brand table with status tracking and JSON detail_info.
+ * Creates example table with status tracking and JSON detail_info.
  */
 final class M20240101000000CreateExample implements RevertibleMigrationInterface
 {

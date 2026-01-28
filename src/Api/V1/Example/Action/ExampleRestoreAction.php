@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Api\V1\Brand\Action;
+namespace App\Api\V1\Example\Action;
 
-use App\Application\Brand\BrandApplicationService;
+use App\Application\Example\ExampleApplicationService;
 use App\Api\Shared\ResponseFactory;
 use App\Shared\ValueObject\Message;
 
@@ -16,14 +16,14 @@ use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Router\CurrentRoute;
 
 /**
- * Brand Restore Action
+ * Example Restore Action
  * 
- * Restores a soft-deleted brand back to active status
+ * Restores a soft-deleted example back to active status
  */
-final readonly class BrandRestoreAction
+final readonly class ExampleRestoreAction
 {
     public function __construct(
-        private BrandApplicationService $brandApplicationService,
+        private ExampleApplicationService $exampleApplicationService,
         private ResponseFactory $responseFactory,
     ) {
     }
@@ -35,7 +35,7 @@ final readonly class BrandRestoreAction
     {
         $id = $currentRoute->getArgument('id');
 
-        $resource = $this->brandApplicationService->getResource();
+        $resource = $this->exampleApplicationService->getResource();
         
         if ($id === null) {
             return $this->responseFactory->fail(
@@ -50,12 +50,12 @@ final readonly class BrandRestoreAction
             );
         }
 
-        $brandResponse = $this->brandApplicationService->restore(
+        $exampleResponse = $this->exampleApplicationService->restore(
             id: (int) $id,
         );
 
         return $this->responseFactory->success(
-            data: $brandResponse->toArray(),
+            data: $exampleResponse->toArray(),
             translate: new Message(
                 key: 'resource.restored',
                 params: [

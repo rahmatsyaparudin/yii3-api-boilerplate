@@ -24,15 +24,15 @@ final readonly class ExampleResponse
      * Static Factory Method: Mengubah Entity menjadi DTO.
      * Di sini kita melakukan transformasi format data.
      */
-    public static function fromEntity(Example $brand): self
+    public static function fromEntity(Example $example): self
     {
         return new self(
-            id: $brand->getId(),
-            name: $brand->getName(),
-            status: $brand->getStatus()->value(),
-            sync_mdb: $brand->getSyncMdb() !== null,
-            detail_info: $brand->getDetailInfo()->toArray(),
-            lock_version: $brand->getLockVersion()->getValue(),
+            id: $example->getId(),
+            name: $example->getName(),
+            status: $example->getStatus()->value(),
+            sync_mdb: $example->getSyncMdb() !== null,
+            detail_info: $example->getDetailInfo()->toArray(),
+            lock_version: $example->getLockVersion()->getValue(),
         );
     }
 
