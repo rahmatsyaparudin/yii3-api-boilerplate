@@ -73,7 +73,9 @@ class SkeletonInstaller
         echo "💬 Message files copied to resources/messages/\n";
         echo "📁 Files copied: en/error.php, en/success.php, en/validation.php, id/error.php, id/success.php, id/validation.php\n";
         echo "🌐 API files copied to src/Api/\n";
-        echo "📁 Files copied: autoload.php, IndexAction.php\n";
+        echo "📁 Files copied: IndexAction.php\n";
+        echo "🔧 Autoload file copied to src/\n";
+        echo "📁 Files copied: autoload.php\n";
         echo "📦 Composer packages updated in composer.json\n";
         echo "📁 Packages added: firebase/php-jwt, psr/clock, vlucas/phpdotenv, yiisoft/* packages\n";
     }
@@ -412,16 +414,20 @@ class SkeletonInstaller
     {
         // In actual vendor package usage, copy from vendor to project
         $vendorApiPath = $this->projectRoot . '/vendor/rahmatsyaparudin/yii3-api-boilerplate/src/Api';
+        $vendorRootPath = $this->projectRoot . '/vendor/rahmatsyaparudin/yii3-api-boilerplate/src';
         $targetApiPath = $this->projectRoot . '/src/Api';
+        $targetRootPath = $this->projectRoot . '/src';
         
-        // Ensure src/Api directory exists
+        // Ensure directories exist
         if (!is_dir($targetApiPath)) {
             mkdir($targetApiPath, 0755, true);
         }
+        if (!is_dir($targetRootPath)) {
+            mkdir($targetRootPath, 0755, true);
+        }
         
-        // Specific API files to copy
+        // Copy API files
         $apiFiles = [
-            'autoload.php',
             'IndexAction.php'
         ];
         
@@ -441,6 +447,24 @@ class SkeletonInstaller
                     file_put_contents($targetFile, $content);
                     echo "✅ Copied existing API file: src/Api/{$file}\n";
                 }
+            }
+        }
+        
+        // Copy autoload.php from src/ (not src/Api/)
+        $autoloadSource = $vendorRootPath . '/autoload.php';
+        $autoloadTarget = $targetRootPath . '/autoload.php';
+        
+        if (file_exists($autoloadSource)) {
+            $content = file_get_contents($autoloadSource);
+            file_put_contents($autoloadTarget, $content);
+            echo "✅ Copied autoload file: src/autoload.php\n";
+        } else {
+            // Fallback: copy from current location (for testing in boilerplate)
+            $currentAutoloadSource = $this->projectRoot . '/src/autoload.php';
+            if (file_exists($currentAutoloadSource)) {
+                $content = file_get_contents($currentAutoloadSource);
+                file_put_contents($autoloadTarget, $content);
+                echo "✅ Copied existing autoload file: src/autoload.php\n";
             }
         }
     }

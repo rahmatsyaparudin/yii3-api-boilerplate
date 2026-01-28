@@ -80,22 +80,23 @@ src/Application/Shared/
 └── Factory/       # Application factory classes
 ```
 
-### API Files (`src/Api/`)
+### API Files (`src/`)
 ```
-src/Api/
+src/
 ├── autoload.php                   # API autoloader configuration
-├── IndexAction.php               # API index action
-├── Shared/                       # API shared components
-│   ├── Presenter/                # API response presenters
-│   │   ├── FailPresenter.php
-│   │   ├── SuccessPresenter.php
-│   │   └── SuccessWithMetaPresenter.php
-│   ├── ExceptionResponderFactory.php  # Exception response factory
-│   └── ResponseFactory.php       # HTTP response factory
-└── V1/                          # API version 1
-    └── Example/                  # Example API endpoints
-        ├── Action/               # API actions
-        ├── Validation/           # API validation
+├── Api/                          # API layer
+│   ├── IndexAction.php           # API index action
+│   └── Shared/                   # API shared components
+│       ├── Presenter/            # API response presenters
+│       │   ├── FailPresenter.php
+│       │   ├── SuccessPresenter.php
+│       │   └── SuccessWithMetaPresenter.php
+│       ├── ExceptionResponderFactory.php  # Exception response factory
+│       └── ResponseFactory.php    # HTTP response factory
+└── Api/V1/                       # API version 1
+    └── Example/                   # Example API endpoints
+        ├── Action/                # API actions
+        ├── Validation/            # API validation
         └── ...
 ```
 
