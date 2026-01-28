@@ -172,7 +172,7 @@ If you prefer to set up manually:
 
 6. Copy API files from vendor:
    ```bash
-   cp vendor/rahmatsyaparudin/yii3-api-boilerplate/src/Api/autoload.php src/Api/
+   cp vendor/rahmatsyaparudin/yii3-api-boilerplate/src/autoload.php src/
    cp vendor/rahmatsyaparudin/yii3-api-boilerplate/src/Api/IndexAction.php src/Api/
    ```
 
