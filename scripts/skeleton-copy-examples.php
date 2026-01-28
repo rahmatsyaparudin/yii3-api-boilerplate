@@ -126,7 +126,9 @@ class SkeletonExamplesCopier
             $targetPath = $target . $relativePath;
 
             if ($file->isDir()) {
-                mkdir($targetPath, 0755, true);
+                if (!is_dir($targetPath)) {
+                    mkdir($targetPath, 0755, true);
+                }
             } else {
                 // Copy file as-is
                 $content = file_get_contents($sourcePath);
