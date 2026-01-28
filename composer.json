@@ -105,8 +105,11 @@
         }
     },
     "scripts": {
-        "install-skeleton": [
+        "skeleton-install": [
             "@php scripts/install-skeleton.php"
+        ],
+        "skeleton-copy-examples": [
+            "@php scripts/skeleton-copy-examples.php"
         ],
         "serve": [
             "Composer\\Config::disableProcessTimeout",

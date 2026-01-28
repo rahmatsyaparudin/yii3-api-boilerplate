@@ -5,22 +5,72 @@ declare(strict_types=1);
 use Yiisoft\Db\Pgsql\Dsn;
 
 $isDev           = $_ENV['APP_ENV'] === 'dev';
-$allowed_origins = \json_decode($_ENV['app.cors.allowedOrigins'], true);
+$allowed_origins = \json_decode($_ENV['app.cors.allowedOrigins'] ?? '[]', true) ?? [];
+$allowedMethods = \json_decode($_ENV['app.cors.allowedMethods'] ?? '[]', true) ?? [];
+$allowedHeaders = \json_decode($_ENV['app.cors.allowedHeaders'] ?? '[]', true) ?? [];
+$exposedHeaders = \json_decode($_ENV['app.cors.exposedHeaders'] ?? '[]', true) ?? [];
+$trustedHosts = \json_decode($_ENV['app.trusted_hosts.allowedHosts'] ?? '[]', true) ?? [];
 
 return [
     'application' => require __DIR__ . '/application.php',
+    'yiisoft/aliases' => [
+        'aliases' => require __DIR__ . '/aliases.php',
+    ],
+    'yiisoft/translator' => [
+        'locale'         => $_ENV['app.config.language'],
+        'fallbackLocale' => $_ENV['app.config.language'],
+    ],
+    'yiisoft/db-pgsql' => [
+        'dsn' => new Dsn(
+            $_ENV['db.default.driver'],
+            $_ENV['db.default.host'],
+            $_ENV['db.default.name'],
+            $_ENV['db.default.port']
+        ),
+        'username' => $_ENV['db.default.user'],
+        'password' => $_ENV['db.default.password'],
+    ],
+    'yiisoft/db-migration' => [
+        'newMigrationNamespace' => 'App\\Migration',
+        'sourceNamespaces'      => ['App\\Migration'],
+    ],
     'app/config'  => [
         'code'     => 'enterEDC',
         'name'     => $_ENV['app.config.name'] ?? 'name',
         'language' => $_ENV['app.config.language'] ?? 'en',
     ],
     'app/pagination' => [
-        'defaultPageSize' => 50,
-        'maxPageSize'     => 200,
+        'defaultPageSize' => $_ENV['app.pagination.defaultPageSize'] ?? 10,
+        'maxPageSize'     => $_ENV['app.pagination.maxPageSize'] ?? 200,
     ],
     'app/rateLimit' => [
-        'maxRequests' => 100,
-        'windowSize'  => 60, // seconds
+        'maxRequests' => $_ENV['app.rateLimit.maxRequests'] ?? 100,
+        'windowSize'  => $_ENV['app.rateLimit.windowSize'] ?? 60,
+    ],
+    'app/hsts' => [
+        'maxAge'            => (int) ($_ENV['app.hsts.maxAge'] ?? 31536000),
+        'includeSubDomains' => filter_var($_ENV['app.hsts.includeSubDomains'] ?? true, FILTER_VALIDATE_BOOLEAN),
+        'preload'           => filter_var($_ENV['app.hsts.preload'] ?? false, FILTER_VALIDATE_BOOLEAN),
+    ],
+    'app/time' => [
+        'timezone' => $_ENV['app.time.timezone'],
+    ],
+    'app/cors' => [
+        'maxAge'           => (int) $_ENV['app.cors.maxAge'] ?? 86400,
+        'allowCredentials' => filter_var($_ENV['app.cors.allowCredentials'] ?? true, FILTER_VALIDATE_BOOLEAN),
+        'allowedOrigins'   => $isDev ? ['*'] : $allowed_origins,
+        'allowedMethods'   => $allowedMethods,
+        'allowedHeaders'   => $allowedHeaders,
+        'exposedHeaders'   => $exposedHeaders,
+    ],
+    'app/jwt' => [
+        'secret'    => $_ENV['app.jwt.secret'],
+        'algorithm' => $_ENV['app.jwt.algorithm'] ?? 'HS256',
+        'issuer'    => $_ENV['app.jwt.issuer'] ?? null,
+        'audience'  => $_ENV['app.jwt.audience'] ?? null,
+    ],
+    'app/trusted_hosts' => [
+        'allowedHosts' => $trustedHosts,
     ],
     'app/secureHeaders' => [
         'csp' => [
@@ -41,11 +91,6 @@ return [
             'X-XSS-Protection'       => '1; mode=block',
             'Referrer-Policy'        => 'strict-origin-when-cross-origin',
         ],
-    ],
-    'app/hsts' => [
-        'maxAge'            => 31536000,
-        'includeSubDomains' => true,
-        'preload'           => false,
     ],
     'app/monitoring' => [
         'provider'          => 'custom',
@@ -79,66 +124,5 @@ return [
             'ignore_exceptions'      => [],
             'ignore_error_codes'     => [404, 422],
         ],
-    ],
-    'app/time' => [
-        'timezone' => $_ENV['app.time.timezone'],
-    ],
-    'app/cors' => [
-        'maxAge'           => 86400,
-        'allowCredentials' => true,
-        'allowedOrigins'   => $isDev ? $allowed_origins : $allowed_origins,
-        'allowedMethods'   => [
-            'GET',
-            'POST',
-            'PUT',
-            'PATCH',
-            'DELETE',
-            'OPTIONS',
-        ],
-        'allowedHeaders' => [
-            'Content-Type',
-            'Authorization',
-            'X-Requested-With',
-            'Accept',
-            'Origin',
-        ],
-        'exposedHeaders' => [
-            'X-Pagination-Total-Count',
-            'X-Pagination-Page-Count',
-        ],
-    ],
-    'app/jwt' => [
-        'secret'    => $_ENV['app.jwt.secret'],
-        'algorithm' => $_ENV['app.jwt.algorithm'] ?? 'HS256',
-        'issuer'    => $_ENV['app.jwt.issuer'] ?? null,
-        'audience'  => $_ENV['app.jwt.audience'] ?? null,
-    ],
-    'app/trusted_hosts' => [
-        'allowedHosts' => [
-            '127.0.0.1',
-            '::1',
-            'localhost',
-        ],
-    ],
-    'yiisoft/aliases' => [
-        'aliases' => require __DIR__ . '/aliases.php',
-    ],
-    'yiisoft/translator' => [
-        'locale'         => $_ENV['app.config.language'],
-        'fallbackLocale' => $_ENV['app.config.language'],
-    ],
-    'yiisoft/db-pgsql' => [
-        'dsn' => new Dsn(
-            $_ENV['db.default.driver'],
-            $_ENV['db.default.host'],
-            $_ENV['db.default.name'],
-            $_ENV['db.default.port']
-        ),
-        'username' => $_ENV['db.default.user'],
-        'password' => $_ENV['db.default.password'],
-    ],
-    'yiisoft/db-migration' => [
-        'newMigrationNamespace' => 'App\\Migration',
-        'sourceNamespaces'      => ['App\\Migration'],
     ],
 ];
