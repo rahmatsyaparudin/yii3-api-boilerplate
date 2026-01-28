@@ -40,7 +40,7 @@ final class ExampleUpdateAction
 
     public function __invoke(
         ServerRequestInterface $request,
-        CurrentRoute $currentRoute
+        CurrentRoute $currentRoute,
     ): ResponseInterface
     {
         /** @var \App\Shared\Request\RequestParams|null $payload */

@@ -6,13 +6,23 @@ namespace App\Api\V1\Example\Action;
 
 // Application Layer
 use App\Application\Example\ExampleApplicationService;
+use App\Application\Shared\Factory\SearchCriteriaFactory;
 
 // API Layer
 use App\Api\Shared\ResponseFactory;
+use App\Api\V1\Example\Validation\ExampleInputValidator;
+
+// Shared Layer
+use App\Shared\Validation\ValidationContext;
+use App\Shared\ValueObject\Message;
 
 // PSR Interfaces
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+
+// Third Party Libraries
+use Yiisoft\Http\Status;
+use Yiisoft\Router\CurrentRoute;
 
 final readonly class ExampleViewAction
 {
@@ -22,26 +32,37 @@ final readonly class ExampleViewAction
     ) {
     }
 
-    public function __invoke(ServerRequestInterface $request): ResponseInterface
+    public function __invoke(
+        ServerRequestInterface $request,
+        CurrentRoute $currentRoute,
+    ): ResponseInterface
     {
-        $id = (int) $request->getAttribute('id');
+        $id = $currentRoute->getArgument('id');
+        $resource = $this->exampleApplicationService->getResource();
 
-        if (!$id) {
+        if ($id === null) {
             return $this->responseFactory->fail(
-                message: 'Example ID is required',
+                translate: new Message(
+                    key: 'route.parameter_missing',
+                    params: [
+                        'resource' => $resource,
+                        'parameter' => 'id',
+                    ]
+                ),
                 httpCode: Status::NOT_FOUND
             );
         }
 
-        // Use ExampleApplicationService for proper DDD architecture
-        $example = $this->exampleApplicationService->get($id);
+        $exampleResponse = $this->exampleApplicationService->get((int) $id);
 
         return $this->responseFactory->success(
-            data: $example->toArray(),
-            message: 'resource.details_retrieved',
-            params: [
-                'resource' => 'Example'
-            ]
+            data: $exampleResponse->toArray(),
+            translate: new Message(
+                key: 'resource.details_retrieved',
+                params: [
+                    'resource' => $resource,
+                ]
+            ),
         );
     }
 }
