@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Brand\Entity;
+namespace App\Domain\Example\Entity;
 
 use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\Status;
@@ -13,11 +13,11 @@ use App\Domain\Shared\Concerns\Entity\Descriptive;
 use App\Domain\Shared\Concerns\Entity\OptimisticLock;
 use App\Shared\ValueObject\Message;
 
-final class Brand
+final class Example
 {
     use Identifiable, Stateful, Descriptive, OptimisticLock;
 
-    public const RESOURCE = 'Brand';
+    public const RESOURCE = 'Example';
 
     protected function __construct(
         private readonly ?int $id,
@@ -77,7 +77,7 @@ final class Brand
     }
 
     /**
-     * Place Brand-specific business functions here, in addition to those
+     * Place Example-specific business functions here, in addition to those
      * provided by common traits/concerns (Identifiable, Stateful, etc.).
      */
     

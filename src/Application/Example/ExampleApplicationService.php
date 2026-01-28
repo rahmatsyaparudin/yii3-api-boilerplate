@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Brand;
+namespace App\Application\Example;
 
-use App\Application\Brand\Command\CreateBrandCommand;
-use App\Application\Brand\Command\UpdateBrandCommand;
-use App\Application\Brand\Dto\BrandResponse;
+use App\Application\Example\Command\CreateExampleCommand;
+use App\Application\Example\Command\UpdateExampleCommand;
+use App\Application\Example\Dto\ExampleResponse;
 use App\Application\Shared\Factory\DetailInfoFactory;
 
-use App\Domain\Brand\Entity\Brand;
-use App\Domain\Brand\Repository\BrandRepositoryInterface;
-use App\Domain\Brand\Service\BrandDomainService;
+use App\Domain\Example\Entity\Example;
+use App\Domain\Example\Repository\ExampleRepositoryInterface;
+use App\Domain\Example\Service\ExampleDomainService;
 use App\Domain\Shared\ValueObject\Status;
 use App\Domain\Shared\Security\AuthorizerInterface;
 
@@ -21,26 +21,26 @@ use App\Shared\Exception\NotFoundException;
 use App\Shared\ValueObject\Message;
 
 /**
- * Brand Application Service (Mandor/Alur Kerja)
+ * Example Application Service (Mandor/Alur Kerja)
  * 
  * Orchestrates use cases and coordinates domain & infrastructure
  */
-final class BrandApplicationService
+final class ExampleApplicationService
 {
     public function __construct(
         private AuthorizerInterface $auth,
         private DetailInfoFactory $detailInfoFactory,
-        private BrandRepositoryInterface $repository,
-        private BrandDomainService $domainService
+        private ExampleRepositoryInterface $repository,
+        private ExampleDomainService $domainService
     ) {
     }
 
     public function getResource(): string
     {
-        return Brand::RESOURCE;
+        return Example::RESOURCE;
     }
 
-    private function getEntityById(int $id): Brand
+    private function getEntityById(int $id): Example
     {
         $brand = $this->repository->findById($id);
         
@@ -65,23 +65,23 @@ final class BrandApplicationService
         return $this->repository->list($criteria);
     }
 
-    public function viewBrand(int $id): BrandResponse
+    public function viewExample(int $id): ExampleResponse
     {
         $brand = $this->getEntityById($id);
-        return BrandResponse::fromEntity($brand);
+        return ExampleResponse::fromEntity($brand);
     }
 
-    public function get(int $id): BrandResponse
+    public function get(int $id): ExampleResponse
     {
-        return $this->viewBrand($id);
+        return $this->viewExample($id);
     }
 
-    public function create(CreateBrandCommand $command): BrandResponse
+    public function create(CreateExampleCommand $command): ExampleResponse
     {
         $this->domainService->validateUniqueValue(
             value: $command->name,
             field: 'name',
-            resource: Brand::RESOURCE,
+            resource: Example::RESOURCE,
             repository: $this->repository,
             excludeId: null
         );
@@ -93,17 +93,17 @@ final class BrandApplicationService
             ->withApproved()
             ->build();
 
-        $brand = Brand::create(
+        $brand = Example::create(
             name: $command->name,
             status: Status::from($command->status),
             detailInfo: $detailInfo,
             syncMdb: $command->syncMdb ?? null
         );
 
-        return BrandResponse::fromEntity(brand: $this->repository->save($brand));
+        return ExampleResponse::fromEntity(brand: $this->repository->save($brand));
     }
 
-    public function update(int $id, UpdateBrandCommand $command): BrandResponse
+    public function update(int $id, UpdateExampleCommand $command): ExampleResponse
     {
         $brand = $this->getEntityById($id);
 
@@ -146,10 +146,10 @@ final class BrandApplicationService
 
         $brand->updateDetailInfo(detailInfo: $detailInfo);
 
-        return BrandResponse::fromEntity($this->repository->save($brand));
+        return ExampleResponse::fromEntity($this->repository->save($brand));
     }
 
-    public function delete(int $id): BrandResponse
+    public function delete(int $id): ExampleResponse
     {
         $brand = $this->getEntityById($id);
 
@@ -174,10 +174,10 @@ final class BrandApplicationService
 
         $brand->updateDetailInfo(detailInfo: $detailInfo);
 
-        return BrandResponse::fromEntity($this->repository->delete($brand));
+        return ExampleResponse::fromEntity($this->repository->delete($brand));
     }
 
-    public function restore(int $id): BrandResponse
+    public function restore(int $id): ExampleResponse
     {
         $brand = $this->repository->restore($id);
         
@@ -214,6 +214,6 @@ final class BrandApplicationService
 
         $brand->updateDetailInfo(detailInfo: $detailInfo);
 
-        return BrandResponse::fromEntity($this->repository->save($brand));
+        return ExampleResponse::fromEntity($this->repository->save($brand));
     }
 }

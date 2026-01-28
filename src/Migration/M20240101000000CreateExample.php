@@ -14,7 +14,7 @@ use Yiisoft\Db\Connection\Connection;
 /**
  * Creates brand table with status tracking and JSON detail_info.
  */
-final class M20240101000000CreateBrand implements RevertibleMigrationInterface
+final class M20240101000000CreateExample implements RevertibleMigrationInterface
 {
     public function __construct(
         private ClockInterface $clock
@@ -24,7 +24,7 @@ final class M20240101000000CreateBrand implements RevertibleMigrationInterface
     {
         $cb = $b->columnBuilder();
 
-        $b->createTable('brand', [
+        $b->createTable('example', [
             'id'          => $cb::primaryKey(),
             'name'        => $cb::string(255)->notNull(),
             'status'      => $cb::smallint()->notNull()->defaultValue(RecordStatus::DRAFT->value),
@@ -77,6 +77,6 @@ final class M20240101000000CreateBrand implements RevertibleMigrationInterface
 
     public function down(MigrationBuilder $b): void
     {
-        $b->dropTable('brand');
+        $b->dropTable('example');
     }
 }

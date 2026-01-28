@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Persistence\Brand;
+namespace App\Infrastructure\Persistence\Example;
 
-use App\Domain\Brand\Entity\Brand;
-use App\Domain\Brand\Repository\BrandRepositoryInterface;
+use App\Domain\Example\Entity\Example;
+use App\Domain\Example\Repository\ExampleRepositoryInterface;
 use App\Domain\Shared\ValueObject\Status;
 use App\Domain\Shared\ValueObject\DetailInfo;
 use Yiisoft\Db\Connection\ConnectionInterface;
@@ -18,15 +18,15 @@ use App\Infrastructure\Security\CurrentUserAwareInterface;
 use App\Shared\Exception\OptimisticLockException;
 
 /**
- * Brand Repository using Yiisoft/Db Query Builder
+ * Example Repository using Yiisoft/Db Query Builder
  * 
  * Pure query implementation using Yiisoft/Db for database operations
  */
-final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwareInterface
+final class ExampleRepository implements ExampleRepositoryInterface, CurrentUserAwareInterface
 {
     use HasCoreFeatures;
     
-    private const TABLE = 'brand';
+    private const TABLE = 'example';
     private const LIKE_OPERATOR = 'ilike';
 
     public function __construct(
@@ -34,7 +34,7 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
         private ConnectionInterface $db,
     ) {}
 
-    public function findById(int $id): ?Brand
+    public function findById(int $id): ?Example
     {
         $row = (new Query($this->db))
             ->from(self::TABLE)
@@ -46,7 +46,7 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
             )
             ->one();
 
-        return $row ? Brand::reconstitute(
+        return $row ? Example::reconstitute(
             id: (int) $row['id'],
             name: $row['name'],
             status: Status::from((int)$row['status']),
@@ -56,7 +56,7 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
         ) : null;
     }
 
-    public function restore(int $id): ?Brand
+    public function restore(int $id): ?Example
     {
         $row = (new Query($this->db))
             ->from(self::TABLE)
@@ -66,7 +66,7 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
             )
             ->one();
 
-        return $row ? Brand::reconstitute(
+        return $row ? Example::reconstitute(
             id: (int) $row['id'],
             name: $row['name'],
             status: Status::from((int)$row['status']),
@@ -76,7 +76,7 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
         ) : null;
     }
 
-    public function findByName(string $name): ?Brand
+    public function findByName(string $name): ?Example
     {
         $row = (new Query($this->db))
             ->from(self::TABLE)
@@ -84,7 +84,7 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
             ->andWhere($this->scopeWhereNotDeleted())
             ->one();
 
-        return $row ? Brand::reconstitute(
+        return $row ? Example::reconstitute(
             id: (int) $row['id'],
             name: $row['name'],
             status: Status::from((int)$row['status']),
@@ -94,7 +94,7 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
         ) : null;
     }
 
-    public function save(Brand $brand): Brand
+    public function save(Example $brand): Example
     {
         return $this->db->transaction(function() use ($brand) {
             $exists = (new Query($this->db))
@@ -106,7 +106,7 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
         });
     }
 
-    public function delete(Brand $brand): Brand
+    public function delete(Example $brand): Example
     {
         $this->db->createCommand()
             ->update(
@@ -193,7 +193,7 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
         }
     }
 
-    private function insert(Brand $brand): Brand 
+    private function insert(Example $brand): Example 
     {
         $this->db->createCommand()
             ->insert(self::TABLE, [
@@ -205,9 +205,9 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
             ])
             ->execute();
 
-        $newId = (int) $this->db->getLastInsertID('brand_id_seq');
+        $newId = (int) $this->db->getLastInsertID('example_id_seq');
 
-        return Brand::reconstitute(
+        return Example::reconstitute(
             id: $newId,
             name: $brand->getName(),
             status: $brand->getStatus(),
@@ -217,7 +217,7 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
         );
     }
 
-    private function update(Brand $brand): Brand
+    private function update(Example $brand): Example
     {
         // Get current and new lock versions
         $currentLockVersion = $brand->getLockVersion();
@@ -242,7 +242,7 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
                 translate: new Message(
                     key: 'optimistic.lock.failed',
                     params: [
-                        'resource' => Brand::RESOURCE,
+                        'resource' => Example::RESOURCE,
                     ]
                 )
             );

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Brand\Command;
+namespace App\Application\Example\Command;
 
-final readonly class UpdateBrandCommand
+final readonly class UpdateExampleCommand
 {
     public function __construct(
         public int $id,

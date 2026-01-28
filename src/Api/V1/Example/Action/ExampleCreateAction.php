@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Api\V1\Brand\Action;
+namespace App\Api\V1\Example\Action;
 
 // Application Layer
-use App\Application\Brand\BrandApplicationService;
+use App\Application\Example\ExampleApplicationService;
 
 // API Layer
 use App\Api\Shared\ResponseFactory;
-use App\Api\V1\Brand\Validation\BrandInputValidator;
-use App\Application\Brand\Command\CreateBrandCommand;
+use App\Api\V1\Example\Validation\ExampleInputValidator;
+use App\Application\Example\Command\CreateExampleCommand;
 
 // Shared Layer
 use App\Shared\Enums\RecordStatus;
@@ -23,13 +23,13 @@ use App\Shared\Security\InputSanitizer;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-final class BrandCreateAction 
+final class ExampleCreateAction 
 {
     private const ALLOWED_KEYS = ['name', 'status', 'sync_mdb'];
 
     public function __construct(
-        private BrandInputValidator $brandInputValidator,
-        private BrandApplicationService $brandApplicationService,
+        private ExampleInputValidator $brandInputValidator,
+        private ExampleApplicationService $brandApplicationService,
         private ResponseFactory $responseFactory,
     ) {
     }
@@ -50,7 +50,7 @@ final class BrandCreateAction
             context: ValidationContext::CREATE,
         );
 
-        $command = new CreateBrandCommand(
+        $command = new CreateExampleCommand(
             name: (string) $params->get('name'),
             status: $params->get('status'),
             detailInfo: $params->get('detail_info'),

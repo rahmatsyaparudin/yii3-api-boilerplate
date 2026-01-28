@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Api\V1\Brand\Validation;
+namespace App\Api\V1\Example\Validation;
 
 use App\Shared\Validation\AbstractValidator;
 use App\Shared\Validation\ValidationContext;
@@ -15,12 +15,12 @@ use Yiisoft\Validator\Rule\Length;
 use Yiisoft\Validator\Rule\In;
 
 /**
- * Brand Input Validator
+ * Example Input Validator
  * 
  * Menggunakan pattern AbstractValidator dengan ValidationContext
  * untuk validasi input yang berbeda per operation
  */
-final class BrandInputValidator extends AbstractValidator
+final class ExampleInputValidator extends AbstractValidator
 {
     protected function rules(string $context): array
     {

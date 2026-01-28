@@ -2,26 +2,26 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Brand\Service;
+namespace App\Domain\Example\Service;
 
-use App\Domain\Brand\Entity\Brand;
-use App\Domain\Brand\Repository\BrandRepositoryInterface;
+use App\Domain\Example\Entity\Example;
+use App\Domain\Example\Repository\ExampleRepositoryInterface;
 use App\Domain\Shared\ValueObject\Status;
 use App\Shared\ValueObject\Message;
 use App\Shared\Exception\ConflictException;
 use App\Domain\Shared\Concerns\Service\DomainValidator;
 
 /**
- * Brand Domain Service
+ * Example Domain Service
  * 
  * Pure business logic and domain rules
  */
-final class BrandDomainService
+final class ExampleDomainService
 {
     use DomainValidator;
     
     public function __construct(
-        private BrandRepositoryInterface $repository
+        private ExampleRepositoryInterface $repository
     ) {}
     
     

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Brand\Dto;
+namespace App\Application\Example\Dto;
 
-use App\Domain\Brand\Entity\Brand;
+use App\Domain\Example\Entity\Example;
 
-final readonly class BrandResponse
+final readonly class ExampleResponse
 {
     /**
      * Kita definisikan properti yang HANYA boleh dilihat oleh klien/API.
@@ -24,7 +24,7 @@ final readonly class BrandResponse
      * Static Factory Method: Mengubah Entity menjadi DTO.
      * Di sini kita melakukan transformasi format data.
      */
-    public static function fromEntity(Brand $brand): self
+    public static function fromEntity(Example $brand): self
     {
         return new self(
             id: $brand->getId(),
