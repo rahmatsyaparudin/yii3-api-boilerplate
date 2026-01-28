@@ -14,14 +14,14 @@ $isAdmin      = static fn (Actor $actor): bool => $actor->isAdmin($appCode);
 $isSuperAdmin = static fn (Actor $actor): bool => $actor->isSuperAdmin($appCode);
 
 return [
-    'brand.index'  => static fn (Actor $actor): bool => true,
-    'brand.data'   => [
+    'example.index'  => static fn (Actor $actor): bool => true,
+    'example.data'   => [
         $isSuperAdmin,
         $isKasir,
     ],
-    'brand.view'   => $isKasir,
-    'brand.create' => $isKasir,
-    'brand.update' => $isKasir,
-    'brand.delete' => $isKasir,
-    'brand.restore' => $isSuperAdmin,
+    'example.view'   => $isKasir,
+    'example.create' => $isKasir,
+    'example.update' => $isKasir,
+    'example.delete' => $isKasir,
+    'example.restore' => $isSuperAdmin,
 ];

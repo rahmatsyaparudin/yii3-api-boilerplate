@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Brand\Command;
+namespace App\Application\Example\Command;
 
-final readonly class CreateBrandCommand
+final readonly class CreateExampleCommand
 {
     public function __construct(
         public string $name,

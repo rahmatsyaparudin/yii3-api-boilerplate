@@ -39,6 +39,8 @@ final class TemplateGeneratorCommand extends Command
                 'rahmatsyaparudin/yii3-api' => '{vendor}/{project_name}',
                 'Brand' => '{Entity}',
                 'brand' => '{entity}',
+                'Example' => '{Entity}',
+                'example' => '{entity}',
             ])
             ->addOption('include-optimistic-lock', 'o', InputOption::VALUE_NONE, 'Include optimistic locking features')
             ->setHelp('This command allows you to generate a new project from the current boilerplate template');
