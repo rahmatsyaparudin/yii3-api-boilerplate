@@ -1,6 +1,6 @@
 {
-    "name": "yiisoft/app-api",
-    "type": "project",
+    "name": "rahmatsyaparudin/yii3-api-boilerplate",
+    "type": "project-template",
     "description": "Yii3 API project template",
     "keywords": [
         "yii3",
