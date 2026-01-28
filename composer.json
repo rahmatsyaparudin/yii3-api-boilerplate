@@ -105,6 +105,9 @@
         }
     },
     "scripts": {
+        "install-skeleton": [
+            "@php scripts/install-skeleton.php"
+        ],
         "serve": [
             "Composer\\Config::disableProcessTimeout",
             "@php ./yii serve"
