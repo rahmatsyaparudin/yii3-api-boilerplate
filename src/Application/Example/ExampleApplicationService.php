@@ -65,7 +65,7 @@ final class ExampleApplicationService
         return $this->repository->list($criteria);
     }
 
-    public function viewExample(int $id): ExampleResponse
+    public function view(int $id): ExampleResponse
     {
         $example = $this->getEntityById($id);
         return ExampleResponse::fromEntity($example);
@@ -73,7 +73,7 @@ final class ExampleApplicationService
 
     public function get(int $id): ExampleResponse
     {
-        return $this->viewExample($id);
+        return $this->view($id);
     }
 
     public function create(CreateExampleCommand $command): ExampleResponse
