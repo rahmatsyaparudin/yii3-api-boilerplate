@@ -45,6 +45,7 @@ return [
     'pagination.invalid_page' => 'Nomor halaman harus berupa bilangan bulat positif yang valid',
     'pagination.invalid_limit' => 'Nilai ukuran halaman tidak valid',
     'pagination.invalid_page_size' => 'Nilai ukuran halaman tidak valid',
+    'pagination.invalid_parameter' => 'Parameter "{parameter}" tidak valid',
 
     // Route
     'route.field_required' => 'Permintaan tidak valid. {resource} {field} wajib disertakan dalam URL',

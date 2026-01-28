@@ -121,4 +121,15 @@ return [
 
     // Request Prefix
     'request.unknown_parameters' => 'Parameter tidak dikenal: {unknown_keys}. Parameter yang diizinkan: {allowed_keys}',
+
+    // Input Sanitizer Prefix
+    'input_sanitizer.input_structure_too_deep' => 'Struktur input terlalu dalam. Kedalaman saat ini {depth}, namun batas maksimum adalah {max_depth}.',
+    'input_sanitizer.input_too_long' => 'Input terlalu panjang. Panjang saat ini {length}, namun batas maksimum adalah {max_length}.',
+    'input_sanitizer.invalid_encoding' => 'Input berisi enkripsi yang tidak valid. Enkripsi saat ini {encoding}.',
+    'input_sanitizer.array_too_large' => 'Array melebihi ukuran maksimum yang diizinkan {max_size} elemen.',
+    'input_sanitizer.float_overflow' => 'Nilai di luar rentang. It must be between {min_value} and {max_value}.',
+    'input_sanitizer.integer_overflow' => 'Nilai di luar rentang. It must be between {min_value} and {max_value}.',
+    'input_sanitizer.invalid_array_key_type' => 'Kunci array memiliki tipe yang tidak valid. Kunci harus berupa string atau integer.',
+    'input_sanitizer.invalid_array_key_length' => 'Kunci array terlalu panjang. Panjang maksimum yang diizinkan untuk kunci adalah {max_length} karakter,',
+    'input_sanitizer.invalid_array_key' => 'Kunci array {key} berisi karakter atau format yang tidak valid.',
 ];

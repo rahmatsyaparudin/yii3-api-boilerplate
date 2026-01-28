@@ -121,4 +121,16 @@ return [
 
     // Request Prefix
     'request.unknown_parameters' => 'Unknown parameters: {unknown_keys}. Allowed parameters: {allowed_keys}',
+
+    // Input Sanitizer Prefix
+    'input_sanitizer.input_structure_too_deep' => 'Input structure is too deep. Current depth is {depth}, but the maximum allowed is {max_depth}.',
+    'input_sanitizer.input_too_long' => 'Input is too long. Current length is {length}, but the maximum allowed is {max_length}.',
+    'input_sanitizer.invalid_encoding' => 'Input contains invalid encoding. Current encoding is {encoding}.',
+    'input_sanitizer.array_too_large' => 'The array exceeds the maximum allowed size of {max_size} elements.',
+    'input_sanitizer.float_overflow' => 'Value is out of range. It must be between {min_value} and {max_value}.',
+    'input_sanitizer.integer_overflow' => 'Value is out of range. It must be between {min_value} and {max_value}.',
+    'input_sanitizer.invalid_array_key_type' => 'The array key {key} has an invalid type. Keys must be strings or integers.',
+    'input_sanitizer.invalid_array_key_length' => 'The array key is too long. Maximum allowed length for a key is {max_length} characters,',
+    'input_sanitizer.invalid_array_key' => 'The array key {key} contains invalid characters or format.',
+
 ];

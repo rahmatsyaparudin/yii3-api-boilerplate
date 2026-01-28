@@ -238,7 +238,14 @@ final class BrandRepository implements BrandRepositoryInterface, CurrentUserAwar
             
         // Check if update was successful (optimistic locking)
         if ($result === 0) {
-            throw new OptimisticLockException('Brand');
+            throw new OptimisticLockException(
+                translate: new Message(
+                    key: 'optimistic.lock.failed',
+                    params: [
+                        'resource' => Brand::RESOURCE,
+                    ]
+                )
+            );
         }
         
         // Update the entity's lock version
