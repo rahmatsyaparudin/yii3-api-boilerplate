@@ -20,7 +20,6 @@ final class MdbExampleSchema
             'detail_info'  => $example->getDetailInfo()->toArray(),
             'lock_version' => $example->getLockVersion()->value(),
             'sync_at'      => new UTCDateTime(),
-            '__v'          => '1.0', 
         ];
     }
 }

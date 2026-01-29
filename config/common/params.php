@@ -5,7 +5,7 @@ declare(strict_types=1);
 // Vendor Layer
 use Yiisoft\Db\Pgsql\Dsn;
 
-$isDev           = $_ENV['APP_ENV'] === 'dev';
+$isDev = $_ENV['APP_ENV'] === 'dev';
 $allowed_origins = \json_decode($_ENV['app.cors.allowedOrigins'] ?? '[]', true) ?? [];
 $allowedMethods = \json_decode($_ENV['app.cors.allowedMethods'] ?? '[]', true) ?? [];
 $allowedHeaders = \json_decode($_ENV['app.cors.allowedHeaders'] ?? '[]', true) ?? [];

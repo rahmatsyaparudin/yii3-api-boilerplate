@@ -12,7 +12,7 @@ use App\Domain\Shared\ValueObject\DetailInfo;
 
 // Infrastructure Layer
 use App\Infrastructure\Concerns\HasCoreFeatures;
-use App\Infrastructure\Database\MongoService;
+use App\Infrastructure\Database\MongoDB\MongoDBService;
 use App\Infrastructure\Persistence\Example\MdbExampleSchema;
 use App\Infrastructure\Security\CurrentUserAwareInterface;
 
@@ -47,9 +47,9 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
     public function __construct(
         private QueryConditionApplier $queryConditionApplier,
         private ConnectionInterface $db,
-        private MongoService $mongoService,
+        private MongoDBService $mongoDBService,
     ) {
-        $this->collection = $this->mongoService->getCollection(Example::RESOURCE);
+        $this->collection = $this->mongoDBService->getCollection(self::TABLE);
     }
 
     public function findById(int $id): ?Example

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Database;
+namespace App\Infrastructure\Database\MongoDB;
 
 // Vendor Layer
 use MongoDB\Client;
 use MongoDB\Database;
 use MongoDB\Collection;
 
-final class MongoService
+final class MongoDBService
 {
     private Database $database;
 
