@@ -49,6 +49,7 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
         private ConnectionInterface $db,
         private MongoDBService $mongoDBService,
     ) {
+        $this->db->getSchema()->getTableSchema(self::TABLE);
         $this->collection = $this->mongoDBService->getCollection(self::TABLE);
     }
 

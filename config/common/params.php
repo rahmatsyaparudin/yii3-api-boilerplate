@@ -31,6 +31,12 @@ return [
         'username' => $_ENV['db.default.user'],
         'password' => $_ENV['db.default.password'],
     ],
+    'yiisoft/cache-redis' => [
+        'host'     => $_ENV['redis.default.host'] ?? '127.0.0.1',
+        'port'     => (int)($_ENV['redis.default.port'] ?? 6379),
+        'database' => (int)($_ENV['redis.default.db'] ?? 0),
+        'password' => $_ENV['redis.default.password'] ?? null,
+    ],
     'yiisoft/db-migration' => [
         'newMigrationNamespace' => 'App\\Migration',
         'sourceNamespaces'      => ['App\\Migration'],
