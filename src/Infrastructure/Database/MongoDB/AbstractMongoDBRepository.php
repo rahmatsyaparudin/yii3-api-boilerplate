@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Persistence;
+namespace App\Infrastructure\Database\MongoDB;
 
 // Infrastructure Layer
-use App\Infrastructure\Database\MongoService;
+use App\Infrastructure\Database\MongoDB\MongoDBService;
 
 // Vendor Layer
 use MongoDB\Collection;
 
-abstract class AbstractMongoRepository
+abstract class AbstractMongoDBRepository
 {
     protected Collection $collection;
 
-    public function __construct(protected MongoService $mongoService)
+    public function __construct(protected MongoDBService $mongoDBService)
     {
-        $this->collection = $this->mongoService->getCollection($this->getCollectionName());
+        $this->collection = $this->mongoDBService->getCollection($this->getCollectionName());
     }
 
     abstract protected function getCollectionName(): string;
@@ -24,7 +24,7 @@ abstract class AbstractMongoRepository
     public function findOne(array $filter): ?array
     {
         $doc = $this->collection->findOne($filter);
-        return $doc ? $this->mongoService->documentToArray($doc) : null;
+        return $doc ? $this->mongoDBService->documentToArray($doc) : null;
     }
 
     public function insert(array $data): string

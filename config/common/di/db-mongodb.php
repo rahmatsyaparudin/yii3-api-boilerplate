@@ -6,7 +6,7 @@ declare(strict_types=1);
 use MongoDB\Client;
 
 // Infrastructure Layer
-use App\Infrastructure\Database\MongoService;
+use App\Infrastructure\Database\MongoDB\MongoDBService;
 
 // Vendor Layer
 use Yiisoft\Definitions\Reference;
@@ -21,8 +21,8 @@ return [
         ],
     ],
 
-    MongoService::class => [
-        'class' => MongoService::class,
+    MongoDBService::class => [
+        'class' => MongoDBService::class,
         '__construct()' => [
             'client' => Reference::to(Client::class),
             'dbName' => $params['mongodb/mongodb']['database'],

@@ -61,7 +61,7 @@ class SkeletonInstaller
         echo "\n🎯 Shared classes copied to src/Shared/\n";
         echo "📁 Directories created: Dto, Enums, ErrorHandler, Exception, Middleware, Query, Request, Security, Utility, Validation, ValueObject\n";
         echo "🏗️  Infrastructure classes copied to src/Infrastructure/\n";
-        echo "📁 Directories created: Audit, Clock, Concerns, Monitoring, RateLimit, Security, Time, Persistence\n";
+        echo "📁 Directories created: Audit, Clock, Concerns, Database, Monitoring, RateLimit, Security, Time, Persistence\n";
         echo "🧠 Domain Shared classes copied to src/Domain/Shared/\n";
         echo "📁 Directories created: Audit, Concerns, Contract, Security, ValueObject\n";
         echo "⚙️  Application Shared classes copied to src/Application/Shared/\n";
@@ -69,7 +69,7 @@ class SkeletonInstaller
         echo "🌐 API Shared classes copied to src/Api/Shared/\n";
         echo "📁 Directories created: Presenter, ExceptionResponderFactory.php, ResponseFactory.php\n";
         echo "⚙️  Config files copied to config/\n";
-        echo "📁 Files copied: common/middleware.php, common/di/access-di.php, common/di/audit.php, common/di/db-pgsql.php, common/di/json.php, common/di/jwt.php, common/di/middleware.php, common/di/monitoring.php, common/di/security.php, web/di/application.php\n";
+        echo "📁 Files copied: common/middleware.php, common/di/access-di.php, common/di/audit.php, common/di/db-mongodb.php, common/di/db-pgsql.php, common/di/json.php, common/di/jwt.php, common/di/middleware.php, common/di/monitoring.php, common/di/security.php, web/di/application.php\n";
         echo "💬 Message files copied to resources/messages/\n";
         echo "📁 Files copied: en/error.php, en/success.php, en/validation.php, id/error.php, id/success.php, id/validation.php\n";
         echo "🌐 API files copied to src/Api/\n";
@@ -144,6 +144,7 @@ class SkeletonInstaller
             'Audit',
             'Clock',
             'Concerns',
+            'Database',
             'Monitoring',
             'RateLimit',
             'Security',
@@ -325,6 +326,7 @@ class SkeletonInstaller
             'common/di/access-di.php',
             'common/di/audit.php',
             'common/di/db-pgsql.php',
+            'common/di/db-mongodb.php',
             'common/di/json.php',
             'common/di/jwt.php',
             'common/di/middleware.php',
@@ -488,6 +490,7 @@ class SkeletonInstaller
         // Required packages to add
         $requiredPackages = [
             "firebase/php-jwt" => "^7.0.2",
+            "mongodb/mongodb" => "^2.1",
             "psr/clock" => "^1.0",
             "vlucas/phpdotenv" => "^5.6.3",
             "yiisoft/access" => "2.0",
