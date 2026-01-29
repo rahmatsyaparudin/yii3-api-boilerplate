@@ -51,7 +51,7 @@ final readonly class ExampleRestoreAction
                         'parameter' => 'id',
                     ]
                 ),
-                status: 400
+                httpCode: 400
             );
         }
 

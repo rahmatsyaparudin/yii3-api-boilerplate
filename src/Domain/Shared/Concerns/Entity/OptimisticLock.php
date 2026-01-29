@@ -32,7 +32,7 @@ trait OptimisticLock
 
     public function getLockVersion(): LockVersion
     {
-        return $this->lockVersion ?? LockVersion::create();
+        return $this->lockVersion;
     }
 
     /**
@@ -45,7 +45,7 @@ trait OptimisticLock
         return $clone;
     }
 
-    public function upgradeVersion(): void
+    public function upgradeLockVersion(): void
     {
         $this->lockVersion = $this->lockVersion->increment();
     }
@@ -55,8 +55,6 @@ trait OptimisticLock
      */
     protected function initializeLockVersion(): void
     {
-        if (!isset($this->lockVersion)) {
-            $this->lockVersion = LockVersion::create();
-        }
+        // Property is already initialized in constructor
     }
 }

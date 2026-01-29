@@ -19,13 +19,15 @@ use App\Shared\Dto\PaginatedResult;
  */
 interface ExampleRepositoryInterface
 {
+    public function insert(Example $example): Example;
+
+    public function update(Example $example): Example;
+
     public function findById(int $id): ?Example;
 
     public function findByName(string $name): ?Example;
 
     public function existsByName(string $name): bool;
-
-    public function save(Example $example): Example;
 
     public function delete(Example $example): Example;
 

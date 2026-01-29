@@ -76,11 +76,14 @@ final class Arrays
         foreach ($exclude as $pattern) {
             // Handle nested patterns like 'detail_info.change_log'
             if (str_contains($pattern, '.')) {
-                [$parentKey, $nestedKey] = explode('.', $pattern, 2);
-                
-                // Check if this is the parent field and nested key exists in value
-                if ($key === $parentKey && is_array($value) && array_key_exists($nestedKey, $value)) {
-                    return true;
+                $parts = explode('.', $pattern, 2);
+                if (count($parts) >= 2) {
+                    [$parentKey, $nestedKey] = $parts;
+                    
+                    // Check if this is the parent field and nested key exists in value
+                    if ($key === $parentKey && is_array($value) && array_key_exists($nestedKey, $value)) {
+                        return true;
+                    }
                 }
             } else {
                 // Simple field exclusion
@@ -110,8 +113,8 @@ final class Arrays
     /**
      * Check if array has any actual changes
      * 
-     * @param array $updateData The new data
-     * @param array $existingData The current data
+     * @param array $after The new data
+     * @param array $before The current data
      * @return bool True if there are actual changes
      */
     public static function hasChanges(array $after, array $before): bool
@@ -122,8 +125,8 @@ final class Arrays
     /**
      * Get only the fields that are different between two arrays
      * 
-     * @param array $newData The new data
-     * @param array $oldData The old data
+     * @param array $after The new data
+     * @param array $before The old data
      * @return array Array of differences with old and new values
      */
     public static function getDifferences(array $after, array $before): array

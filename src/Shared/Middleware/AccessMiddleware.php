@@ -48,8 +48,8 @@ final class AccessMiddleware implements MiddlewareInterface
                 return $handler->handle($request);
             }
         } else {
-            $route      = $currentRoute->getRoute();
-            $permission = $route?->getData('defaults')['permission'] ?? null;
+            $route      = $currentRoute;
+            $permission = $route->getArgument('permission') ?? null;
             if ($permission === null) {
                 return $handler->handle($request);
             }
@@ -66,7 +66,7 @@ final class AccessMiddleware implements MiddlewareInterface
         }
 
         $allowed = $this->accessChecker->userHasPermission(
-            $actor->id ?? null,
+            $actor->getId() ?? null,
             $permission,
             ['actor' => $actor]
         );

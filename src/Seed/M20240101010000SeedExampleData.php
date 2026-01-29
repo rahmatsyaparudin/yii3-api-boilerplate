@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Migration;
+namespace App\Seed;
 
 // Domain Layer
 use App\Shared\Enums\RecordStatus;
@@ -16,12 +16,11 @@ use Psr\Clock\ClockInterface;
 // Vendor Layer
 use Yiisoft\Db\Migration\MigrationBuilder;
 use Yiisoft\Db\Migration\RevertibleMigrationInterface;
-use Yiisoft\Db\Connection\Connection;
 
 /**
- * Creates example table with status tracking and JSON detail_info.
+ * Seeds example table with initial data.
  */
-final class M20240101000000CreateExample implements RevertibleMigrationInterface
+final class M20240101010000SeedExampleData implements RevertibleMigrationInterface
 {
     public function __construct(
         private ClockInterface $clock
@@ -29,25 +28,13 @@ final class M20240101000000CreateExample implements RevertibleMigrationInterface
 
     public function up(MigrationBuilder $b): void
     {
-        $cb = $b->columnBuilder();
-
-        $b->createTable('example', [
-            'id'          => $cb::primaryKey(),
-            'name'        => $cb::string(255)->notNull(),
-            'status'      => $cb::smallint()->notNull()->defaultValue(RecordStatus::DRAFT->value),
-            'detail_info' => $cb::json()->notNull()->defaultValue([
-                'change_log' => [
-                    'created_at' => null,
-                    'created_by' => null,
-                    'deleted_at' => null,
-                    'deleted_by' => null,
-                    'updated_at' => null,
-                    'updated_by' => null,
-                ],
-            ]),
-            'sync_mdb'    => $cb::smallint()->null(),
-            'lock_version'=> $cb::integer()->notNull()->defaultValue(1)->comment('Optimistic locking version'),
-        ]);
+        // Check if running in development environment
+        $appEnv = $_ENV['APP_ENV'] ?? '';
+        if (!in_array($appEnv, ['dev', 'development'], true)) {
+            echo "Seed migration skipped: Can only be run in development environment.\n";
+            echo "Current environment: {$appEnv}\n";
+            return;
+        }
 
         $user = 'system';
         $dateTime = new AppDateTimeProvider($this->clock);
@@ -84,6 +71,7 @@ final class M20240101000000CreateExample implements RevertibleMigrationInterface
 
     public function down(MigrationBuilder $b): void
     {
-        $b->dropTable('example');
+        // Remove seeded data
+        $b->delete('example', ['name' => ['Asus', 'Acer', 'Intel', 'AMD', 'Klevv']]);
     }
 }

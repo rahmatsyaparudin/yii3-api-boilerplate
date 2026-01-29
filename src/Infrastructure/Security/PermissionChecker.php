@@ -7,7 +7,7 @@ namespace App\Infrastructure\Security;
 // Infrastructure Layer
 use App\Infrastructure\Security\Actor;
 
-class PermissionChecker
+final class PermissionChecker
 {
     private array $rules;
 

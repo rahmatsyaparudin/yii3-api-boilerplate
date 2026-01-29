@@ -17,6 +17,6 @@ final class ServiceException extends HttpException
         $message = $translate instanceof Message 
             ? $translate 
             : new Message($translate ?? 'service.error');
-        parent::__construct($code, $message, $data, $previous);
+        parent::__construct($code, $message, $data, null, $previous);
     }
 }

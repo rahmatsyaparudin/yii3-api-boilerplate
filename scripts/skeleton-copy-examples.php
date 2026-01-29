@@ -23,7 +23,6 @@ class SkeletonExamplesCopier
         $itemsToCopy = [
             // Files
             '.env.example' => '.env',
-            '.env.example' => '.env.example',
             
             // Message files
             'resources/messages/en/app.php' => 'resources/messages/en/app.php',
@@ -31,16 +30,21 @@ class SkeletonExamplesCopier
             
             // Config files
             'config/common/access.php' => 'config/common/access.php',
+            'config/common/aliases.php' => 'config/common/aliases.php',
             'config/common/params.php' => 'config/common/params.php',
             'config/common/routes.php' => 'config/common/routes.php',
             'config/common/di/infrastructure.php' => 'config/common/di/infrastructure.php',
             'config/common/di/repository.php' => 'config/common/di/repository.php',
+            'config/common/di/seed.php' => 'config/common/di/seed.php',
             'config/common/di/service.php' => 'config/common/di/service.php',
             'config/common/di/translator.php' => 'config/common/di/translator.php',
+            'config/console/commands.php' => 'config/console/commands.php',
+            'config/console/params.php' => 'config/console/params.php',
             
             // Directories (recursive copy)
             'src/Api/V1/Example' => 'src/Api/V1/Example',
             'src/Application/Example' => 'src/Application/Example',
+            'src/Console/SeedExampleCommand.php' => 'src/Console/SeedExampleCommand.php',
             'src/Domain/Example' => 'src/Domain/Example',
             'src/Infrastructure/Persistence/Example' => 'src/Infrastructure/Persistence/Example',
             'src/Migration' => 'src/Migration',
@@ -65,9 +69,14 @@ class SkeletonExamplesCopier
         echo "\n🎯 Next steps:\n";
         echo "1. Configure your .env file with your database settings\n";
         echo "2. Run: composer install\n";
-        echo "3. Run: php yii migrate\n";
-        echo "4. Run: php yii serve\n";
+        echo "3. Run: ./yii migrate:up\n";
+        echo "4. Run: ./yii seed:example (development only)\n";
+        echo "5. Run: ./yii serve\n";
         echo "\n🌐 Your API will be available at: http://localhost:8080\n";
+        echo "\n📚 Documentation:\n";
+        echo "- Architecture Guide: docs/architecture-guide.md\n";
+        echo "- Quality Guide: docs/quality-guide.md\n";
+        echo "- Setup Guide: docs/setup-guide.md\n";
     }
     
     private function copyItem(string $source, string $target): void

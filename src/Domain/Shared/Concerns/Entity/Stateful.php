@@ -108,7 +108,7 @@ trait Stateful
      * Menjaga agar status awal entitas selalu valid.
      * Digunakan di dalam constructor Entity.
      */
-    protected static function guardInitialStatus(Status $status, ?callable $validator = null): void
+    protected static function guardInitialStatus(Status $status, ?string $resource = null, ?callable $validator = null): void
     {
         if ($validator !== null) {
             $validator($status);
@@ -121,10 +121,10 @@ trait Stateful
                     key: 'status.invalid_on_creation', 
                     domain: 'validation',
                     params: [
-                        'resource' => $this->getResource(),
+                        'resource' => $resource ?? 'Resource',
                         'status'   => $status->name() // atau $status->value()
                     ]
-                )
+                ),
             );
         }
     }

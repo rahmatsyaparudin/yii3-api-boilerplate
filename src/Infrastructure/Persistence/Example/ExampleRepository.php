@@ -21,6 +21,7 @@ use App\Shared\Dto\PaginatedResult;
 use App\Shared\Dto\SearchCriteria;
 use App\Shared\Exception\OptimisticLockException;
 use App\Shared\Query\QueryConditionApplier;
+use App\Shared\ValueObject\Message;
 
 // Vendor Layer
 use Yiisoft\Db\Connection\ConnectionInterface;
@@ -38,11 +39,10 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
     use HasCoreFeatures;
 
     private const SEQUENCE_ID = 'example_id_seq';
-
-    private $collection;
-    
     private const TABLE = 'example';
     private const LIKE_OPERATOR = 'ilike';
+    
+    private ?object $collection = null;
 
     public function __construct(
         private QueryConditionApplier $queryConditionApplier,
@@ -55,6 +55,7 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
 
     public function findById(int $id): ?Example
     {
+        /** @var array<string, mixed>|false $row */
         $row = (new Query($this->db))
             ->from(self::TABLE)
             ->where([
@@ -65,18 +66,24 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
             )
             ->one();
 
-        return $row ? Example::reconstitute(
+        if (!$row) {
+            return null;
+        }
+
+        return Example::reconstitute(
             id: (int) $row['id'],
             name: $row['name'],
             status: Status::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             syncMdb: $row['sync_mdb'] ?? null,
             lockVersion: (int) $row['lock_version']
-        ) : null;
+        );
     }
 
     public function restore(int $id): ?Example
     {
+        // 1. Find deleted record
+        /** @var array<string, mixed>|false $row */
         $row = (new Query($this->db))
             ->from(self::TABLE)
             ->where(['id' => $id])
@@ -85,57 +92,59 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
             )
             ->one();
 
-        return $row ? Example::reconstitute(
+        if (!$row) {
+            return null;
+        }
+
+        // 2. Reconstitute entity with current data
+        $entity = Example::reconstitute(
             id: (int) $row['id'],
             name: $row['name'],
             status: Status::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             syncMdb: $row['sync_mdb'] ?? null,
             lockVersion: (int) $row['lock_version']
-        ) : null;
+        );
+
+        // 3. Restore entity status
+        $entity->restore(); // This should change status from DELETED to DRAFT
+
+        // 4. Use existing update method
+        return $this->update($entity);
     }
 
     public function findByName(string $name): ?Example
     {
+        /** @var array<string, mixed>|false $row */
         $row = (new Query($this->db))
             ->from(self::TABLE)
             ->where(['name' => $name])
             ->andWhere($this->scopeWhereNotDeleted())
             ->one();
 
-        return $row ? Example::reconstitute(
+        if (!$row) {
+            return null;
+        }
+
+        return Example::reconstitute(
             id: (int) $row['id'],
             name: $row['name'],
             status: Status::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             syncMdb: $row['sync_mdb'] ?? null,
             lockVersion: (int) $row['lock_version']
-        ) : null;
+        );
     }
 
     private function syncToMongo(Example $example): void
     {
-        $this->collection->updateOne(
-            ['id' => $example->getId()],
-            ['$set' => MdbExampleSchema::toArray($example)],
-            ['upsert' => true]
-        );
-    }
-
-    public function save(Example $example): Example
-    {
-        return $this->db->transaction(function() use ($example) {
-            $exists = (new Query($this->db))
-                ->from(self::TABLE)
-                ->where(['id' => $example->getId()])
-                ->exists();
-            
-            $result = $exists ? $this->update($example) : $this->insert($example);
-
-            $this->syncToMongo($result);
-
-            return $result;
-        });
+        if ($this->collection !== null) {
+            $this->collection->updateOne(
+                ['id' => $example->getId()],
+                ['$set' => MdbExampleSchema::toArray($example)],
+                ['upsert' => true]
+            );
+        }
     }
 
     public function delete(Example $example): Example
@@ -227,69 +236,84 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
     private function listAllGenerator(Query $query): iterable
     {
         foreach ($query->each(100, $this->db) as $row) {
+            /** @var array<string, mixed> $row */
             $row['detail_info'] = DetailInfo::fromJson($row['detail_info'])->toArray();
             yield $row;
         }
     }
 
-    private function insert(Example $example): Example 
+    public function insert(Example $example): Example 
     {
-        $this->db->createCommand()
-            ->insert(self::TABLE, [
-                'name' => $example->getName(),
-                'status' => $example->getStatus()->value(),
-                'detail_info' => $example->getDetailInfo()->toArray(),
-                'sync_mdb' => $example->getSyncMdb(),
-                'lock_version' => 1, 
-            ])
-            ->execute();
+        return $this->db->transaction(function() use ($example) {
+            // 1. Insert ke PostgreSQL
+            $this->db->createCommand()
+                ->insert(self::TABLE, [
+                    'name' => $example->getName(),
+                    'status' => $example->getStatus()->value(),
+                    'detail_info' => $example->getDetailInfo()->toArray(),
+                    'sync_mdb' => $example->getSyncMdb(),
+                    'lock_version' => 1, 
+                ])
+                ->execute();
 
-        $newId = (int) $this->db->getLastInsertID(self::SEQUENCE_ID);
+            $newId = (int) $this->db->getLastInsertID(self::SEQUENCE_ID);
 
-        return Example::reconstitute(
-            id: $newId,
-            name: $example->getName(),
-            status: $example->getStatus(),
-            detailInfo: $example->getDetailInfo(),
-            syncMdb: $example->getSyncMdb(),
-            lockVersion: 1
-        );
+            // 2. Reconstitute dengan ID baru
+            $newEntity = Example::reconstitute(
+                id: $newId,
+                name: $example->getName(),
+                status: $example->getStatus(),
+                detailInfo: $example->getDetailInfo(),
+                syncMdb: $example->getSyncMdb(),
+                lockVersion: 1
+            );
+
+            // 3. Sync ke MongoDB (jika diperlukan)
+            $this->syncToMongo($newEntity);
+
+            return $newEntity;
+        });
     }
 
-    private function update(Example $example): Example
+    public function update(Example $example): Example
     {
-        // Get current and new lock versions
-        $currentLockVersion = $example->getLockVersion();
-        $newLockVersion = $currentLockVersion->increment();
-        
-        $result = $this->db->createCommand()
-            ->update(self::TABLE, [
-                'name' => $example->getName(),
-                'status' => $example->getStatus()->value(),
-                'detail_info' => $example->getDetailInfo()->toArray(),
-                'sync_mdb' => $example->getSyncMdb(),
-                'lock_version' => $newLockVersion->value(),
-            ], [
-                'id' => $example->getId(),
-                'lock_version' => $currentLockVersion->value()
-            ])
-            ->execute();
+        return $this->db->transaction(function() use ($example) {
+            // Get current and new lock versions
+            $currentLockVersion = $example->getLockVersion();
+            $newLockVersion = $currentLockVersion->increment();
             
-        // Check if update was successful (optimistic locking)
-        if ($result === 0) {
-            throw new OptimisticLockException(
-                translate: new Message(
-                    key: 'optimistic.lock.failed',
-                    params: [
-                        'resource' => Example::RESOURCE,
-                    ]
-                )
-            );
-        }
-        
-        // Update the entity's lock version
-        $example->upgradeVersion();
+            $result = $this->db->createCommand()
+                ->update(self::TABLE, [
+                    'name' => $example->getName(),
+                    'status' => $example->getStatus()->value(),
+                    'detail_info' => $example->getDetailInfo()->toArray(),
+                    'sync_mdb' => $example->getSyncMdb(),
+                    'lock_version' => $newLockVersion->value(),
+                ], [
+                    'id' => $example->getId(),
+                    'lock_version' => $currentLockVersion->value()
+                ])
+                ->execute();
             
-        return $example;
+            // Check if update was successful (optimistic locking)
+            if ($result === 0) {
+                throw new OptimisticLockException(
+                    translate: new Message(
+                        key: 'optimistic.lock.failed',
+                        params: [
+                            'resource' => Example::RESOURCE,
+                        ]
+                    )
+                );
+            }
+            
+            // Update the entity's lock version
+            $example->upgradeLockVersion();
+            
+            // Sync updated entity to MongoDB
+            $this->syncToMongo($example);
+            
+            return $example;
+        });
     }
 }

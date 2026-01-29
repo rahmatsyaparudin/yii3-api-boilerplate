@@ -8,13 +8,17 @@ namespace App\Migration;
 use Yiisoft\Db\Migration\MigrationBuilder;
 use Yiisoft\Db\Migration\RevertibleMigrationInterface;
 
-final class M20240101000001CreateRateLimits implements RevertibleMigrationInterface
+final class M20240101000001CreateRateLimitsTable implements RevertibleMigrationInterface
 {
+    private const TABLE_NAME = 'rate_limits';
+    private const INDEX_KEY_CREATED = 'idx_' . self::TABLE_NAME . '_key_created';
+    private const INDEX_CREATED = 'idx_' . self::TABLE_NAME . '_created';
+
     public function up(MigrationBuilder $b): void
     {
         $cb = $b->columnBuilder();
 
-        $b->createTable('rate_limits', [
+        $b->createTable(self::TABLE_NAME, [
             'id'         => $cb::primaryKey(),
             'key'        => $cb::string(255)->notNull(),
             'created_at' => $cb::timestamp(),
@@ -26,6 +30,6 @@ final class M20240101000001CreateRateLimits implements RevertibleMigrationInterf
 
     public function down(MigrationBuilder $b): void
     {
-        $b->dropTable('rate_limits');
+        $b->dropTable(self::TABLE_NAME);
     }
 }

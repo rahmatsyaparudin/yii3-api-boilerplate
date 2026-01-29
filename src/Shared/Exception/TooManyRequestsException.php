@@ -18,6 +18,6 @@ final class TooManyRequestsException extends HttpException
             ? $translate 
             : new Message($translate ?? 'http.too_many_requests');
             
-        parent::__construct(Status::TOO_MANY_REQUESTS, $message, $errors, $previous);
+        parent::__construct(Status::TOO_MANY_REQUESTS, $message, $errors, null, $previous);
     }
 }

@@ -8,13 +8,15 @@ namespace App\Migration;
 use Yiisoft\Db\Migration\MigrationBuilder;
 use Yiisoft\Db\Migration\RevertibleMigrationInterface;
 
-final class M20240101000000CreateAuditLogs implements RevertibleMigrationInterface
+final class M20240101000000CreateAuditLogsTable implements RevertibleMigrationInterface
 {
+    private const TABLE_NAME = 'audit_logs';
+
     public function up(MigrationBuilder $b): void
     {
         $cb = $b->columnBuilder();
 
-        $b->createTable('audit_logs', [
+        $b->createTable(self::TABLE_NAME, [
             'id'         => $cb::primaryKey(),
             'table_name' => $cb::string(255)->notNull(),
             'record_id'  => $cb::integer()->notNull(),
@@ -28,13 +30,13 @@ final class M20240101000000CreateAuditLogs implements RevertibleMigrationInterfa
             'created_at' => $cb::timestamp(),
         ]);
 
-        $b->createIndex('audit_logs', 'idx_audit_table_record', ['table_name', 'record_id']);
-        $b->createIndex('audit_logs', 'idx_audit_user', ['user_id']);
-        $b->createIndex('audit_logs', 'idx_audit_created', ['created_at']);
+        $b->createIndex(self::TABLE_NAME, 'idx_audit_table_record', ['table_name', 'record_id']);
+        $b->createIndex(self::TABLE_NAME, 'idx_audit_user', ['user_id']);
+        $b->createIndex(self::TABLE_NAME, 'idx_audit_created', ['created_at']);
     }
 
     public function down(MigrationBuilder $b): void
     {
-        $b->dropTable('audit_logs');
+        $b->dropTable(self::TABLE_NAME);
     }
 }

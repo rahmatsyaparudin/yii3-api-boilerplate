@@ -6,4 +6,5 @@ use App\Console;
 
 return [
     'hello' => Console\HelloCommand::class,
+    'seed:example' => Console\SeedExampleCommand::class,
 ];

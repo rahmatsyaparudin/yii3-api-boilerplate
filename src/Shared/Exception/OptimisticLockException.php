@@ -17,6 +17,6 @@ final class OptimisticLockException extends HttpException
         $message = $translate instanceof Message 
             ? $translate 
             : new Message($translate ?? 'optimistic.lock.failed');
-        parent::__construct(Status::CONFLICT, $message, $data, $previous);
+        parent::__construct(Status::CONFLICT, $message, $data, null, $previous);
     }
 }

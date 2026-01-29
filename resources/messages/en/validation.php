@@ -117,7 +117,7 @@ return [
     // Restore Prefix
     'resource.restored' => '{resource} has been restored successfully',
     'resource.restore_failed' => 'Failed to restore {resource}: {error}',
-    'resource.not_deleted' => '{resource} is not in deleted status',
+    'resource.not_deleted' => '{resource} data is not in "Deleted" status',
 
     // Request Prefix
     'request.unknown_parameters' => 'Unknown parameters: {unknown_keys}. Allowed parameters: {allowed_keys}',

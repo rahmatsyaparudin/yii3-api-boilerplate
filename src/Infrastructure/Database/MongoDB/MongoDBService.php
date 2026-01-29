@@ -11,7 +11,7 @@ use MongoDB\Collection;
 
 final class MongoDBService
 {
-    private Database $database;
+    private ?Database $database = null;
 
     public function __construct(
         private ?Client $client,
@@ -63,11 +63,19 @@ final class MongoDBService
 
     public function toArray(mixed $data): array
     {
-        return json_decode(json_encode($data), true);
+        $jsonResult = json_encode($data);
+        if ($jsonResult === false) {
+            return [];
+        }
+        return json_decode($jsonResult, true) ?? [];
     }
 
     public function documentToArray(object|array $document): array
     {
-        return json_decode(json_encode($document), true);
+        $jsonResult = json_encode($document);
+        if ($jsonResult === false) {
+            return [];
+        }
+        return json_decode($jsonResult, true) ?? [];
     }
 }

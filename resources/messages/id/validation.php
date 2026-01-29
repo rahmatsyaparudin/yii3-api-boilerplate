@@ -117,7 +117,7 @@ return [
     // Restore Prefix
     'resource.restored' => '{resource} berhasil dipulihkan',
     'resource.restore_failed' => 'Gagal memulihkan {resource}: {error}',
-    'resource.not_deleted' => '{resource} tidak dalam status terhapus',
+    'resource.not_deleted' => '{resource} data tidak dalam status "Deleted"',
 
     // Request Prefix
     'request.unknown_parameters' => 'Parameter tidak dikenal: {unknown_keys}. Parameter yang diizinkan: {allowed_keys}',

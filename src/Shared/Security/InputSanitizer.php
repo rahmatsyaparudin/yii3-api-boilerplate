@@ -6,7 +6,7 @@ namespace App\Shared\Security;
 
 // Shared Layer
 use App\Shared\Exception\BadRequestException;
-use App\Shared\Dto\Message;
+use App\Shared\ValueObject\Message;
 
 /**
  * InputSanitizer

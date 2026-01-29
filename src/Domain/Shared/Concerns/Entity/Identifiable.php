@@ -44,7 +44,7 @@ trait Identifiable
     {
         if (empty($name)) {
             throw new BadRequestException(
-                translate: new Message(
+                translate: new \App\Shared\ValueObject\Message(
                     key: 'validation.name_required',
                     domain: 'validation',
                     params: ['resource' => $this->getResource()]

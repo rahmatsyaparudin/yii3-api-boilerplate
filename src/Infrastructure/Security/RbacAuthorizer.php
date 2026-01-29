@@ -10,7 +10,7 @@ use App\Infrastructure\Security\Actor;
 // Domain Layer
 use App\Domain\Shared\Security\AuthorizerInterface;
 
-class RbacAuthorizer implements AuthorizerInterface
+final class RbacAuthorizer implements AuthorizerInterface
 {
     public function __construct(
         private Actor $actor,

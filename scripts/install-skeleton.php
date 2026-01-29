@@ -54,6 +54,12 @@ class SkeletonInstaller
         // Copy API files from vendor
         $this->copyApiFiles();
         
+        // Create empty directories for migrations and seeds
+        $this->createEmptyDirectories();
+        
+        // Copy Quality Assurance script
+        $this->copyQualityScript();
+        
         // Update composer.json with required packages
         $this->updateComposerJson();
         
@@ -76,6 +82,9 @@ class SkeletonInstaller
         echo "📁 Files copied: IndexAction.php\n";
         echo "🔧 Autoload file copied to src/\n";
         echo "📁 Files copied: autoload.php\n";
+        echo "📁 Empty directories created: src/Migration, src/Seed\n";
+        echo "🔧 Quality Assurance script copied to project root\n";
+        echo "📁 Files copied: quality\n";
         echo "📦 Composer packages updated in composer.json\n";
         echo "📁 Packages added: firebase/php-jwt, psr/clock, vlucas/phpdotenv, yiisoft/* packages\n";
     }
@@ -466,6 +475,70 @@ class SkeletonInstaller
                 $content = file_get_contents($currentAutoloadSource);
                 file_put_contents($autoloadTarget, $content);
                 echo "✅ Copied existing autoload file: src/autoload.php\n";
+            }
+        }
+    }
+
+    private function createEmptyDirectories(): void
+    {
+        echo "📁 Creating empty directories...\n";
+        
+        // Create src/Migration directory
+        $migrationPath = $this->projectRoot . '/src/Migration';
+        if (!is_dir($migrationPath)) {
+            mkdir($migrationPath, 0755, true);
+            echo "✅ Created directory: src/Migration\n";
+        } else {
+            echo "📁 Directory already exists: src/Migration\n";
+        }
+        
+        // Create src/Seed directory
+        $seedPath = $this->projectRoot . '/src/Seed';
+        if (!is_dir($seedPath)) {
+            mkdir($seedPath, 0755, true);
+            echo "✅ Created directory: src/Seed\n";
+        } else {
+            echo "📁 Directory already exists: src/Seed\n";
+        }
+        
+        // Create .gitkeep files to preserve empty directories in git
+        $this->createGitKeepFile($migrationPath . '/.gitkeep');
+        $this->createGitKeepFile($seedPath . '/.gitkeep');
+    }
+    
+    private function createGitKeepFile(string $path): void
+    {
+        if (!file_exists($path)) {
+            file_put_contents($path, "# This file ensures the directory is tracked by git\n");
+            echo "✅ Created .gitkeep file: " . basename(dirname($path)) . "\n";
+        }
+    }
+
+    private function copyQualityScript(): void
+    {
+        // In actual vendor package usage, copy from vendor to project
+        $vendorQualityScript = $this->projectRoot . '/vendor/rahmatsyaparudin/yii3-api-boilerplate/quality';
+        $targetQualityScript = $this->projectRoot . '/quality';
+        
+        if (file_exists($vendorQualityScript)) {
+            $content = file_get_contents($vendorQualityScript);
+            file_put_contents($targetQualityScript, $content);
+            
+            // Make it executable (on Unix systems)
+            chmod($targetQualityScript, 0755);
+            
+            echo "✅ Copied Quality Assurance script from vendor\n";
+        } else {
+            // Fallback: copy from current location (for testing in boilerplate)
+            $currentQualityScript = $this->projectRoot . '/quality';
+            if (file_exists($currentQualityScript)) {
+                $content = file_get_contents($currentQualityScript);
+                file_put_contents($targetQualityScript, $content);
+                
+                // Make it executable (on Unix systems)
+                chmod($targetQualityScript, 0755);
+                
+                echo "✅ Copied existing Quality Assurance script\n";
             }
         }
     }

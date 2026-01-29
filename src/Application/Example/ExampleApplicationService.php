@@ -100,10 +100,10 @@ final class ExampleApplicationService
             name: $command->name,
             status: Status::from($command->status),
             detailInfo: $detailInfo,
-            syncMdb: $command->syncMdb ?? null
+            syncMdb: $command->syncMdb !== null ? ($command->syncMdb ? 1 : 0) : null
         );
 
-        return ExampleResponse::fromEntity(example: $this->repository->save($example));
+        return ExampleResponse::fromEntity(example: $this->repository->insert($example));
     }
 
     public function update(int $id, UpdateExampleCommand $command): ExampleResponse
@@ -149,7 +149,7 @@ final class ExampleApplicationService
 
         $example->updateDetailInfo(detailInfo: $detailInfo);
 
-        return ExampleResponse::fromEntity($this->repository->save($example));
+        return ExampleResponse::fromEntity($this->repository->update($example));
     }
 
     public function delete(int $id): ExampleResponse
@@ -217,6 +217,8 @@ final class ExampleApplicationService
 
         $example->updateDetailInfo(detailInfo: $detailInfo);
 
-        return ExampleResponse::fromEntity($this->repository->save($example));
+        $restoredExample = $this->repository->restore($example->getId());
+        
+        return ExampleResponse::fromEntity($restoredExample);
     }
 }

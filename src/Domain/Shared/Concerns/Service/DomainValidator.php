@@ -102,6 +102,16 @@ trait DomainValidator
     {
         $this->validateExists($entity, $resource);
         
+        if ($entity === null) {
+            throw new BadRequestException(
+                translate: new Message(
+                    key: 'validation.entity_required',
+                    domain: 'validation',
+                    params: ['resource' => $resource]
+                )
+            );
+        }
+        
         $status = $entity->getStatus();
 
         if ($status->isLocked()) {

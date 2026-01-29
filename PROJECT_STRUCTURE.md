@@ -6,21 +6,22 @@ yii3-api/
 ├── 📄 .dockerignore - Docker ignore rules
 ├── 📄 .editorconfig - Editor configuration
 ├── 📄 .env - Environment variables
+├── 📄 .env.example - Environment variables example
 ├── 📄 .gitignore - Git ignore rules
 ├── 📄 .php-cs-fixer.php - PHP CS Fixer config
 ├── 📄 Makefile - Build automation
 ├── 📄 QUALITY_SUMMARY.md - Code quality summary
+├── 📄 README-SKELETON.md - Skeleton documentation
 ├── 📄 c3.php - Codeception config
 ├── 📄 codeception.yml - Codeception config
 ├── 📄 composer-dependency-analyser.php - Dependency analysis
 ├── 📄 composer.json - PHP dependencies
 ├── 📄 composer.lock - Locked dependencies
+├── 📄 composer-template.json - Composer template
 ├── 📄 infection.json.dist - Mutation testing config
-├── 📄 phpunit.xml - PHPUnit config
 ├── 📄 psalm.xml - Static analysis config
+├── 📄 quality - Quality assurance script
 ├── 📄 rector.php - PHP refactoring config
-├── 📄 src-structure.md - Source structure documentation
-├── 📄 test_in.php - Test helper
 ├── 📄 yii - Yii CLI executable
 └── 📄 yii.bat - Yii CLI for Windows
 ```
@@ -29,7 +30,6 @@ yii3-api/
 ```
 config/
 ├── 📄 .gitignore - Git ignore for config
-├── 📄 .merge-plan.php - Merge plan configuration
 ├── 📄 configuration.php - Main configuration
 ├── 📁 common/ - Common configuration
 │   ├── 📄 access.php - Access control config
@@ -43,7 +43,9 @@ config/
 │       ├── 📄 access-di.php - Access DI config
 │       ├── 📄 application.php - Application DI
 │       ├── 📄 audit.php - Audit service DI
+│       ├── 📄 db-mongodb.php - MongoDB DI
 │       ├── 📄 db-pgsql.php - PostgreSQL DI
+│       ├── 📄 db-redis.php - Redis DI
 │       ├── 📄 error-handler.php - Error handling DI
 │       ├── 📄 hydrator.php - Data hydrator DI
 │       ├── 📄 infrastructure.php - Infrastructure DI
@@ -60,6 +62,13 @@ config/
 ├── 📁 console/ - Console configuration
 │   ├── 📄 commands.php - Console commands
 │   └── 📄 params.php - Console parameters
+├── 📁 environments/ - Environment-specific configs
+│   ├── 📁 dev/ - Development environment
+│   │   └── 📄 params.php - Dev parameters
+│   ├── 📁 prod/ - Production environment
+│   │   └── 📄 params.php - Prod parameters
+│   └── 📁 test/ - Test environment
+│       └── 📄 params.php - Test parameters
 └── 📁 web/ - Web configuration
     ├── 📁 di/ - Web DI
     │   ├── 📄 application.php - Web application DI
@@ -88,39 +97,38 @@ src/
 │   │       ├── 📄 SuccessWithMetaPresenter.php - Success with metadata
 │   │       └── 📄 ValidationResultPresenter.php - Validation result presenter
 │   └── 📁 V1/ - API v1 endpoints
-│       └── 📁 Brand/ - Brand module API
-│           ├── 📁 Action/ - Brand actions
-│           │   ├── 📄 BrandCreateAction.php - Create brand endpoint
-│           │   ├── 📄 BrandDataAction.php - Brand data endpoint
-│           │   ├── 📄 BrandDeleteAction.php - Delete brand endpoint
-│           │   ├── 📄 BrandRestoreAction.php - Restore brand endpoint
-│           │   ├── 📄 BrandUpdateAction.php - Update brand endpoint
-│           │   └── 📄 BrandViewAction.php - View brand endpoint
+│       └── 📁 Example/ - Example module API
+│           ├── 📁 Action/ - Example actions
+│           │   ├── 📄 ExampleCreateAction.php - Create example endpoint
+│           │   ├── 📄 ExampleDataAction.php - Example data endpoint
+│           │   ├── 📄 ExampleDeleteAction.php - Delete example endpoint
+│           │   ├── 📄 ExampleRestoreAction.php - Restore example endpoint
+│           │   ├── 📄 ExampleUpdateAction.php - Update example endpoint
+│           │   └── 📄 ExampleViewAction.php - View example endpoint
 │           └── 📁 Validation/ - Input validation
-│               └── 📄 BrandInputValidator.php - Brand input validator
+│               └── 📄 ExampleInputValidator.php - Example input validator
 ├── 📁 Application/ - Application layer
-│   ├── 📁 Brand/ - Brand module
-│   │   ├── 📄 BrandApplicationService.php - Brand business logic
+│   ├── 📁 Example/ - Example module
+│   │   ├── 📄 ExampleApplicationService.php - Example business logic
 │   │   ├── 📁 Command/ - Command objects
-│   │   │   ├── 📄 CreateBrandCommand.php - Create brand command
-│   │   │   └── 📄 UpdateBrandCommand.php - Update brand command
+│   │   │   ├── 📄 CreateExampleCommand.php - Create example command
+│   │   │   └── 📄 UpdateExampleCommand.php - Update example command
 │   │   └── 📁 Dto/ - Data transfer objects
-│   │       └── 📄 BrandResponse.php - Brand response DTO
+│   │       └── 📄 ExampleResponse.php - Example response DTO
 │   └── 📁 Shared/ - Shared application components
 │       └── 📁 Factory/ - Application factories
 │           ├── 📄 DetailInfoFactory.php - Audit trail factory
 │           └── 📄 SearchCriteriaFactory.php - Search criteria factory
 ├── 📁 Console/ - Console commands
-│   ├── 📄 HelloCommand.php - Hello world command
-│   └── 📄 SimpleGenerateCommand.php - Boilerplate generator
+│   └── 📄 HelloCommand.php - Hello world command
 ├── 📁 Domain/ - Domain layer
-│   ├── 📁 Brand/ - Brand bounded context
+│   ├── 📁 Example/ - Example bounded context
 │   │   ├── 📁 Entity/ - Domain entities
-│   │   │   └── 📄 Brand.php - Brand entity with optimistic locking
+│   │   │   └── 📄 Example.php - Example entity with optimistic locking
 │   │   ├── 📁 Repository/ - Repository contracts
-│   │   │   └── 📄 BrandRepositoryInterface.php - Brand repository interface
+│   │   │   └── 📄 ExampleRepositoryInterface.php - Example repository interface
 │   │   └── 📁 Service/ - Domain services
-│   │       └── 📄 BrandDomainService.php - Brand domain service
+│   │       └── 📄 ExampleDomainService.php - Example domain service
 │   └── 📁 Shared/ - Shared domain components
 │       ├── 📁 Audit/ - Audit contracts
 │       │   └── 📄 AuditServiceInterface.php - Audit service contract
@@ -151,19 +159,24 @@ src/
 │   ├── 📁 Concerns/ - Infrastructure concerns
 │   │   ├── 📄 Auditable.php - Auditable concern
 │   │   └── 📄 HasCoreFeatures.php - Core features concern
+│   ├── 📁 Database/ - Database implementations
+│   │   ├── 📁 MongoDB/ - MongoDB implementation
+│   │   │   ├── 📄 AbstractMongoDBRepository.php - MongoDB base repository
+│   │   │   └── 📄 MongoDBService.php - MongoDB service
+│   │   └── 📁 Redis/ - Redis implementation
+│   │       ├── 📄 AbstractRedisRepository.php - Redis base repository
+│   │       └── 📄 RedisService.php - Redis service
 │   ├── 📁 Monitoring/ - Monitoring & observability
 │   │   ├── 📄 CustomMonitoringService.php - Custom monitoring
 │   │   ├── 📄 ErrorMonitoringMiddleware.php - Error monitoring middleware
 │   │   ├── 📄 MetricsMiddleware.php - Metrics collection middleware
 │   │   ├── 📄 MonitoringServiceInterface.php - Monitoring contract
-│   │   ├── 📄 MonologMonitoringService.php - Monolog monitoring
 │   │   ├── 📄 RequestIdMiddleware.php - Request ID middleware
-│   │   ├── 📄 SentryMonitoringService.php - Sentry monitoring
-│   │   ├── 📄 StructuredLoggingMiddleware.php - Structured logging
-│   │   └── 📄 YiisoftMonitoringService.php - Yiisoft monitoring
+│   │   └── 📄 StructuredLoggingMiddleware.php - Structured logging
 │   ├── 📁 Persistence/ - Data persistence
-│   │   └── 📁 Brand/ - Brand persistence
-│   │       └── 📄 BrandRepository.php - Brand repository with optimistic locking
+│   │   └── 📁 Example/ - Example persistence
+│   │       ├── 📄 ExampleRepository.php - Example repository with optimistic locking
+│   │       └── 📄 MdbExampleSchema.php - MongoDB schema for Example
 │   ├── 📁 RateLimit/ - Rate limiting
 │   │   └── 📄 DatabaseRateLimiter.php - Database rate limiter
 │   ├── 📁 Security/ - Security implementation
@@ -180,10 +193,6 @@ src/
 │   │       └── 📄 PermissionMapRule.php - Permission mapping rule
 │   └── 📁 Time/ - Time infrastructure
 │       └── 📄 AppDateTimeProvider.php - DateTime provider
-├── 📁 Migration/ - Database migrations
-│   ├── 📄 M20240101000000CreateAuditLogs.php - Audit logs table
-│   ├── 📄 M20240101000000CreateBrand.php - Brand table with optimistic locking
-│   └── 📄 M20240101000001CreateRateLimits.php - Rate limiting table
 └── 📁 Shared/ - Shared components
     ├── 📄 ApplicationParams.php - Application parameters
     ├── 📁 Dto/ - Shared DTOs
@@ -203,7 +212,6 @@ src/
     │   ├── 📄 NoChangesException.php - No changes exception
     │   ├── 📄 NotFoundException.php - 404 Not Found
     │   ├── 📄 OptimisticLockException.php - Optimistic locking conflict
-    │   ├── 📄 README.md - Exception documentation
     │   ├── 📄 ServiceException.php - Service exception
     │   ├── 📄 TooManyRequestsException.php - 429 Too Many Requests
     │   ├── 📄 UnauthorizedException.php - 401 Unauthorized
@@ -218,8 +226,6 @@ src/
     │   └── 📄 TrustedHostMiddleware.php - Trusted host middleware
     ├── 📁 Query/ - Query utilities
     │   └── 📄 QueryConditionApplier.php - Query condition builder
-    ├── 📁 Repository/ - Repository utilities
-    │   └── 📄 BaseRepository.php.bak - Base repository backup
     ├── 📁 Request/ - Request utilities
     │   ├── 📄 PaginationParams.php - Pagination parameters
     │   ├── 📄 RawParams.php - Raw request parameters
@@ -291,8 +297,8 @@ docker/
 - **Value Object**: `LockVersion.php` - Type-safe version handling
 - **Trait**: `OptimisticLock.php` - Reusable optimistic locking
 - **Exception**: `OptimisticLockException.php` - Conflict handling
-- **Repository**: `BrandRepository.php` - Database-level optimistic locking
-- **API**: `BrandUpdateAction.php` - Client-side validation
+- **Repository**: `ExampleRepository.php` - Database-level optimistic locking
+- **API**: `ExampleUpdateAction.php` - Client-side validation
 
 ### **🏗️ Domain-Driven Design (DDD)**
 - **Entities**: Rich domain objects with behaviors
@@ -300,6 +306,12 @@ docker/
 - **Repositories**: Data access abstraction
 - **Domain Services**: Business logic services
 - **Application Services**: Use case orchestration
+
+### **🗄️ Multi-Database Support**
+- **PostgreSQL**: Primary relational database
+- **MongoDB**: NoSQL document storage with schema support
+- **Redis**: Caching and session storage
+- **Abstract Repositories**: Base classes for MongoDB and Redis
 
 ### **🔒 Security & Authentication**
 - **JWT Middleware**: Token-based authentication
@@ -334,7 +346,6 @@ docker/
 ## **📈 Project Statistics**
 - **Total Files**: 200+ files
 - **Source Code**: 50,000+ lines of PHP
-- **Documentation**: 100,000+ lines of docs
 - **Languages**: English & Indonesian support
 - **Architecture**: Clean DDD with hexagonal pattern
 
@@ -343,12 +354,12 @@ docker/
 ## **🔧 Boilerplate Components**
 
 ### **🎯 Core Boilerplate Templates**
-1. **Entity Pattern**: `src/Domain/Brand/Entity/Brand.php`
-2. **Repository Pattern**: `src/Infrastructure/Persistence/Brand/BrandRepository.php`
-3. **Application Service**: `src/Application/Brand/BrandApplicationService.php`
-4. **API Actions**: `src/Api/V1/Brand/Action/*`
-5. **Validation**: `src/Api/V1/Brand/Validation/BrandInputValidator.php`
-6. **Commands & DTOs**: `src/Application/Brand/Command/*` & `src/Application/Brand/Dto/*`
+1. **Entity Pattern**: `src/Domain/Example/Entity/Example.php`
+2. **Repository Pattern**: `src/Infrastructure/Persistence/Example/ExampleRepository.php`
+3. **Application Service**: `src/Application/Example/ExampleApplicationService.php`
+4. **API Actions**: `src/Api/V1/Example/Action/*`
+5. **Validation**: `src/Api/V1/Example/Validation/ExampleInputValidator.php`
+6. **Commands & DTOs**: `src/Application/Example/Command/*` & `src/Application/Example/Dto/*`
 
 ### **🔄 Shared Components**
 1. **Traits**: `src/Domain/Shared/Concerns/Entity/*`
@@ -356,18 +367,6 @@ docker/
 3. **Exceptions**: `src/Shared/Exception/*`
 4. **Middleware**: `src/Shared/Middleware/*`
 5. **Validation**: `src/Shared/Validation/*`
-
-### **🛠️ Generator Usage**
-```bash
-# Generate full CRUD with optimistic locking
-php yii simple-generate crud Brand Product --with-lock-version
-
-# Generate individual components
-php yii simple-generate entity Brand Product --with-lock-version
-php yii simple-generate repository Brand Product
-php yii simple-generate service Brand Product
-php yii simple-generate api Brand Product --version=1
-```
 
 ---
 

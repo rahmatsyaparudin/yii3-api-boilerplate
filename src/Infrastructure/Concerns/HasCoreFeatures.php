@@ -10,7 +10,12 @@ use App\Infrastructure\Security\CurrentUser;
 
 trait HasCoreFeatures
 {
-    private ?CurrentUser $currentUser;
+    private ?CurrentUser $currentUser = null;
+
+    public function __construct()
+    {
+        // Property initialized to null
+    }
 
     public function setCurrentUser(CurrentUser $currentUser): void
     {
@@ -37,7 +42,9 @@ trait HasCoreFeatures
 
     public function getDetailInfo(): array
     {
-        return $this->detail_info ?? [];
+        // This method should be implemented by the using class
+        // Return empty array as default implementation
+        return [];
     }
 
     public function getDeletedState(): array

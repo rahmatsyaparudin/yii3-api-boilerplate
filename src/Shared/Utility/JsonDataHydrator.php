@@ -30,10 +30,10 @@ final class JsonDataHydrator
     }
 
     /**
-     * @param array<string, mixed> $row
+     * @param array<int|string, mixed> $row
      * @param string[]             $jsonFields
      *
-     * @return array<string, mixed>
+     * @return array<int|string, mixed>
      */
     private function normalizeRow(array $row, array $jsonFields): array
     {

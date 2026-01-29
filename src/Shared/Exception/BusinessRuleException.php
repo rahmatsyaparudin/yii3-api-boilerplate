@@ -18,6 +18,6 @@ final class BusinessRuleException extends HttpException
             ? $translate 
             : new Message($translate ?? 'business.violation');
             
-        parent::__construct(Status::BAD_REQUEST, $message, $errors, $previous);
+        parent::__construct(Status::BAD_REQUEST, $message, $errors, null, $previous);
     }
 }

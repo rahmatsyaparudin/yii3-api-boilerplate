@@ -15,6 +15,7 @@ use App\Domain\Shared\Concerns\Entity\OptimisticLock;
 
 // Shared Layer
 use App\Shared\ValueObject\Message;
+use App\Shared\Exception\BadRequestException;
 
 final class Example
 {
@@ -40,7 +41,7 @@ final class Example
         DetailInfo $detailInfo,
         ?int $syncMdb = null
     ): self {
-        self::guardInitialStatus($status);
+        self::guardInitialStatus($status, self::RESOURCE);
 
         return new self(null, $name, $status, $detailInfo, $syncMdb, LockVersion::create());
     }
@@ -83,5 +84,20 @@ final class Example
      * Place Example-specific business functions here, in addition to those
      * provided by common traits/concerns (Identifiable, Stateful, etc.).
      */
+    
+    public function restore(): void
+    {
+        // Restore entity from deleted state to draft
+        if (!$this->status->isDeleted()) {
+            throw new BadRequestException(
+                translate: new Message(
+                    key: 'resource.not_deleted',
+                    params: ['id' => $this->id]
+                )
+            );
+        }
+        
+        $this->status = Status::DRAFT;
+    }
     
 }

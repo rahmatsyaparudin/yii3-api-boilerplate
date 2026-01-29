@@ -18,6 +18,6 @@ final class ConflictException extends HttpException
             ? $translate 
             : new Message($translate ?? 'resource.conflict');
             
-        parent::__construct(Status::CONFLICT, $message, $errors, $previous);
+        parent::__construct(Status::CONFLICT, $message, $errors, null, $previous);
     }
 }

@@ -130,7 +130,11 @@ final readonly class ExceptionResponderFactory
         }
 
         $response = $this->psrResponseFactory->createResponse($statusCode);
-        $response->getBody()->write(json_encode($errorData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        $jsonResult = json_encode($errorData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        if ($jsonResult === false) {
+            $jsonResult = '{"error": "Failed to encode error data"}';
+        }
+        $response->getBody()->write($jsonResult);
         
         return $response->withHeader('Content-Type', 'application/json');
     }

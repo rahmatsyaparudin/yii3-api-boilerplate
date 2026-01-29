@@ -29,9 +29,12 @@ final class DetailInfoFactory
 
     public function create(array $detailInfo = []): self
     {
+        $actor = $this->currentUser->getActor();
+        $username = $actor?->getUsername() ?? 'system';
+        
         $this->current = DetailInfo::createdLog(
             dateTime: $this->dateTime,
-            user: $this->currentUser->getActor()->username,
+            user: $username,
             payload: $detailInfo
         );
 
@@ -40,7 +43,8 @@ final class DetailInfoFactory
 
     public function update(DetailInfo $detailInfo, array $payload = []): self
     {
-        $username = $this->currentUser->getActor()->username;
+        $actor = $this->currentUser->getActor();
+        $username = $actor?->getUsername() ?? 'system';
         $oldData = $detailInfo->toArray();
         
         $changeLog = $oldData['change_log'] ?? [];
@@ -60,7 +64,8 @@ final class DetailInfoFactory
 
     public function delete(DetailInfo $detailInfo, array $payload = []): self
     {
-        $username = $this->currentUser->getActor()->username;
+        $actor = $this->currentUser->getActor();
+        $username = $actor?->getUsername() ?? 'system';
         $oldData = $detailInfo->toArray();
         
         $changeLog = $oldData['change_log'] ?? [];
@@ -80,7 +85,8 @@ final class DetailInfoFactory
 
     public function restore(DetailInfo $detailInfo, array $payload = []): self
     {
-        $username = $this->currentUser->getActor()->username;
+        $actor = $this->currentUser->getActor();
+        $username = $actor?->getUsername() ?? 'system';
         $oldData = $detailInfo->toArray();
         
         $changeLog = $oldData['change_log'] ?? [];
@@ -102,10 +108,12 @@ final class DetailInfoFactory
     {
         $this->ensureInstanceExists();
 
-        $this->current = $this->current->with([
-            'approved_at' => null,
-            'approved_by' => null,
-        ]);
+        if ($this->current !== null) {
+            $this->current = $this->current->with([
+                'approved_at' => null,
+                'approved_by' => null,
+            ]);
+        }
 
         return $this;
     }
@@ -114,10 +122,12 @@ final class DetailInfoFactory
     {
         $this->ensureInstanceExists();
 
-        $this->current = $this->current->with([
-            'rejected_at' => null,
-            'rejected_by' => null,
-        ]);
+        if ($this->current !== null) {
+            $this->current = $this->current->with([
+                'rejected_at' => null,
+                'rejected_by' => null,
+            ]);
+        }
 
         return $this;
     }
@@ -127,8 +137,9 @@ final class DetailInfoFactory
         $this->ensureInstanceExists();
         $this->ensureNotDeleted();
 
-        $username = $this->currentUser->getActor()->username;
-        $data = $this->current->toArray();
+        $actor = $this->currentUser->getActor();
+        $username = $actor?->getUsername() ?? 'system';
+        $data = $this->current?->toArray() ?? [];
         $changeLog = $data['change_log'] ?? [];
         
         $this->current = DetailInfo::approvedLog(
@@ -145,8 +156,9 @@ final class DetailInfoFactory
     {
         $this->ensureInstanceExists();
 
-        $username = $this->currentUser->getActor()->username;
-        $data = $this->current->toArray();
+        $actor = $this->currentUser->getActor();
+        $username = $actor?->getUsername() ?? 'system';
+        $data = $this->current?->toArray() ?? [];
         $changeLog = $data['change_log'] ?? [];
         
         $this->current = DetailInfo::rejectedLog(
@@ -159,7 +171,7 @@ final class DetailInfoFactory
         return $this;
     }
 
-    public function build(): DetailInfo
+    public function build(): ?DetailInfo
     {
         $result = $this->current;
         $this->current = null;
@@ -183,7 +195,7 @@ final class DetailInfoFactory
 
     private function ensureNotDeleted(): void
     {
-        $data = $this->current->toArray();
+        $data = $this->current?->toArray() ?? [];
         $isDeleted = !empty($data['change_log']['deleted_at']);
 
         if ($isDeleted) {
