@@ -37,6 +37,7 @@ final class ExampleDataAction
         private ExampleInputValidator $exampleInputValidator,
         private ExampleApplicationService $exampleApplicationService,
         private ResponseFactory $responseFactory,
+        private \Yiisoft\Db\Connection\ConnectionInterface $db,
     ) {
     }   
 
@@ -54,6 +55,8 @@ final class ExampleDataAction
             data: $filter,
             context: ValidationContext::SEARCH,
         );
+
+        // $this->db->getSchema()->getTableSchema('example', true);
 
         $criteria = $this->factory->createFromRequest($payload, self::ALLOWED_SORT);
 
