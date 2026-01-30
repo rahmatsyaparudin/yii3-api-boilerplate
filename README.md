@@ -232,16 +232,16 @@ The skeleton includes comprehensive quality assurance tools:
 
 ```bash
 # Run complete quality check suite
-php quality
+php quality quality:check
 
 # Auto-fix code style issues
-php quality --fix
+php quality quality:check --fix
 
 # Generate test coverage reports
-php quality --coverage
+php quality quality:check --coverage
 
 # Generate detailed analysis reports
-php quality --report
+php quality quality:check --report
 ```
 
 ### Testing
