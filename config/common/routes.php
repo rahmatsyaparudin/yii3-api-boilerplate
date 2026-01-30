@@ -51,35 +51,6 @@ return [
                 ->action(ExampleAction\ExampleRestoreAction::class)
                 ->name('v1/example/restore')
                 ->defaults(['permission' => 'example.restore']),
-            // --help Routes
-            Route::get('/--help')
-                ->action(--helpAction\--helpDataAction::class)
-                ->name('v1/--help/index')
-                ->defaults(['permission' => '--help.index']),
-            Route::post('/--help/data')
-                ->action(--helpAction\--helpDataAction::class)
-                ->name('v1/--help/data')
-                ->defaults(['permission' => '--help.data']),
-            Route::get('/--help/{id:\d+}')
-                ->action(--helpAction\--helpViewAction::class)
-                ->name('v1/--help/view')
-                ->defaults(['permission' => '--help.view']),
-            Route::post('/--help/create')
-                ->action(--helpAction\--helpCreateAction::class)
-                ->name('v1/--help/create')
-                ->defaults(['permission' => '--help.create']),
-            Route::put('/--help/{id:\d+}')
-                ->action(--helpAction\--helpUpdateAction::class)
-                ->name('v1/--help/update')
-                ->defaults(['permission' => '--help.update']),
-            Route::delete('/--help/{id:\d+}')
-                ->action(--helpAction\--helpDeleteAction::class)
-                ->name('v1/--help/delete')
-                ->defaults(['permission' => '--help.delete']),
-            Route::post('/--help/{id:\d+}/restore')
-                ->action(--helpAction\--helpRestoreAction::class)
-                ->name('v1/--help/restore')
-                ->defaults(['permission' => '--help.restore']),
 
         ),
 ];

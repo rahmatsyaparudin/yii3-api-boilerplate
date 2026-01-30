@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 // Domain Layer
 use App\Domain\Example\Repository\ExampleRepositoryInterface;
-use App\Domain\--help\Repository\--helpRepositoryInterface;
 
 // Infrastructure Layer
 use App\Infrastructure\Persistence\Example\ExampleRepository;
-use App\Infrastructure\Persistence\--help\--helpRepository;
 
 // Shared Layer
 use App\Shared\Query\QueryConditionApplier;
@@ -24,10 +22,6 @@ use Yiisoft\Definitions\Reference;
 return [
     ExampleRepositoryInterface::class => [
         'class' => ExampleRepository::class,
-        'setCurrentUser()' => [Reference::to(CurrentUser::class)],
-    ],
-    --helpRepositoryInterface::class => [
-        'class' => --helpRepository::class,
         'setCurrentUser()' => [Reference::to(CurrentUser::class)],
     ],
 ];

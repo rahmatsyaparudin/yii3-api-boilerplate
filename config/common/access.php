@@ -25,13 +25,4 @@ return [
     'example.update' => $isKasir,
     'example.delete' => $isKasir,
     'example.restore' => $isSuperAdmin,
-
-    // --help Access Rules
-    '--help.index' => true,
-    '--help.data' => true,
-    '--help.view' => $isKasir,
-    '--help.create' => $isKasir,
-    '--help.update' => $isKasir,
-    '--help.delete' => $isKasir,
-    '--help.restore' => $isSuperAdmin,
 ];
