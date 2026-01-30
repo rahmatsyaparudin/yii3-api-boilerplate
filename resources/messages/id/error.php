@@ -111,4 +111,8 @@ return [
     // Optimistic Locking
     'optimistic.lock.failed' => 'Data {resource} telah dimodifikasi oleh pengguna lain. Silakan refresh dan coba lagi.',
     'lock_version.invalid_negative' => 'Lock version tidak boleh negatif: {value}',
+
+    // Seeder
+    'seeder.missing_entity_class' => 'Konstanta ENTITY_CLASS harus didefinisikan di {class}',
+    'seeder.missing_yaml_file' => 'Konstanta YAML_FILE harus didefinisikan di {class}',
 ];

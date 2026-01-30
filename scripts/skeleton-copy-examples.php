@@ -35,19 +35,22 @@ class SkeletonExamplesCopier
             'config/common/routes.php' => 'config/common/routes.php',
             'config/common/di/infrastructure.php' => 'config/common/di/infrastructure.php',
             'config/common/di/repository.php' => 'config/common/di/repository.php',
-            'config/common/di/seed.php' => 'config/common/di/seed.php',
             'config/common/di/service.php' => 'config/common/di/service.php',
             'config/common/di/translator.php' => 'config/common/di/translator.php',
             'config/console/commands.php' => 'config/console/commands.php',
             'config/console/params.php' => 'config/console/params.php',
+
             
             // Directories (recursive copy)
             'src/Api/V1/Example' => 'src/Api/V1/Example',
             'src/Application/Example' => 'src/Application/Example',
-            'src/Console/SeedExampleCommand.php' => 'src/Console/SeedExampleCommand.php',
             'src/Domain/Example' => 'src/Domain/Example',
             'src/Infrastructure/Persistence/Example' => 'src/Infrastructure/Persistence/Example',
             'src/Migration' => 'src/Migration',
+
+            'src/Seeder/Fixtures/example.yaml' => 'src/Seeder/Fixtures/example.yaml',
+            'src/Seeder/Faker/example.php' => 'src/Seeder/Faker/example.php',
+            'src/Seeder/SeedExampleData.php' => 'src/Seeder/SeedExampleData.php',
         ];
         
         $flagFile = $this->projectRoot . '/.skeleton_examples_copied';
@@ -70,7 +73,7 @@ class SkeletonExamplesCopier
         echo "1. Configure your .env file with your database settings\n";
         echo "2. Run: composer install\n";
         echo "3. Run: ./yii migrate:up\n";
-        echo "4. Run: ./yii seed:example (development only)\n";
+        echo "4. Run: ./yii seed --module=example (development only)\n";
         echo "5. Run: ./yii serve\n";
         echo "\n🌐 Your API will be available at: http://localhost:8080\n";
         echo "\n📚 Documentation:\n";

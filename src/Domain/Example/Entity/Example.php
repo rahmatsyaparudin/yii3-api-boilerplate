@@ -35,6 +35,11 @@ final class Example
         $this->lockVersion = $lockVersion ?? LockVersion::create();
     }
 
+    public static function getResource(): string
+    {
+        return self::RESOURCE;
+    }
+
     public static function create(
         string $name,
         Status $status,
@@ -97,7 +102,7 @@ final class Example
             );
         }
         
-        $this->status = Status::DRAFT;
+        $this->status = Status::draft();
     }
     
 }
