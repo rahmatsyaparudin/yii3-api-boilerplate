@@ -11,12 +11,12 @@ declare(strict_types=1);
  * to use the new module name.
  * 
  * Usage:
- * php scripts/generate-module.php <ModuleName>
+ * php scripts/generate-module.php --module=<ModuleName>
  * 
  * Examples:
- * php scripts/generate-module.php Product
- * php scripts/generate-module.php Order
- * php scripts/generate-module.php User
+ * php scripts/generate-module.php --module=Product
+ * php scripts/generate-module.php --module=Order
+ * php scripts/generate-module.php --module=User
  */
 
 /**
@@ -641,18 +641,50 @@ function main(): void
     
     $args = array_slice($GLOBALS['argv'], 1);
     
-    if (count($args) < 1) {
-        echo "📖️ Usage: php scripts/generate-module.php <ModuleName>\n";
+    if (empty($args)) {
+        echo "📖️ Usage: php scripts/generate-module.php --module=<ModuleName>\n";
         echo "\n📝 Examples:\n";
-        echo "  php scripts/generate-module.php Product\n";
-        echo "  php scripts/generate-module.php Order\n";
-        echo "  php scripts/generate-module.php User\n";
-        echo "  php scripts/generate-module.php Blog\n";
-        echo "  php scripts/generate-module.php Payment\n";
+        echo "  php scripts/generate-module.php --module=Product\n";
+        echo "  php scripts/generate-module.php --module=Order\n";
+        echo "  php scripts/generate-module.php --module=User\n";
+        echo "  php scripts/generate-module.php --module=Blog\n";
+        echo "  php scripts/generate-module.php --module=Payment\n";
         exit(1);
     }
     
-    $moduleName = $args[0];
+    // Parse arguments for --module option
+    $moduleName = null;
+    
+    foreach ($args as $arg) {
+        if (str_starts_with($arg, '--module=')) {
+            $moduleName = substr($arg, 9); // Remove '--module=' prefix
+            break;
+        } elseif (str_starts_with($arg, '--module')) {
+            // Handle space-separated format: --module Product
+            $argParts = explode('=', $arg, 2);
+            if (count($argParts) === 2) {
+                $moduleName = $argParts[1];
+            } else {
+                // Find next argument as module name
+                $argIndex = array_search($arg, $args);
+                if ($argIndex !== false && isset($args[$argIndex + 1])) {
+                    $moduleName = $args[$argIndex + 1];
+                }
+            }
+            break;
+        }
+    }
+    
+    if ($moduleName === null) {
+        echo "❌ Error: --module option is required\n";
+        echo "📖️ Usage: php scripts/generate-module.php --module=<ModuleName>\n";
+        exit(1);
+    }
+    
+    if (empty($moduleName)) {
+        echo "❌ Error: Module name cannot be empty\n";
+        exit(1);
+    }
     
     try {
         $generator = new ModuleGenerator($projectRoot, $moduleName);

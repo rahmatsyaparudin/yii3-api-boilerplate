@@ -92,10 +92,7 @@ Open your project's `composer.json` and add the following sections:
 "skeleton-copy-examples": [
     "php scripts/skeleton-copy-examples.php"
 ],
-"skeleton-scripts": [
-    "php scripts/skeleton-scripts.php"
-],
-"generate-module": [
+"skeleton-generate-module": [
     "php scripts/generate-module.php"
 ]
 ```
@@ -111,9 +108,6 @@ composer skeleton-update
 
 # Copy example files (first time only)
 composer skeleton-copy-examples
-
-# Update scripts from skeleton (when needed)
-composer skeleton-scripts
 ```
 
 ## 5. Generate New Module
@@ -122,13 +116,13 @@ Use the built-in module generator to create new API modules with complete struct
 
 ```bash
 # Generate a new module (e.g., Product)
-php scripts/generate-module.php Product
+php scripts/generate-module.php --module=Product
 
 # Generate another module (e.g., Category)
-php scripts/generate-module.php Category
+php scripts/generate-module.php --module=Category
 
 # Generate another module (e.g., Brand)
-php scripts/generate-module.php Brand
+php scripts/generate-module.php --module=Brand
 ```
 
 ### What the Generator Creates
