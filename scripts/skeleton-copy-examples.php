@@ -22,7 +22,7 @@ class SkeletonExamplesCopier
         // Files and directories to copy
         $itemsToCopy = [
             // Files
-            '.env.example' => '.env',
+            '.env.example' => '.env.example',
             
             // Message files
             'resources/messages/en/app.php' => 'resources/messages/en/app.php',
