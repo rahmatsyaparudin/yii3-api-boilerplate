@@ -216,7 +216,7 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
 
         $query->orderBy($criteria->getOrderClause())
             ->limit($criteria->pageSize)
-            ->offset($criteria->getOffset());
+            ->offset($criteria->calculateOffset());
 
        $rows = iterator_to_array($this->listAllGenerator($query));
 

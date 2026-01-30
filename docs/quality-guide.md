@@ -9,12 +9,33 @@ The `quality` script is a comprehensive quality assurance tool designed for the 
 ### Running All Quality Checks
 ```bash
 # Run complete quality check suite
-php quality
+php quality quality:check
 
 # Run with specific options
-php quality --fix          # Auto-fix code style issues
-php quality --coverage      # Generate test coverage reports
-php quality --report        # Generate detailed analysis reports
+php quality quality:check --fix          # Auto-fix code style issues
+php quality quality:check --coverage      # Generate test coverage reports
+php quality quality:check --report        # Generate detailed analysis reports
+```
+
+### Running Tests
+```bash
+# Run all tests
+php quality test:run
+
+# Run specific test types
+php quality test:run --unit            # Run only unit tests
+php quality test:run --integration     # Run only integration tests
+php quality test:run --coverage        # Generate coverage report
+```
+
+### Available Commands
+```bash
+# List all available commands
+php quality list
+
+# Get help for specific command
+php quality quality:check --help
+php quality test:run --help
 ```
 
 ### Individual Checks

@@ -214,13 +214,13 @@ enum RecordStatus: int
     }
 
     /**
-     * Get all statuses as value-label array
+     * Get list of all status values with labels
      * 
      * Returns an associative array with status values as keys and
      * human-readable labels as values. Useful for dropdown options
      * or API documentation.
      * 
-     * @return array<int, string> Status values mapped to labels
+     * @return array Status values mapped to labels
      * 
      * @example
      * // For dropdown options

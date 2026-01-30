@@ -74,8 +74,8 @@ final class ModuleGenerator
         // Generate seed file
         $this->generateSeed($createdFiles);
         
-        // Generate console command
-        $this->generateConsoleCommand($createdFiles);
+        // Generate fixture file
+        $this->generateFixture($createdFiles);
         
         // Update configuration files
         $this->updateConfigurations($createdFiles);
@@ -94,9 +94,6 @@ final class ModuleGenerator
     {
         // Update repository DI
         $this->updateRepositoryDi($createdFiles);
-        
-        // Update console commands DI
-        $this->updateConsoleCommandsDi($createdFiles);
         
         // Update access configuration
         $this->updateAccessConfig($createdFiles);
@@ -151,50 +148,6 @@ final class ModuleGenerator
         file_put_contents($configFile, $content);
         $createdFiles[] = $configFile;
         echo "⚙️ Updated repository DI: {$configFile}\n";
-    }
-
-    /**
-     * Update console commands DI configuration
-     */
-    private function updateConsoleCommandsDi(array &$createdFiles): void
-    {
-        $configFile = 'config/common/di/seed.php';
-        
-        if (!file_exists($configFile)) {
-            echo "❌ Console commands DI config not found: {$configFile}\n";
-            return;
-        }
-        
-        $content = file_get_contents($configFile);
-        
-        // Check if module already exists
-        if (str_contains($content, "Seed{$this->moduleName}Command")) {
-            echo "📄 Console command DI already exists for {$this->moduleName}\n";
-            return;
-        }
-        
-        // Add use statement after SeedExampleCommand
-        $content = str_replace(
-            "use App\\Console\\SeedExampleCommand;",
-            "use App\\Console\\SeedExampleCommand;\nuse App\\Console\\Seed{$this->moduleName}Command;",
-            $content
-        );
-        
-        // Add console command DI configuration
-        $newDiConfig = "    Seed{$this->moduleName}Command::class => [
-        'class' => Seed{$this->moduleName}Command::class,
-        '__construct()' => [
-            Reference::to(ClockInterface::class),
-            Reference::to(ConnectionInterface::class),
-        ],
-    ],";
-        
-        // Add before closing bracket
-        $content = preg_replace('/(\];\s*$)/', $newDiConfig . "\n];", $content);
-        
-        file_put_contents($configFile, $content);
-        $createdFiles[] = $configFile;
-        echo "⚙️ Updated console commands DI: {$configFile}\n";
     }
 
     /**
@@ -359,35 +312,45 @@ use App\\Api\\V1\\{$this->moduleName}\\Action\\{$this->moduleName}RestoreAction;
     }
 
     /**
-     * Generate console command based on template
+     * Generate fixture file based on template
      */
-    private function generateConsoleCommand(array &$createdFiles): void
+    private function generateFixture(array &$createdFiles): void
     {
-        $sourceCommand = 'src/Console/SeedExampleCommand.php';
+        $sourceFixture = 'src/Seeder/Fixtures/example.yaml';
         
-        if (!file_exists($sourceCommand)) {
-            echo "❌ Console command template not found: {$sourceCommand}\n";
+        if (!file_exists($sourceFixture)) {
+            echo "❌ Fixture template not found: {$sourceFixture}\n";
             return;
         }
         
-        $targetCommand = "src/Console/Seed{$this->moduleName}Command.php";
+        // Create fixtures directory if it doesn't exist
+        $fixturesDir = "src/Seeder/Fixtures";
+        if (!is_dir($fixturesDir)) {
+            mkdir($fixturesDir, 0755, true);
+            echo "📁 Created directory: {$fixturesDir}\n";
+        }
+        
+        $targetFixture = "src/Seeder/Fixtures/{$this->moduleLower}.yaml";
         
         // Skip if file already exists
-        if (file_exists($targetCommand)) {
-            echo "📄 Skipped existing console command: {$targetCommand}\n";
+        if (file_exists($targetFixture)) {
+            echo "📄 Skipped existing Fixtures: {$targetFixture}\n";
             return;
         }
         
-        $content = file_get_contents($sourceCommand);
+        $content = file_get_contents($sourceFixture);
         $content = $this->replacePlaceholders($content);
         
-        // Replace class name and description
-        $content = str_replace("SeedExampleCommand", "Seed{$this->moduleName}Command", $content);
-        $content = str_replace("seeding example data", "seeding {$this->moduleLower} data", $content);
+        // Replace specific fixture patterns
+        $content = str_replace("App\\Domain\\Example\\Entity\\Example", "App\\Domain\\{$this->moduleName}\\Entity\\{$this->moduleName}", $content);
+        $content = str_replace("example_", "{$this->moduleLower}_", $content);
+        $content = str_replace("Example Item", "{$this->moduleName} Item", $content);
+        $content = str_replace("example item", "{$this->moduleLower} item", $content);
+        $content = str_replace("example.yaml", "{$this->moduleLower}.yaml", $content);
         
-        file_put_contents($targetCommand, $content);
-        $createdFiles[] = $targetCommand;
-        echo "📄 Created console command: {$targetCommand}\n";
+        file_put_contents($targetFixture, $content);
+        $createdFiles[] = $targetFixture;
+        echo "📄 Created fixture: {$targetFixture}\n";
     }
 
     /**
@@ -410,7 +373,7 @@ use App\\Api\\V1\\{$this->moduleName}\\Action\\{$this->moduleName}RestoreAction;
         }
         
         // Generate seed file name (without timestamp for data-seeder)
-        $targetSeed = "src/Seed/Seed{$this->moduleName}Data.php";
+        $targetSeed = "src/Seeder/Seed{$this->moduleName}Data.php";
         
         // Skip if file already exists
         if (file_exists($targetSeed)) {
@@ -419,16 +382,32 @@ use App\\Api\\V1\\{$this->moduleName}\\Action\\{$this->moduleName}RestoreAction;
         }
         
         $content = file_get_contents($sourceSeed);
-        
-        // Replace class name
-        $content = str_replace("SeedExampleData", "Seed{$this->moduleName}Data", $content);
-        
-        // Then replace other placeholders
         $content = $this->replacePlaceholders($content);
         
-        // Replace table name references in seed
-        $content = str_replace("'example'", "'{$this->moduleLower}'", $content);
-        $content = str_replace("'Example'", "'{$this->moduleName}'", $content);
+        // Replace class name and repository interface
+        $content = str_replace("SeedExampleData", "Seed{$this->moduleName}Data", $content);
+        $content = str_replace("ExampleRepositoryInterface", "{$this->moduleName}RepositoryInterface", $content);
+        $content = str_replace("exampleRepository", lcfirst($this->moduleName) . "Repository", $content);
+        
+        // Replace constructor parameters
+        $content = str_replace(
+            "DetailInfoFactory \$detailInfoFactory,\n        Aliases \$aliases,\n        ExampleRepositoryInterface \$exampleRepository",
+            "DetailInfoFactory \$detailInfoFactory,\n        Aliases \$aliases,\n        {$this->moduleName}RepositoryInterface \$" . lcfirst($this->moduleName) . "Repository",
+            $content
+        );
+        $content = str_replace(
+            "parent::__construct(\$db, \$clock, \$detailInfoFactory, \$aliases);",
+            "parent::__construct(\$db, \$clock, \$detailInfoFactory, \$aliases);",
+            $content
+        );
+        
+        // Remove getTableName, getEntityType, and isValidEntity methods (now in abstract)
+        $content = preg_replace('/protected function getTableName\(\): string\s*\{[^}]*\}\s*\n\s*protected function getEntityType\(\): string\s*\{[^}]*\}\s*\n\s*protected function isValidEntity\(object \$object\): bool\s*\{[^}]*\}\s*\n/', '', $content);
+        
+        // Replace constants
+        $content = str_replace("protected const YAML_FILE = 'example.yaml';", "protected const YAML_FILE = '{$this->moduleLower}.yaml';", $content);
+        $content = str_replace("protected const TABLE_NAME = 'example';", "protected const TABLE_NAME = '{$this->moduleLower}';", $content);
+        $content = str_replace("protected const ENTITY_CLASS = Example::class;", "protected const ENTITY_CLASS = {$this->moduleName}::class;", $content);
         
         file_put_contents($targetSeed, $content);
         $createdFiles[] = $targetSeed;
@@ -440,7 +419,7 @@ use App\\Api\\V1\\{$this->moduleName}\\Action\\{$this->moduleName}RestoreAction;
      */
     private function findExistingSeed(): ?string
     {
-        $seedDir = 'src/Seed';
+        $seedDir = 'src/Seeder';
         if (!is_dir($seedDir)) {
             return null;
         }

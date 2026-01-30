@@ -10,13 +10,13 @@ This skeleton follows **Domain-Driven Design (DDD)** principles with clean archi
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                    API Layer (Controllers & Middleware)                │
+│                    API Layer (Controllers & Middleware)             │
 ├─────────────────────────────────────────────────────────────────────┤
-│                Application Layer (Services & Use Cases)              │
+│                Application Layer (Services & Use Cases)             │
 ├─────────────────────────────────────────────────────────────────────┤
-│                  Domain Layer (Entities & Business Logic)                │
+│                  Domain Layer (Entities & Business Logic)           │
 ├─────────────────────────────────────────────────────────────────────┤
-│               Infrastructure Layer (Repositories & External APIs)           │
+│               Infrastructure Layer (Repositories & External APIs)   │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 

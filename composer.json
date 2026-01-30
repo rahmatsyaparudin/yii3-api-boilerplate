@@ -34,6 +34,7 @@
         "firebase/php-jwt": "^7.0.2",
         "httpsoft/http-message": "^1.1.6",
         "mongodb/mongodb": "^2.1",
+        "nelmio/alice": "^3.16",
         "psr/clock": "^1.0",
         "psr/container": "^2.0.2",
         "psr/http-factory": "^1.1",

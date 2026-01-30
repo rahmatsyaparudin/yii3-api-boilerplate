@@ -111,4 +111,8 @@ return [
     // Optimistic Locking
     'optimistic.lock.failed' => '{resource} data has been modified by another user. Please refresh and try again.',
     'lock_version.invalid_negative' => 'Lock version cannot be negative: {value}',
+
+    // Seeder
+    'seeder.missing_entity_class' => 'ENTITY_CLASS constant must be defined in {class}',
+    'seeder.missing_yaml_file' => 'YAML_FILE constant must be defined in {class}',
 ];

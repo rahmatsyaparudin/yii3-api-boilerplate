@@ -19,11 +19,13 @@ class SkeletonInstaller
 {
     private Filesystem $filesystem;
     private string $projectRoot;
+    private string $vendorPath;
 
     public function __construct()
     {
         $this->filesystem = new Filesystem();
         $this->projectRoot = dirname(__DIR__);
+        $this->vendorPath = $this->projectRoot . '/vendor/rahmatsyaparudin/yii3-api-boilerplate';
     }
 
     public function install(): void
@@ -92,7 +94,7 @@ class SkeletonInstaller
     private function copySharedClasses(): void
     {
         // In actual vendor package usage, copy from vendor to project
-        $vendorSharedPath = $this->projectRoot . '/vendor/rahmatsyaparudin/yii3-api-boilerplate/src/Shared';
+        $vendorSharedPath = $this->vendorPath . '/src/Shared';
         $targetSharedPath = $this->projectRoot . '/src/Shared';
         
         // Ensure Shared directory exists
@@ -140,7 +142,7 @@ class SkeletonInstaller
     private function copyInfrastructureClasses(): void
     {
         // In actual vendor package usage, copy from vendor to project
-        $vendorInfrastructurePath = $this->projectRoot . '/vendor/rahmatsyaparudin/yii3-api-boilerplate/src/Infrastructure';
+        $vendorInfrastructurePath = $this->vendorPath . '/src/Infrastructure';
         $targetInfrastructurePath = $this->projectRoot . '/src/Infrastructure';
         
         // Ensure Infrastructure directory exists
@@ -158,7 +160,8 @@ class SkeletonInstaller
             'RateLimit',
             'Security',
             'Time',
-            'Persistence'
+            'Persistence',
+            'Seeder',
         ];
         
         foreach ($infrastructureDirs as $dir) {
@@ -186,7 +189,7 @@ class SkeletonInstaller
     private function copyDomainSharedClasses(): void
     {
         // In actual vendor package usage, copy from vendor to project
-        $vendorDomainSharedPath = $this->projectRoot . '/vendor/rahmatsyaparudin/yii3-api-boilerplate/src/Domain/Shared';
+        $vendorDomainSharedPath = $this->vendorPath . '/src/Domain/Shared';
         $targetDomainSharedPath = $this->projectRoot . '/src/Domain/Shared';
         
         // Ensure Domain/Shared directory exists
@@ -228,7 +231,7 @@ class SkeletonInstaller
     private function copyApplicationSharedClasses(): void
     {
         // In actual vendor package usage, copy from vendor to project
-        $vendorApplicationSharedPath = $this->projectRoot . '/vendor/rahmatsyaparudin/yii3-api-boilerplate/src/Application/Shared';
+        $vendorApplicationSharedPath = $this->vendorPath . '/src/Application/Shared';
         $targetApplicationSharedPath = $this->projectRoot . '/src/Application/Shared';
         
         // Ensure Application/Shared directory exists
@@ -266,7 +269,7 @@ class SkeletonInstaller
     private function copyApiSharedClasses(): void
     {
         // In actual vendor package usage, copy from vendor to project
-        $vendorApiSharedPath = $this->projectRoot . '/vendor/rahmatsyaparudin/yii3-api-boilerplate/src/Api/Shared';
+        $vendorApiSharedPath = $this->vendorPath . '/src/Api/Shared';
         $targetApiSharedPath = $this->projectRoot . '/src/Api/Shared';
         
         // Ensure Api/Shared directory exists
@@ -321,7 +324,7 @@ class SkeletonInstaller
     private function copyConfigFiles(): void
     {
         // In actual vendor package usage, copy from vendor to project
-        $vendorConfigPath = $this->projectRoot . '/vendor/rahmatsyaparudin/yii3-api-boilerplate/config';
+        $vendorConfigPath = $this->vendorPath . '/config';
         $targetConfigPath = $this->projectRoot . '/config';
         
         // Ensure config directory exists
@@ -374,7 +377,7 @@ class SkeletonInstaller
     private function copyMessageFiles(): void
     {
         // In actual vendor package usage, copy from vendor to project
-        $vendorMessagesPath = $this->projectRoot . '/vendor/rahmatsyaparudin/yii3-api-boilerplate/resources/messages';
+        $vendorMessagesPath = $this->vendorPath . '/resources/messages';
         $targetMessagesPath = $this->projectRoot . '/resources/messages';
         
         // Ensure resources/messages directory exists
@@ -423,8 +426,8 @@ class SkeletonInstaller
     private function copyApiFiles(): void
     {
         // In actual vendor package usage, copy from vendor to project
-        $vendorApiPath = $this->projectRoot . '/vendor/rahmatsyaparudin/yii3-api-boilerplate/src/Api';
-        $vendorRootPath = $this->projectRoot . '/vendor/rahmatsyaparudin/yii3-api-boilerplate/src';
+        $vendorApiPath = $this->vendorPath . '/src/Api';
+        $vendorRootPath = $this->vendorPath . '/src';
         $targetApiPath = $this->projectRoot . '/src/Api';
         $targetRootPath = $this->projectRoot . '/src';
         
@@ -483,27 +486,30 @@ class SkeletonInstaller
     {
         echo "📁 Creating empty directories...\n";
         
-        // Create src/Migration directory
-        $migrationPath = $this->projectRoot . '/src/Migration';
-        if (!is_dir($migrationPath)) {
-            mkdir($migrationPath, 0755, true);
-            echo "✅ Created directory: src/Migration\n";
-        } else {
-            echo "📁 Directory already exists: src/Migration\n";
+        // Define directories to create
+        $directories = [
+            'src/Migration',
+            'src/Seeder',
+            'src/Seeder/Fixtures',
+            'src/Seeder/Faker',
+        ];
+        
+        foreach ($directories as $directory) {
+            $dirPath = $this->projectRoot . '/' . $directory;
+            if (!is_dir($dirPath)) {
+                mkdir($dirPath, 0755, true);
+                echo "✅ Created directory: {$directory}\n";
+            } else {
+                echo "📁 Directory already exists: {$directory}\n";
+            }
         }
         
-        // Create src/Seed directory
-        $seedPath = $this->projectRoot . '/src/Seed';
-        if (!is_dir($seedPath)) {
-            mkdir($seedPath, 0755, true);
-            echo "✅ Created directory: src/Seed\n";
-        } else {
-            echo "📁 Directory already exists: src/Seed\n";
-        }
+        // Copy Seeder infrastructure files
+        $this->copySeederInfrastructure();
         
         // Create .gitkeep files to preserve empty directories in git
-        $this->createGitKeepFile($migrationPath . '/.gitkeep');
-        $this->createGitKeepFile($seedPath . '/.gitkeep');
+        $this->createGitKeepFile($this->projectRoot . '/src/Migration/.gitkeep');
+        $this->createGitKeepFile($this->projectRoot . '/src/Seeder/.gitkeep');
     }
     
     private function createGitKeepFile(string $path): void
@@ -517,7 +523,7 @@ class SkeletonInstaller
     private function copyQualityScript(): void
     {
         // In actual vendor package usage, copy from vendor to project
-        $vendorQualityScript = $this->projectRoot . '/vendor/rahmatsyaparudin/yii3-api-boilerplate/quality';
+        $vendorQualityScript = $this->vendorPath . '/quality';
         $targetQualityScript = $this->projectRoot . '/quality';
         
         if (file_exists($vendorQualityScript)) {
@@ -565,6 +571,7 @@ class SkeletonInstaller
             "firebase/php-jwt" => "^7.0.2",
             "mongodb/mongodb" => "^2.1",
             "psr/clock" => "^1.0",
+            "nelmio/alice" => "^3.1",
             "vlucas/phpdotenv" => "^5.6.3",
             "yiisoft/access" => "2.0",
             "yiisoft/cache" => "^3.2",
@@ -633,6 +640,32 @@ class SkeletonInstaller
                 if ($permissions !== false) {
                     chmod($targetPath, $permissions);
                 }
+            }
+        }
+    }
+    
+    private function copySeederInfrastructure(): void
+    {
+        echo "🌱 Copying Seeder infrastructure files...\n";
+        
+        // Define seeder files to copy
+        $seederFiles = [
+            'src/Console/SeederCommand.php' => 'src/Console/SeederCommand.php'
+        ];
+        
+        foreach ($seederFiles as $source => $target) {
+            $sourcePath = $this->vendorPath . '/' . $source;
+            $targetPath = $this->projectRoot . '/' . $target;
+            
+            if (file_exists($sourcePath)) {
+                // Ensure target directory exists
+                $targetDir = dirname($targetPath);
+                if (!is_dir($targetDir)) {
+                    mkdir($targetDir, 0755, true);
+                }
+                
+                copy($sourcePath, $targetPath);
+                echo "✅ Copied: {$target}\n";
             }
         }
     }

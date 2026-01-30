@@ -193,26 +193,6 @@ final readonly class SearchCriteria
     }
 
     /**
-     * Get the offset for database queries
-     * 
-     * Returns the manual offset if set, otherwise calculates it based on
-     * the current page and page size. This provides flexibility for both
-     * automatic pagination and manual offset control.
-     * 
-     * @return int Offset value for database queries
-     * 
-     * @example
-     * // JSON:
-     * // {
-     * //     "pagination": {
-     * //         "page": 2,
-     * //         "page_size": 10
-     * //     }
-     * // }
-     * $criteria = new SearchCriteria(
-     *     filter: [],
-     *     page: 2,
-    /**
      * Get order clause for database queries
      * 
      * Returns an array suitable for database query builders containing the
