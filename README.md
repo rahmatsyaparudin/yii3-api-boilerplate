@@ -91,10 +91,136 @@ Open your project's `composer.json` and add the following sections:
 ],
 "skeleton-copy-examples": [
     "php scripts/skeleton-copy-examples.php"
+],
+"skeleton-scripts": [
+    "php scripts/skeleton-scripts.php"
+],
+"generate-module": [
+    "php scripts/generate-module.php"
 ]
 ```
 
-### 4. Install Skeleton
+## 4. Install Skeleton
+
+```bash
+# Update dependencies
+composer update --ignore-platform-reqs
+
+# Install skeleton structure
+composer skeleton-update
+
+# Copy example files (first time only)
+composer skeleton-copy-examples
+
+# Update scripts from skeleton (when needed)
+composer skeleton-scripts
+```
+
+## 5. Generate New Module
+
+Use the built-in module generator to create new API modules with complete structure:
+
+```bash
+# Generate a new module (e.g., Product)
+php scripts/generate-module.php Product
+
+# Generate another module (e.g., Category)
+php scripts/generate-module.php Category
+
+# Generate another module (e.g., Brand)
+php scripts/generate-module.php Brand
+```
+
+### What the Generator Creates
+
+The module generator creates a complete module structure following DDD architecture:
+
+#### **📁 API Layer** (`src/Api/V1/{Module}/`)
+```
+src/Api/V1/Product/
+├── Action/
+│   ├── ProductCreateAction.php    # POST /product/create
+│   ├── ProductDataAction.php      # GET/POST /product & /product/data
+│   ├── ProductDeleteAction.php    # DELETE /product/{id}
+│   ├── ProductRestoreAction.php   # POST /product/{id}/restore
+│   ├── ProductUpdateAction.php    # PUT /product/{id}
+│   └── ProductViewAction.php      # GET /product/{id}
+└── Validation/
+    └── ProductInputValidator.php  # Request validation rules
+```
+
+#### **📁 Application Layer** (`src/Application/{Module}/`)
+```
+src/Application/Product/
+├── Command/
+│   ├── CreateProductCommand.php   # Create command DTO
+│   └── UpdateProductCommand.php   # Update command DTO
+├── Dto/
+│   └── ProductResponse.php        # Response DTO
+└── ProductApplicationService.php # Application service
+```
+
+#### **📁 Domain Layer** (`src/Domain/{Module}/`)
+```
+src/Domain/Product/
+├── Entity/
+│   └── Product.php               # Domain entity
+├── Repository/
+│   └── ProductRepositoryInterface.php # Repository interface
+└── Service/
+    └── ProductDomainService.php  # Domain service
+```
+
+#### **📁 Infrastructure Layer** (`src/Infrastructure/Persistence/{Module}/`)
+```
+src/Infrastructure/Persistence/Product/
+├── ProductRepository.php         # Repository implementation
+└── MdbProductSchema.php          # MongoDB schema
+```
+
+#### **📁 Database & Seeding**
+```
+src/Migration/
+└── M20240130123457CreateProductTable.php  # Database migration
+
+src/Seeder/
+├── SeedProductData.php           # Seeder class
+└── Fixtures/
+    └── product.yaml              # Alice fixtures for test data
+```
+
+#### **⚙️ Configuration Updates**
+The generator automatically updates configuration files:
+
+- **`config/common/di/repository.php`** - Adds repository DI binding
+- **`config/common/access.php`** - Adds access control rules
+- **`config/common/routes.php`** - Adds API routes with proper permissions
+
+#### **🔧 Features Included**
+- **✅ Complete CRUD Operations** - Create, Read, Update, Delete, Restore
+- **✅ RESTful API Endpoints** - Following REST conventions
+- **✅ Request Validation** - Input validation rules
+- **✅ Permission System** - Role-based access control
+- **✅ Database Migration** - Schema management
+- **✅ Data Seeding** - Test data generation with Alice fixtures
+- **✅ Type Safety** - Full Psalm compatibility
+- **✅ Error Handling** - Standardized error responses
+
+### Generated API Endpoints
+
+For each module, the following endpoints are automatically created:
+
+| Method | Endpoint | Action | Permission |
+|--------|-----------|--------|------------|
+| GET | `/v1/{module}` | List items | `{module}.index` |
+| POST | `/v1/{module}/data` | Create item | `{module}.data` |
+| GET | `/v1/{module}/{id}` | View item | `{module}.view` |
+| POST | `/v1/{module}/create` | Create item | `{module}.create` |
+| PUT | `/v1/{module}/{id}` | Update item | `{module}.update` |
+| DELETE | `/v1/{module}/{id}` | Delete item | `{module}.delete` |
+| POST | `/v1/{module}/{id}/restore` | Restore item | `{module}.restore` |
+
+## 6. Install Skeleton
 
 ```bash
 # Update dependencies
