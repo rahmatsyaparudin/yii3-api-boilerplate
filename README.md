@@ -123,11 +123,19 @@ php scripts/generate-module.php --module=Category
 
 # Generate another module (e.g., Brand)
 php scripts/generate-module.php --module=Brand
+
+# Generate another module (e.g., Order)
+php scripts/generate-module.php --module=Order
+
+# Generate another module (e.g., User)
+php scripts/generate-module.php --module=User
 ```
+
+> **Note:** The skeleton comes with an Example module that demonstrates the complete structure. Use the generator above to create additional modules for your specific needs.
 
 ### What the Generator Creates
 
-The module generator creates a complete module structure following DDD architecture:
+The module generator creates a complete module structure following DDD architecture. Here's what you get when generating a new module (based on the existing Example module):
 
 #### **📁 API Layer** (`src/Api/V1/{Module}/`)
 ```
@@ -187,7 +195,7 @@ src/Seeder/
 The generator automatically updates configuration files:
 
 - **`config/common/di/repository.php`** - Adds repository DI binding
-- **`config/common/access.php`** - Adds access control rules
+- **`config/common/access.php`** - Adds access control rules  
 - **`config/common/routes.php`** - Adds API routes with proper permissions
 
 #### **🔧 Features Included**
@@ -213,6 +221,22 @@ For each module, the following endpoints are automatically created:
 | PUT | `/v1/{module}/{id}` | Update item | `{module}.update` |
 | DELETE | `/v1/{module}/{id}` | Delete item | `{module}.delete` |
 | POST | `/v1/{module}/{id}/restore` | Restore item | `{module}.restore` |
+
+### 📋 Current Available Modules
+
+The skeleton includes the following modules out of the box:
+
+#### **✅ Example Module** (Included)
+- **Purpose:** Demonstrates complete module structure
+- **Endpoints:** `/v1/example/*`
+- **Usage:** Reference implementation for learning and testing
+- **Files:** Complete DDD structure with all layers
+
+#### **🔧 Custom Modules** (Generate as needed)
+- **Product, Category, Brand, Order, User, etc.**
+- **Purpose:** Your business-specific modules
+- **Generation:** Use `php scripts/generate-module.php --module=ModuleName`
+- **Customization:** Modify generated files according to your business logic
 
 ## 6. Install Skeleton
 
