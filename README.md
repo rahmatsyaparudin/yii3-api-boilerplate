@@ -214,10 +214,10 @@ redis.default.password=null
 ./yii migrate:up
 
 # Seed initial data (development only)
-./yii seed:example
+./yii seed --module=example
 
 # Or seed with custom options (development only)
-./yii seed:example --count=10 --truncate
+./yii seed --module=example --count=10
 
 # Note: Seed commands only work in development environment (APP_ENV=dev)
 ```

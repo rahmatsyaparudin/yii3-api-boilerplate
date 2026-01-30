@@ -49,7 +49,7 @@ class SkeletonExamplesCopier
             'src/Migration' => 'src/Migration',
 
             'src/Seeder/Fixtures/example.yaml' => 'src/Seeder/Fixtures/example.yaml',
-            'src/Seeder/Faker/example.php' => 'src/Seeder/Faker/example.php',
+            'src/Seeder/Faker/ExampleFaker.php' => 'src/Seeder/Faker/ExampleFaker.php',
             'src/Seeder/SeedExampleData.php' => 'src/Seeder/SeedExampleData.php',
         ];
         
