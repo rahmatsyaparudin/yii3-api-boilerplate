@@ -52,7 +52,15 @@ composer create-project --prefer-dist yiisoft/app yii3-api
 cd yii3-api
 ```
 
-## 2. Add the repository and package to `composer.json` 
+## 2. Copy skeleton scripts
+
+Make directory `scripts` and Copy the `scripts` folder from the package to your project root:
+
+```bash
+mkdir scripts; cp -r -Force vendor/rahmatsyaparudin/yii3-api-boilerplate/scripts/* ./scripts
+```
+
+## 3. Add the repository and package to `composer.json` 
 
 Open your project's `composer.json` and add the following sections:
 
@@ -86,7 +94,7 @@ Open your project's `composer.json` and add the following sections:
 ]
 ```
 
-### 3. Install Skeleton
+### 4. Install Skeleton
 
 ```bash
 # Update dependencies
