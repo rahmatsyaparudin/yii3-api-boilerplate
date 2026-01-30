@@ -25,13 +25,4 @@ return [
     'example.update' => $isKasir,
     'example.delete' => $isKasir,
     'example.restore' => $isSuperAdmin,
-
-    // Product Access Rules
-    'product.index' => true,
-    'product.data' => true,
-    'product.view' => $isKasir,
-    'product.create' => $isKasir,
-    'product.update' => $isKasir,
-    'product.delete' => $isKasir,
-    'product.restore' => $isSuperAdmin,
 ];
