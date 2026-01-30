@@ -395,7 +395,7 @@ use App\\Api\\V1\\{$this->moduleName}\\Action\\{$this->moduleName}RestoreAction;
      */
     private function generateSeed(array &$createdFiles): void
     {
-        $sourceSeed = 'src/Seed/M20240101010000SeedExampleData.php';
+        $sourceSeed = 'src/Seed/SeedExampleData.php';
         
         if (!file_exists($sourceSeed)) {
             echo "❌ Seed template not found: {$sourceSeed}\n";
@@ -409,15 +409,22 @@ use App\\Api\\V1\\{$this->moduleName}\\Action\\{$this->moduleName}RestoreAction;
             return;
         }
         
-        // Generate timestamp for new seed (1 hour after migration)
-        $timestamp = date('YmdHis', strtotime('+1 hour'));
-        $targetSeed = "src/Seed/M{$timestamp}Seed{$this->moduleName}Data.php";
+        // Generate seed file name (without timestamp for data-seeder)
+        $targetSeed = "src/Seed/Seed{$this->moduleName}Data.php";
+        
+        // Skip if file already exists
+        if (file_exists($targetSeed)) {
+            echo "📄 Skipped existing seed: {$targetSeed}\n";
+            return;
+        }
         
         $content = file_get_contents($sourceSeed);
-        $content = $this->replacePlaceholders($content);
         
-        // Replace class name with timestamp
-        $content = str_replace("M20240101010000SeedExampleData", "M{$timestamp}Seed{$this->moduleName}Data", $content);
+        // Replace class name
+        $content = str_replace("SeedExampleData", "Seed{$this->moduleName}Data", $content);
+        
+        // Then replace other placeholders
+        $content = $this->replacePlaceholders($content);
         
         // Replace table name references in seed
         $content = str_replace("'example'", "'{$this->moduleLower}'", $content);
@@ -444,8 +451,8 @@ use App\\Api\\V1\\{$this->moduleName}\\Action\\{$this->moduleName}RestoreAction;
                 continue;
             }
             
-            // Check if file matches pattern M*Seed{ModuleName}Data.php
-            if (preg_match("/^M.*Seed{$this->moduleName}Data\.php$/", $file)) {
+            // Check if file matches pattern Seed{ModuleName}Data.php
+            if (preg_match("/^Seed{$this->moduleName}Data\.php$/", $file)) {
                 return $seedDir . '/' . $file;
             }
         }
@@ -477,10 +484,12 @@ use App\\Api\\V1\\{$this->moduleName}\\Action\\{$this->moduleName}RestoreAction;
         $targetMigration = "src/Migration/M{$timestamp}Create{$this->moduleName}Table.php";
         
         $content = file_get_contents($sourceMigration);
-        $content = $this->replacePlaceholders($content);
         
-        // Replace class name with timestamp
+        // Replace class name with timestamp FIRST (before replacePlaceholders)
         $content = str_replace("M20240101000000CreateExampleTable", "M{$timestamp}Create{$this->moduleName}Table", $content);
+        
+        // Then replace other placeholders
+        $content = $this->replacePlaceholders($content);
         
         // Replace table name constant
         $content = str_replace("private const TABLE_NAME = 'example';", "private const TABLE_NAME = '{$this->moduleLower}';", $content);
