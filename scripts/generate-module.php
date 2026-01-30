@@ -248,26 +248,36 @@ final class ModuleGenerator
         
         $content = file_get_contents($configFile);
         
-        // Check if module already exists
-        if (str_contains($content, "{$this->moduleName}Action")) {
+        // Check if module routes already exist
+        if (str_contains($content, "// {$this->moduleName} Routes")) {
             echo "📄 Routes config already exists for {$this->moduleName}\n";
             return;
         }
         
         // Add use statement for all action classes
-        $useStatements = "
-use App\\Api\\V1\\{$this->moduleName}\\Action\\{$this->moduleName}DataAction;
-use App\\Api\\V1\\{$this->moduleName}\\Action\\{$this->moduleName}ViewAction;
-use App\\Api\\V1\\{$this->moduleName}\\Action\\{$this->moduleName}CreateAction;
-use App\\Api\\V1\\{$this->moduleName}\\Action\\{$this->moduleName}UpdateAction;
-use App\\Api\\V1\\{$this->moduleName}\\Action\\{$this->moduleName}DeleteAction;
-use App\\Api\\V1\\{$this->moduleName}\\Action\\{$this->moduleName}RestoreAction;";
+        $useStatements = "use App\\Api\\V1\\{$this->moduleName}\\Action as {$this->moduleName}Action;";
         
         // Add use statements after existing use statements
-        $content = preg_replace('/(declare\(strict_types=1\);\n\n)/', '$1' . $useStatements . "\n\n", $content);
+        // More reliable approach using strpos and manual insertion
+        $usePattern = "use App\\Api\\V1\\Example\\Action as ExampleAction;";
+        $usePos = strpos($content, $usePattern);
+        
+        if ($usePos !== false) {
+            // Insert after Example use statement
+            $insertPos = $usePos + strlen($usePattern);
+            $content = substr_replace($content, "\n" . $useStatements, $insertPos, 0);
+        } else {
+            // Fallback: add after Api Layer comment
+            $apiLayerPattern = "// Api Layer";
+            $apiLayerPos = strpos($content, $apiLayerPattern);
+            if ($apiLayerPos !== false) {
+                $insertPos = $apiLayerPos + strlen($apiLayerPattern);
+                $content = substr_replace($content, "\n" . $useStatements, $insertPos, 0);
+            }
+        }
         
         // Add routes with proper formatting
-        $routes = "\n            // {$this->moduleName} Routes
+        $routes = "\n\n            // {$this->moduleName} Routes
             Route::get('/{$this->moduleLower}')
                 ->action({$this->moduleName}Action\\{$this->moduleName}DataAction::class)
                 ->name('v1/{$this->moduleLower}/index')
@@ -349,7 +359,6 @@ use App\\Api\\V1\\{$this->moduleName}\\Action\\{$this->moduleName}RestoreAction;
         $content = str_replace("example.yaml", "{$this->moduleLower}.yaml", $content);
         
         // Replace custom faker with built-in faker
-        $content = str_replace("<seedDataPoolRandom()>", "<company()>", $content);
         $content = str_replace("<seedDataPoolRandom()>", "<company()>", $content);
         
         file_put_contents($targetFixture, $content);

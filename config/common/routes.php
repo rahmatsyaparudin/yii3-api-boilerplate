@@ -53,3 +53,4 @@ return [
                 ->defaults(['permission' => 'example.restore']),
         ),
 ];
+
