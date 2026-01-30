@@ -52,31 +52,32 @@ composer create-project --prefer-dist yiisoft/app yii3-api
 cd yii3-api
 ```
 
-### 2. Add Skeleton Repository
+## 2. Add the repository and package to `composer.json` 
 
-Add this to your `composer.json`:
+Open your project's `composer.json` and add the following sections:
 
+### Add this to `composer.json` `repositories` 
 ```json
 {
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/rahmatsyaparudin/yii3-api-skeleton.git"
-        }
-    ],
-    "require-dev": {
-        "rahmatsyaparudin/yii3-api-skeleton": "dev-main"
-    },
-    "scripts": {
-        "skeleton-update": [
-            "composer update rahmatsyaparudin/yii3-api-skeleton --ignore-platform-reqs",
-            "php scripts/install-skeleton.php"
-        ],
-        "skeleton-copy-examples": [
-            "php scripts/skeleton-copy-examples.php"
-        ]
-    }
+    "type": "vcs",
+    "url": "https://github.com/rahmatsyaparudin/yii3-api-skeleton.git"
 }
+```
+
+### Add this to `composer.json` `require-dev` 
+```json
+"rahmatsyaparudin/yii3-api-skeleton": "dev-main"
+```
+
+### Add this to `composer.json` `scripts` 
+```json
+"skeleton-update": [
+    "composer update rahmatsyaparudin/yii3-api-skeleton --ignore-platform-reqs",
+    "php scripts/install-skeleton.php"
+],
+"skeleton-copy-examples": [
+    "php scripts/skeleton-copy-examples.php"
+]
 ```
 
 ### 3. Install Skeleton
