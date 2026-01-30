@@ -37,7 +37,7 @@ App\Domain\Example\Entity\Example:
   example_{6..10}:
     __factory: 
       'App\Domain\Example\Entity\Example::create':
-        - '<seedDataPoolRandom()> <randomNumber(6, 10)>'  # $name
+        - '<seedDataPoolRandom()> <sentence()>'  # $name
         - '@status_active'                       # $status
         - '@info_empty'                          # $detailInfo
         - 123                                    # $syncMdb

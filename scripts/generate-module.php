@@ -349,7 +349,8 @@ use App\\Api\\V1\\{$this->moduleName}\\Action\\{$this->moduleName}RestoreAction;
         $content = str_replace("example.yaml", "{$this->moduleLower}.yaml", $content);
         
         // Replace custom faker with built-in faker
-        $content = str_replace("<exampleRandom()>", "<company()>", $content);
+        $content = str_replace("<seedDataPoolRandom()>", "<company()>", $content);
+        $content = str_replace("<seedDataPoolRandom()>", "<company()>", $content);
         
         file_put_contents($targetFixture, $content);
         $createdFiles[] = $targetFixture;
