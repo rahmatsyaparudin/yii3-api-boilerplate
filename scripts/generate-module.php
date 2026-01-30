@@ -348,6 +348,9 @@ use App\\Api\\V1\\{$this->moduleName}\\Action\\{$this->moduleName}RestoreAction;
         $content = str_replace("example item", "{$this->moduleLower} item", $content);
         $content = str_replace("example.yaml", "{$this->moduleLower}.yaml", $content);
         
+        // Replace custom faker with built-in faker
+        $content = str_replace("<exampleRandom()>", "<company()>", $content);
+        
         file_put_contents($targetFixture, $content);
         $createdFiles[] = $targetFixture;
         echo "📄 Created fixture: {$targetFixture}\n";

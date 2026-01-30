@@ -24,20 +24,20 @@ App\Domain\Shared\ValueObject\DetailInfo:
   #           warranty: '1 Year'
 
 # 2. ENTITIES (Sesuaikan dengan signature method create)
-App\Domain\Example\Entity\Example:
-  example_{1..5}:
+App\Domain\Product\Entity\Product:
+  product_{1..5}:
     __factory: 
-      'App\Domain\Example\Entity\Example::create':
+      'App\Domain\Product\Entity\Product::create':
         # Sesuaikan urutan: name, status, detailInfo, syncMdb
-        - '<seedDataPoolRandom()>'   # $name
+        - '<productRandom()>'   # $name
         - '@status_draft' # $status
         - '@info_empty'   # $detailInfo
         - null            # $syncMdb
 
-  example_{6..10}:
+  product_{6..10}:
     __factory: 
-      'App\Domain\Example\Entity\Example::create':
-        - '<seedDataPoolRandom()> <randomNumber(6, 10)>'  # $name
+      'App\Domain\Product\Entity\Product::create':
+        - '<productRandom()> <randomNumber(6, 10)>'  # $name
         - '@status_active'                       # $status
         - '@info_empty'                          # $detailInfo
         - 123                                    # $syncMdb
