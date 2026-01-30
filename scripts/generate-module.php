@@ -358,7 +358,7 @@ use App\\Api\\V1\\{$this->moduleName}\\Action\\{$this->moduleName}RestoreAction;
      */
     private function generateSeed(array &$createdFiles): void
     {
-        $sourceSeed = 'src/Seed/SeedExampleData.php';
+        $sourceSeed = 'src/Seeder/SeedExampleData.php';
         
         if (!file_exists($sourceSeed)) {
             echo "❌ Seed template not found: {$sourceSeed}\n";
