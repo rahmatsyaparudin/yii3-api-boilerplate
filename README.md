@@ -58,10 +58,16 @@ Open your project's `composer.json` and add the following sections:
 
 ### Add this to `composer.json` `repositories` 
 ```json
-{
-    "type": "vcs",
-    "url": "https://github.com/rahmatsyaparudin/yii3-api-skeleton.git"
-}
+"repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/rahmatsyaparudin/yii3-api-boilerplate.git"
+        }
+    ],
 ```
 
 ### Add this to `composer.json` `require-dev` 
