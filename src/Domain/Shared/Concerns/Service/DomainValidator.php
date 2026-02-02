@@ -128,28 +128,4 @@ trait DomainValidator
             );
         }
     }
-
-    public function validateCanBeDeletedsss(?object $entity, string $resource): void
-    {
-        $this->validateExists($entity, $resource);
-
-        if (!method_exists($entity, 'getStatus')) {
-            return;
-        }
-        
-        $status = $entity->getStatus();
-
-        if ($status->isLocked()) {
-            throw new BadRequestException(
-                translate: new Message(
-                    key: 'validation.action_not_allowed',
-                    domain: 'validation',
-                    params: [
-                        'action' => 'delete',
-                        'resource' => $resource
-                    ]
-                )
-            );
-        }
-    }
 }
