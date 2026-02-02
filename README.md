@@ -84,9 +84,7 @@ Open your project's `composer.json` and add the following sections:
 "skeleton-copy-examples": [
     "@php scripts/skeleton-copy-examples.php"
 ],
-"skeleton-generate-module": [
-    "@php scripts/generate-module.php"
-]
+"skeleton-generate-module": "php scripts/generate-module.php",
 ```
 
 ## 2. Update Composer
@@ -132,6 +130,9 @@ composer skeleton-generate-module --module=Order
 
 # Generate another module (e.g., User)
 composer skeleton-generate-module --module=User
+
+# Or use direct PHP script (alternative):
+php scripts/generate-module.php --module=Product
 ```
 
 > **Note:** The skeleton comes with an Example module that demonstrates the complete structure. Use the generator above to create additional modules for your specific needs.
@@ -238,7 +239,7 @@ The skeleton includes the following modules out of the box:
 #### **🔧 Custom Modules** (Generate as needed)
 - **Product, Category, Brand, Order, User, etc.**
 - **Purpose:** Your business-specific modules
-- **Generation:** Use `composer skeleton-generate-module --module=ModuleName`
+- **Generation:** Use `composer skeleton-generate-module --module=ModuleName` or `php scripts/generate-module.php --module=ModuleName`
 - **Customization:** Modify generated files according to your business logic
 
 ## 6. Install Skeleton
@@ -248,7 +249,7 @@ The skeleton includes the following modules out of the box:
 composer update --ignore-platform-reqs
 
 # Install skeleton structure
-composer skeleton-update
+composer skeleton-install
 
 # Copy example files (first time only)
 composer skeleton-copy-examples
