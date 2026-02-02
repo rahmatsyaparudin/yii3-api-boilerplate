@@ -341,6 +341,10 @@ app.cors.allowedHeaders=["Content-Type","Authorization","X-Requested-With","Acce
 app.cors.exposedHeaders=["X-Pagination-Total-Count","X-Pagination-Page-Count"]
 app.trusted_hosts.allowedHosts=["127.0.0.1","::1","localhost"]
 
+# Optimistic Lock Configuration
+app.optimistic_lock.enabled=true
+app.optimistic_lock.default_version=1
+
 # SSO Configuration (External Keycloak)
 app.jwt.secret=secret-key-harus-panjang-256-bit
 app.jwt.algorithm=HS256
@@ -377,6 +381,102 @@ redis.default.password=null
 ./yii seed --module=example --count=10
 
 # Note: Seed commands only work in development environment (APP_ENV=dev)
+```
+
+#### 4. Optimistic Lock Configuration
+
+The skeleton includes configurable optimistic locking to prevent concurrent update conflicts:
+
+```bash
+# Enable/disable optimistic locking (global)
+app.optimistic_lock.enabled=true    # Default: true
+
+# Set default lock version for new records (global)
+app.optimistic_lock.default_version=1  # Default: 1
+```
+
+**🔧 Optimistic Lock Features:**
+
+- **✅ Automatic Version Management** - Each entity has a `lock_version` field
+- **✅ Concurrent Update Prevention** - Throws exception on version mismatch
+- **✅ Configurable** - Can be enabled/disabled globally or per entity
+- **✅ Performance Optimized** - Skips verification when disabled
+- **✅ Per-Entity Control** - Fine-grained control per entity type
+
+**📋 Configuration Options:**
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `app.optimistic_lock.enabled` | boolean | `true` | Enable/disable optimistic locking globally |
+| `app.optimistic_lock.default_version` | integer | `1` | Default version for new entities |
+
+**🚀 Usage Examples:**
+
+```bash
+# Disable optimistic locking globally
+app.optimistic_lock.enabled=false
+
+# Use custom default version
+app.optimistic_lock.default_version=100
+
+# Enable in production for data integrity
+app.optimistic_lock.enabled=true
+```
+
+**🔧 Per-Entity Implementation:**
+
+Control optimistic locking per entity by overriding methods in your entity class:
+
+```php
+// In your Entity class
+public function hasOptimisticLock(): bool
+{
+    // Option 1: Hard disable for this entity
+    return false;
+    
+    // Option 2: Conditional based on business logic
+    return $this->shouldUseOptimisticLock();
+    
+    // Option 3: Use global configuration (default)
+    return true;
+}
+
+// Optional: Custom default version for this entity
+protected function getDefaultLockVersion(): int
+{
+    return 100; // Custom default version
+}
+```
+
+**📝 Entity Configuration Examples:**
+
+```php
+// Example: Disable optimistic lock for logging entities
+class AuditLog extends Entity
+{
+    public function hasOptimisticLock(): bool
+    {
+        return false; // No locking needed for logs
+    }
+}
+
+// Example: Custom version for migrated entities
+class LegacyProduct extends Entity
+{
+    protected function getDefaultLockVersion(): int
+    {
+        return 1000; // Start from 1000 for legacy data
+    }
+}
+
+// Example: Conditional locking based on entity state
+class Order extends Entity
+{
+    public function hasOptimisticLock(): bool
+    {
+        return $this->getStatus() !== OrderStatus::DRAFT;
+    }
+}
 ```
 
 ---

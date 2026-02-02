@@ -47,7 +47,7 @@ final class M20240101000000CreateExampleTable implements RevertibleMigrationInte
                     'updated_by' => null,
                 ],
             ]),
-            'sync_mdb' => $cb::smallint()->null(),
+            'sync_mdb' => $cb::smallint()->null()->comment('null: sync to MDB, 1: not sync to MDB'),
             'lock_version' => $cb::integer()->notNull()->defaultValue(1)->comment('Optimistic locking version'),
         ]);
     }

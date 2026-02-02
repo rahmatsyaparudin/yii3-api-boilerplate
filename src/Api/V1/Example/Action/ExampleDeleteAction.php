@@ -23,7 +23,7 @@ use Yiisoft\Router\CurrentRoute;
 
 final readonly class ExampleDeleteAction
 {
-    private const ALLOWED_KEYS = ['id'];
+    private const ALLOWED_KEYS = ['id', 'lock_version'];
 
     public function __construct(
         private ExampleApplicationService $exampleApplicationService,
@@ -37,6 +37,7 @@ final readonly class ExampleDeleteAction
     ): ResponseInterface
     {
         $id = $currentRoute->getArgument('id');
+        $parsedBody = $request->getParsedBody();
 
         $resource = $this->exampleApplicationService->getResource();
         
@@ -55,6 +56,7 @@ final readonly class ExampleDeleteAction
 
         $exampleResponse = $this->exampleApplicationService->delete(
             id: (int) $id,
+            lockVersion: isset($parsedBody['lock_version']) ? (int) $parsedBody['lock_version'] : null,
         );
 
         return $this->responseFactory->success(

@@ -343,6 +343,7 @@ class SkeletonInstaller
             'common/di/jwt.php',
             'common/di/middleware.php',
             'common/di/monitoring.php',
+            'common/di/optimistic-lock.php',
             'common/di/security.php',
             'web/di/application.php'
         ];

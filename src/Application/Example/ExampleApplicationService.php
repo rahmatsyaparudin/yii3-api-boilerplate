@@ -110,7 +110,10 @@ final class ExampleApplicationService
     {
         $example = $this->getEntityById($id);
 
-        $example->verifyLockVersion($command->lockVersion);
+        // Only verify lock version if optimistic lock is enabled and lockVersion is provided
+        if ($command->lockVersion !== null) {
+            $example->verifyLockVersion($command->lockVersion);
+        }
 
         $newStatus = Status::tryFrom($command->status);
 
@@ -152,9 +155,14 @@ final class ExampleApplicationService
         return ExampleResponse::fromEntity($this->repository->update($example));
     }
 
-    public function delete(int $id): ExampleResponse
+    public function delete(int $id, ?int $lockVersion = null): ExampleResponse
     {
         $example = $this->getEntityById($id);
+
+        // Only verify lock version if optimistic lock is enabled and lockVersion is provided
+        if ($lockVersion !== null) {
+            $example->verifyLockVersion($lockVersion);
+        }
 
         $this->domainService->guardPermission(
             authorizer: $this->auth,
