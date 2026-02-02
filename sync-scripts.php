@@ -17,7 +17,7 @@ function copyRecursive(string $src, string $dst): void
     
     while (($file = readdir($dir)) !== false) {
         if ($file === '.' || $file === '..') continue;
-
+ 
         $srcFile = $src . '/' . $file;
         $dstFile = $dst . '/' . $file;
 
