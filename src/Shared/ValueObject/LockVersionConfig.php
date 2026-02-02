@@ -12,21 +12,19 @@ final class LockVersionConfig
 {
     public function __construct(
         private readonly bool $globalEnabled,
-        private readonly array $validatorOverrides = []
+        private readonly array $disabledValidators = []
     ) {}
 
-    /**
-     * Logika pengecekan status aktif/non-aktif
-     */
     public function isEnabledFor(string $validatorName): bool
     {
         if (!$this->globalEnabled) {
             return false;
         }
 
-        // Contoh: FlagInputValidator -> flaginputvalidator
-        $key = strtolower($validatorName);
+        // Contoh: FlagInputValidator -> flag
+        $key = strtolower(str_replace('InputValidator', '', $validatorName));
 
-        return $this->validatorOverrides[$key] ?? true;
+        // Jika ada di dalam list disabled, maka return false
+        return !in_array($key, $this->disabledValidators, true);
     }
 }
