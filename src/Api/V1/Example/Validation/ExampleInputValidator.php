@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Api\V1\Example\Validation;
 
 // Shared Layer
+use App\Shared\Enums\RecordStatus;
 use App\Shared\Validation\AbstractValidator;
 use App\Shared\Validation\ValidationContext;
-use App\Shared\Enums\RecordStatus;
+use App\Shared\Validation\Rules\HasNoDependencies;
 
 // Vendor Layer
 use Yiisoft\Validator\Rule\Required;
@@ -45,6 +46,12 @@ final class ExampleInputValidator extends AbstractValidator
                 'id' => [
                     new Required(),
                     new Integer(min: 1),
+                    // new HasNoDependencies(
+                    //     map: [
+                    //         'other_table' => ['example_id'],
+                    //     ],
+                    //     message: 'Data tidak bisa dihapus karena masih digunakan di tabel lain.'
+                    // ),
                 ],
                 'name' => [
                     new StringValue(
@@ -65,16 +72,25 @@ final class ExampleInputValidator extends AbstractValidator
                     ),
                 ],
                 'lock_version' => [
+                    new Required(
+                        when: fn() => $this->isOptimisticLockEnabled()
+                    ),
                     new Integer(
                         min: 1,
-                        // skipOnEmpty: true,
+                        skipOnEmpty: fn() => !$this->isOptimisticLockEnabled()
                     ),
                 ],
             ],
             ValidationContext::DELETE => [
                 'id' => [
                     new Required(), 
-                    new Integer(min: 1), 
+                    new Integer(min: 1),
+                    // new HasNoDependencies(
+                    //     map: [
+                    //         'other_table' => ['example_id'],
+                    //     ],
+                    //     message: 'Data tidak bisa dihapus karena masih digunakan di tabel lain.'
+                    // ),
                 ],
             ],
             ValidationContext::SEARCH => [

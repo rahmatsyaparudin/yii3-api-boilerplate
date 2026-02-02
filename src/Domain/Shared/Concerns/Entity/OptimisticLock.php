@@ -17,6 +17,10 @@ trait OptimisticLock
 
     public function verifyLockVersion(int $version): void
     {
+        if (!$this->isOptimisticLockEnabled()) {
+            return; // Skip verification if disabled
+        }
+
         if (!$this->getLockVersion()->equals(LockVersion::fromInt($version))) {
             throw new OptimisticLockException(
                 translate: new Message(
@@ -47,7 +51,9 @@ trait OptimisticLock
 
     public function upgradeLockVersion(): void
     {
-        $this->lockVersion = $this->lockVersion->increment();
+        if ($this->isOptimisticLockEnabled()) {
+            $this->lockVersion = $this->lockVersion->increment();
+        }
     }
 
     /**
@@ -56,5 +62,31 @@ trait OptimisticLock
     protected function initializeLockVersion(): void
     {
         // Property is already initialized in constructor
+    }
+
+    /**
+     * Check if optimistic locking is enabled for this entity
+     * Simple global check only - no entity override
+     */
+    protected function isOptimisticLockEnabled(): bool
+    {
+        try {
+            // Try to get from container (if available)
+            $container = \Yiisoft\Yii\Yii::getContainer();
+            $params = $container->get('params');
+            return $params['app/optimisticLock']['enabled'] ?? true;
+        } catch (\Throwable $e) {
+            // Fallback to environment variable or default
+            return filter_var($_ENV['app.optimistic_lock.enabled'] ?? true, FILTER_VALIDATE_BOOLEAN);
+        }
+    }
+
+    /**
+     * Get default lock version from configuration
+     * Uses LockVersion::DEFAULT_VALUE
+     */
+    protected function getDefaultLockVersion(): int
+    {
+        return LockVersion::DEFAULT_VALUE;
     }
 }

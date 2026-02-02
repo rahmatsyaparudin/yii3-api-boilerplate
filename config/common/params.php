@@ -51,6 +51,9 @@ return [
         'name'     => $_ENV['app.config.name'] ?? 'name',
         'language' => $_ENV['app.config.language'] ?? 'en',
     ],
+    'app/optimisticLock' => [
+        'enabled' => filter_var($_ENV['app.optimistic_lock.enabled'] ?? true, FILTER_VALIDATE_BOOLEAN),
+    ],
     'app/pagination' => [
         'defaultPageSize' => $_ENV['app.pagination.defaultPageSize'] ?? 10,
         'maxPageSize'     => $_ENV['app.pagination.maxPageSize'] ?? 200,

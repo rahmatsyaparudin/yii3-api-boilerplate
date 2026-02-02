@@ -15,11 +15,11 @@ final class MdbExampleSchema
     public static function toArray(Example $example): array
     {
         return [
-            'name'         => $example->getName(),
-            'status'       => $example->getStatus()->value(),
-            'detail_info'  => $example->getDetailInfo()->toArray(),
+            'name' => $example->getName(),
+            'status' => $example->getStatus()->value(),
+            'detail_info' => $example->getDetailInfo()->toArray(),
             'lock_version' => $example->getLockVersion()->value(),
-            'sync_at'      => new UTCDateTime(),
+            'sync_at' => new UTCDateTime(),
         ];
     }
 }
