@@ -47,7 +47,7 @@ return [
         'database' => $_ENV['db.mongodb.name'],
     ],
     'app/config'  => [
-        'code'     => 'enterEDC',
+        'code'     => $_ENV['app.config.code'] ?? 'code',
         'name'     => $_ENV['app.config.name'] ?? 'name',
         'language' => $_ENV['app.config.language'] ?? 'en',
     ],

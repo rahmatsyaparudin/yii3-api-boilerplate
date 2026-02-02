@@ -79,13 +79,13 @@ Open your project's `composer.json` and add the following sections:
 ```json
 "skeleton-update": [
     "composer update rahmatsyaparudin/yii3-api-boilerplate --ignore-platform-reqs",
-    "php scripts/install-skeleton.php"
+    "@php scripts/install-skeleton.php"
 ],
 "skeleton-copy-examples": [
-    "php scripts/skeleton-copy-examples.php"
+    "@php scripts/skeleton-copy-examples.php"
 ],
 "skeleton-generate-module": [
-    "php scripts/generate-module.php"
+    "@php scripts/generate-module.php"
 ]
 ```
 
@@ -119,19 +119,19 @@ Use the built-in module generator to create new API modules with complete struct
 
 ```bash
 # Generate a new module (e.g., Product)
-php scripts/generate-module.php --module=Product
+composer skeleton-generate-module --module=Product
 
 # Generate another module (e.g., Category)
-php scripts/generate-module.php --module=Category
+composer skeleton-generate-module --module=Category
 
 # Generate another module (e.g., Brand)
-php scripts/generate-module.php --module=Brand
+composer skeleton-generate-module --module=Brand
 
 # Generate another module (e.g., Order)
-php scripts/generate-module.php --module=Order
+composer skeleton-generate-module --module=Order
 
 # Generate another module (e.g., User)
-php scripts/generate-module.php --module=User
+composer skeleton-generate-module --module=User
 ```
 
 > **Note:** The skeleton comes with an Example module that demonstrates the complete structure. Use the generator above to create additional modules for your specific needs.
@@ -238,7 +238,7 @@ The skeleton includes the following modules out of the box:
 #### **🔧 Custom Modules** (Generate as needed)
 - **Product, Category, Brand, Order, User, etc.**
 - **Purpose:** Your business-specific modules
-- **Generation:** Use `php scripts/generate-module.php --module=ModuleName`
+- **Generation:** Use `composer skeleton-generate-module --module=ModuleName`
 - **Customization:** Modify generated files according to your business logic
 
 ## 6. Install Skeleton
@@ -252,8 +252,9 @@ composer skeleton-update
 
 # Copy example files (first time only)
 composer skeleton-copy-examples
-```
 
+composer skeleton-generate-module --module=Product
+```
 ---
 
 ## 📁 Project Structure
@@ -320,8 +321,8 @@ Edit `.env` file:
 APP_ENV=dev
 APP_DEBUG=1
 
-app.config.code=enterEDC
-app.config.name=enterEDC
+app.config.code=appAPI
+app.config.name=appAPI
 app.config.language=en
 app.time.timezone=Asia/Jakarta
 app.pagination.defaultPageSize=10
@@ -342,8 +343,8 @@ app.trusted_hosts.allowedHosts=["127.0.0.1","::1","localhost"]
 # SSO Configuration (External Keycloak)
 app.jwt.secret=secret-key-harus-panjang-256-bit
 app.jwt.algorithm=HS256
-app.jwt.issuer=https://sso.dev-enterkomputer.com
-app.jwt.audience=https://sso.dev-enterkomputer.com
+app.jwt.issuer=https://sso.example.com
+app.jwt.audience=https://sso.example.com
 
 db.default.driver=pgsql
 db.default.host=localhost
