@@ -117,19 +117,19 @@ Use the built-in module generator to create new API modules with complete struct
 
 ```bash
 # Generate a new module (e.g., Product)
-composer skeleton-generate-module --module=Product
+composer skeleton-generate-module -- --module=Product
 
 # Generate another module (e.g., Category)
-composer skeleton-generate-module --module=Category
+composer skeleton-generate-module -- --module=Category
 
 # Generate another module (e.g., Brand)
-composer skeleton-generate-module --module=Brand
+composer skeleton-generate-module -- --module=Brand
 
 # Generate another module (e.g., Order)
-composer skeleton-generate-module --module=Order
+composer skeleton-generate-module -- --module=Order
 
 # Generate another module (e.g., User)
-composer skeleton-generate-module --module=User
+composer skeleton-generate-module -- --module=User
 
 # Or use direct PHP script (alternative):
 php scripts/generate-module.php --module=Product
@@ -239,7 +239,7 @@ The skeleton includes the following modules out of the box:
 #### **🔧 Custom Modules** (Generate as needed)
 - **Product, Category, Brand, Order, User, etc.**
 - **Purpose:** Your business-specific modules
-- **Generation:** Use `composer skeleton-generate-module --module=ModuleName` or `php scripts/generate-module.php --module=ModuleName`
+- **Generation:** Use `composer skeleton-generate-module -- --module=ModuleName` or `php scripts/generate-module.php --module=ModuleName`
 - **Customization:** Modify generated files according to your business logic
 
 ## 6. Install Skeleton
@@ -254,7 +254,7 @@ composer skeleton-install
 # Copy example files (first time only)
 composer skeleton-copy-examples
 
-composer skeleton-generate-module --module=Product
+composer skeleton-generate-module -- --module=Product
 ```
 ---
 

@@ -114,7 +114,9 @@
         "skeleton-copy-examples": [
             "@php scripts/skeleton-copy-examples.php"
         ],
-        "skeleton-generate-module": "php scripts/generate-module.php",
+        "skeleton-generate-module": [
+            "@php scripts/generate-module.php"
+        ],
         "serve": [
             "Composer\\Config::disableProcessTimeout",
             "@php ./yii serve"
