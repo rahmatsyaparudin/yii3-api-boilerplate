@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace App\Shared\ValueObject;
 
-/**
- * LockVersionConfig - Value Object yang merepresentasikan aturan
- * konfigurasi Optimistic Lock di seluruh aplikasi.
- */
 final class LockVersionConfig
 {
+    private readonly array $normalizedDisabledList;
+
     public function __construct(
         private readonly bool $globalEnabled,
-        private readonly array $disabledValidators = []
-    ) {}
+        array $disabledValidators = []
+    ) {
+        $this->normalizedDisabledList = array_map(
+            fn($val) => $this->normalize($val), 
+            $disabledValidators
+        );
+    }
 
     public function isEnabledFor(string $validatorName): bool
     {
@@ -21,10 +24,12 @@ final class LockVersionConfig
             return false;
         }
 
-        // Contoh: FlagInputValidator -> flag
-        $key = strtolower(str_replace('InputValidator', '', $validatorName));
+        return !in_array($this->normalize($validatorName), $this->normalizedDisabledList, true);
+    }
 
-        // Jika ada di dalam list disabled, maka return false
-        return !in_array($key, $this->disabledValidators, true);
+    private function normalize(string $name): string
+    {
+        $name = str_ireplace('InputValidator', '', $name);
+        return preg_replace('/[^a-z0-9]/', '', strtolower(trim($name)));
     }
 }

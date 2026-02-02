@@ -11,6 +11,7 @@ $allowedMethods = \json_decode($_ENV['app.cors.allowedMethods'] ?? '[]', true) ?
 $allowedHeaders = \json_decode($_ENV['app.cors.allowedHeaders'] ?? '[]', true) ?? [];
 $exposedHeaders = \json_decode($_ENV['app.cors.exposedHeaders'] ?? '[]', true) ?? [];
 $trustedHosts = \json_decode($_ENV['app.trusted_hosts.allowedHosts'] ?? '[]', true) ?? [];
+$disabledValues = \json_decode($_ENV['app.optimistic_lock.disabled.values'] ?? '[]', true) ?? [];
 
 return [
     'application' => require __DIR__ . '/application.php',
@@ -53,6 +54,7 @@ return [
     ],
     'app/optimisticLock' => [
         'enabled' => filter_var($_ENV['app.optimistic_lock.enabled'] ?? true, FILTER_VALIDATE_BOOLEAN),
+        'disabledValues' => $disabledValues,
     ],
     'app/pagination' => [
         'defaultPageSize' => $_ENV['app.pagination.defaultPageSize'] ?? 10,
