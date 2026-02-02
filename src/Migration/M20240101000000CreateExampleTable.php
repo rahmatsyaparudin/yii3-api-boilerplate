@@ -34,9 +34,9 @@ final class M20240101000000CreateExampleTable implements RevertibleMigrationInte
         $cb = $b->columnBuilder();
 
         $b->createTable(self::TABLE_NAME, [
-            'id'          => $cb::primaryKey(),
-            'name'        => $cb::string(255)->notNull(),
-            'status'      => $cb::smallint()->notNull()->defaultValue(RecordStatus::DRAFT->value),
+            'id' => $cb::primaryKey(),
+            'name' => $cb::string(255)->notNull(),
+            'status' => $cb::smallint()->notNull()->defaultValue(RecordStatus::DRAFT->value),
             'detail_info' => $cb::json()->notNull()->defaultValue([
                 'change_log' => [
                     'created_at' => null,
@@ -47,8 +47,8 @@ final class M20240101000000CreateExampleTable implements RevertibleMigrationInte
                     'updated_by' => null,
                 ],
             ]),
-            'sync_mdb'    => $cb::smallint()->null(),
-            'lock_version'=> $cb::integer()->notNull()->defaultValue(1)->comment('Optimistic locking version'),
+            'sync_mdb' => $cb::smallint()->null(),
+            'lock_version' => $cb::integer()->notNull()->defaultValue(1)->comment('Optimistic locking version'),
         ]);
     }
 
