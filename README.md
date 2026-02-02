@@ -79,7 +79,7 @@ Open your project's `composer.json` and add the following sections:
 ```json
 "skeleton-update": [
     "composer update rahmatsyaparudin/yii3-api-boilerplate --ignore-platform-reqs",
-    "@php scripts/install-skeleton.php"
+    "@php scripts/skeleton-install.php"
 ],
 "skeleton-copy-examples": [
     "@php scripts/skeleton-copy-examples.php"

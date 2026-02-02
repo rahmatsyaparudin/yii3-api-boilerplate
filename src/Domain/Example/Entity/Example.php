@@ -84,11 +84,6 @@ final class Example
     {
         $this->syncMdb = $syncMdb;
     }
-
-    /**
-     * Place Example-specific business functions here, in addition to those
-     * provided by common traits/concerns (Identifiable, Stateful, etc.).
-     */
     
     public function restore(): void
     {
@@ -104,5 +99,10 @@ final class Example
         
         $this->status = Status::draft();
     }
+
+    /**
+     * Place Example-specific business functions here, in addition to those
+     * provided by common traits/concerns (Identifiable, Stateful, etc.).
+     */
     
 }

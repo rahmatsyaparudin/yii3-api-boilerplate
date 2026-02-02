@@ -109,7 +109,7 @@
     },
     "scripts": {
         "skeleton-install": [
-            "@php scripts/install-skeleton.php"
+            "@php scripts/skeleton-install.php"
         ],
         "skeleton-copy-examples": [
             "@php scripts/skeleton-copy-examples.php"
