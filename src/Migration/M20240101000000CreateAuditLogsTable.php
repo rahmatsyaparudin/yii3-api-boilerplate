@@ -17,13 +17,13 @@ final class M20240101000000CreateAuditLogsTable implements RevertibleMigrationIn
         $cb = $b->columnBuilder();
 
         $b->createTable(self::TABLE_NAME, [
-            'id'         => $cb::primaryKey(),
+            'id' => $cb::primaryKey(),
             'table_name' => $cb::string(255)->notNull(),
-            'record_id'  => $cb::integer()->notNull(),
-            'action'     => $cb::string(20)->notNull(),
+            'record_id' => $cb::integer()->notNull(),
+            'action' => $cb::string(20)->notNull(),
             'old_values' => $cb::json(),
             'new_values' => $cb::json(),
-            'user_id'    => $cb::integer(),
+            'user_id' => $cb::integer(),
             'user_name'  => $cb::string(255),
             'ip_address' => $cb::string(45),
             'user_agent' => $cb::text(),

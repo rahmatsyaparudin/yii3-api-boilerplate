@@ -19,13 +19,13 @@ final class M20240101000001CreateRateLimitsTable implements RevertibleMigrationI
         $cb = $b->columnBuilder();
 
         $b->createTable(self::TABLE_NAME, [
-            'id'         => $cb::primaryKey(),
-            'key'        => $cb::string(255)->notNull(),
+            'id' => $cb::primaryKey(),
+            'key' => $cb::string(255)->notNull(),
             'created_at' => $cb::timestamp(),
         ]);
 
-        $b->createIndex('rate_limits', 'idx_rate_limits_key_created', ['key', 'created_at']);
-        $b->createIndex('rate_limits', 'idx_rate_limits_created', ['created_at']);
+        $b->createIndex(self::TABLE_NAME, 'idx_rate_limits_key_created', ['key', 'created_at']);
+        $b->createIndex(self::TABLE_NAME, 'idx_rate_limits_created', ['created_at']);
     }
 
     public function down(MigrationBuilder $b): void
