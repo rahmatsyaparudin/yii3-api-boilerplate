@@ -131,7 +131,7 @@ class SkeletonConfigCopier
 
 // Run the copier
 try {
-    $copier = new SkeletonExamplesCopier();
+    $copier = new SkeletonConfigCopier();
     $copier->copy();
 } catch (Exception $e) {
     echo "❌ Copy failed: " . $e->getMessage() . "\n";
