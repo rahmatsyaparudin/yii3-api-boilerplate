@@ -7,10 +7,19 @@ namespace App\Infrastructure\Concerns;
 use App\Shared\Exception\OptimisticLockException;
 use App\Shared\Exception\NotFoundException;
 use App\Shared\ValueObject\Message;
+use App\Shared\ValueObject\LockVersionConfig;
 
 trait ManagesPersistence
 {
-    private ?bool $optimisticLockEnabled = null;
+    protected LockVersionConfig $lockVersionConfig;
+
+    /**
+     * Set LockVersionConfig (for dependency injection)
+     */
+    public function setLockVersionConfig(LockVersionConfig $lockVersionConfig): void
+    {
+        $this->lockVersionConfig = $lockVersionConfig;
+    }
 
     /**
      * Kondisi standar hanya berdasarkan ID (tanpa Lock)
@@ -26,7 +35,7 @@ trait ManagesPersistence
     private function buildLockCondition(object $entity, int $currentLockVersion): array
     {
         $condition = ['id' => $entity->getId()];
-        if ($this->isOptimisticLockEnabled()) {
+        if ($this->isOptimisticLockEnabled($entity)) {
             $condition['lock_version'] = $currentLockVersion;
         }
         return $condition;
@@ -40,7 +49,7 @@ trait ManagesPersistence
         $resourceName = defined(get_class($entity) . '::RESOURCE') ? $entity::RESOURCE : 'resource';
 
         // Jika kita ingin mengecek lock dan lock aktif
-        if ($checkLock && $this->isOptimisticLockEnabled()) {
+        if ($checkLock && $this->isOptimisticLockEnabled($entity)) {
             throw new OptimisticLockException(
                 translate: new Message(
                     key: 'optimistic.lock.failed',
@@ -61,18 +70,12 @@ trait ManagesPersistence
     }
 
     /**
-     * Set optimistic lock enabled status (for dependency injection)
+     * Check if optimistic locking is enabled for this entity
+     * Uses centralized LockVersionConfig
      */
-    public function setOptimisticLockEnabled(bool $enabled): void
+    protected function isOptimisticLockEnabled(object $entity): bool
     {
-        $this->optimisticLockEnabled = $enabled;
-    }
-
-    /**
-     * Get optimistic lock enabled status
-     */
-    public function isOptimisticLockEnabled(): bool
-    {
-        return $this->optimisticLockEnabled ?? true;
+        $className = (new \ReflectionClass($entity))->getShortName();
+        return $this->lockVersionConfig->isEnabledForRepository($className);
     }
 }

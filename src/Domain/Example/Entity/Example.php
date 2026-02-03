@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Example\Entity;
 
 // Domain Layer
-use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\Status;
+use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\LockVersion;
 use App\Domain\Shared\Concerns\Entity\Stateful;
 use App\Domain\Shared\Concerns\Entity\Identifiable;
@@ -15,6 +15,7 @@ use App\Domain\Shared\Concerns\Entity\OptimisticLock;
 
 // Shared Layer
 use App\Shared\ValueObject\Message;
+use App\Shared\ValueObject\LockVersionConfig;
 use App\Shared\Exception\BadRequestException;
 
 final class Example
