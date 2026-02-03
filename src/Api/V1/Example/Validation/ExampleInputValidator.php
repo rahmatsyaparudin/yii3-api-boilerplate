@@ -89,7 +89,7 @@ final class ExampleInputValidator extends AbstractValidator
                 ],
                 'lock_version' => [
                     new Required(
-                        when: fn() => $this->isOptimisticLockEnabled()
+                        when: fn() => $this->shouldValidateOptimisticLock()
                     ),
                     new Integer(
                         min: 1,

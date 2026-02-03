@@ -62,5 +62,15 @@ abstract class AbstractValidator
         return $this->lockVersionConfig->isEnabledFor($shortName);
     }
     
+    /**
+     * Check if optimistic locking is enabled for this validator
+     * Alternative name to avoid conflicts
+     */
+    protected function shouldValidateOptimisticLock(): bool
+    {
+        $shortName = (new \ReflectionClass($this))->getShortName();
+        return $this->lockVersionConfig->isEnabledFor($shortName);
+    }
+    
     abstract protected function rules(string $context): array;
 }
