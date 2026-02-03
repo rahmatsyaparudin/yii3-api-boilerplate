@@ -9,6 +9,7 @@ use App\Shared\Enums\RecordStatus;
 use App\Shared\Validation\AbstractValidator;
 use App\Shared\Validation\ValidationContext;
 use App\Shared\Validation\Rules\HasNoDependencies;
+use App\Shared\Validation\Rules\UniqueValue;
 
 // Vendor Layer
 use Yiisoft\Validator\Rule\Required;
@@ -16,6 +17,7 @@ use Yiisoft\Validator\Rule\Integer;
 use Yiisoft\Validator\Rule\StringValue;
 use Yiisoft\Validator\Rule\Length;
 use Yiisoft\Validator\Rule\In;
+use Yiisoft\Validator\Rule\StopOnError;
 
 /**
  * Example Input Validator
@@ -30,9 +32,16 @@ final class ExampleInputValidator extends AbstractValidator
         return match ($context) {
             ValidationContext::CREATE => [
                 'name' => [
-                    new Required(),
-                    new StringValue(),
-                    new Length(min: 1, max: 255),
+                    new StopOnError([
+                        new Required(),
+                        new StringValue(),
+                        new Length(min: 3, max: 255),
+                        new UniqueValue(
+                            table: 'example', 
+                            column: 'name', 
+                            ignoreId: null
+                        )
+                    ])
                 ],
                 'status' => [
                     new Required(),
@@ -54,14 +63,21 @@ final class ExampleInputValidator extends AbstractValidator
                     // ),
                 ],
                 'name' => [
-                    new StringValue(
-                        skipOnEmpty: true,
-                    ), 
-                    new Length(
-                        min: 1,
-                        max: 255,
-                        skipOnEmpty: true,
-                    ),
+                    new StopOnError([
+                        new StringValue(
+                            skipOnEmpty: true,
+                        ),
+                        new Length(
+                            min: 3, 
+                            max: 255,
+                            skipOnEmpty: true,
+                        ),
+                        new UniqueValue(
+                            table: 'example', 
+                            column: 'name', 
+                            ignoreId: $this->data['id'] ?? null
+                        )
+                    ])
                 ],
                 'status' => [
                     new Integer(
@@ -89,7 +105,6 @@ final class ExampleInputValidator extends AbstractValidator
                     //     map: [
                     //         'other_table' => ['example_id'],
                     //     ],
-                    //     message: 'Data tidak bisa dihapus karena masih digunakan di tabel lain.'
                     // ),
                 ],
             ],

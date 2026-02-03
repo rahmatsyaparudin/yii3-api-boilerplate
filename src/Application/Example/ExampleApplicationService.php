@@ -81,14 +81,6 @@ final class ExampleApplicationService
 
     public function create(CreateExampleCommand $command): ExampleResponse
     {
-        $this->domainService->validateUniqueValue(
-            value: $command->name,
-            field: 'name',
-            resource: Example::RESOURCE,
-            repository: $this->repository,
-            excludeId: null
-        );
-
         $detailInfo = $this->detailInfoFactory
             ->create(
                 detailInfo: []
@@ -128,14 +120,6 @@ final class ExampleApplicationService
         );
 
         if (isset($command->name)) {
-            $this->domainService->validateUniqueValue(
-                field: 'name',
-                value: $command->name,
-                resource: $this->getResource(),
-                repository: $this->repository,
-                excludeId: $id
-            );
-
             $example->changeName($command->name);
         }
 
