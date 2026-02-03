@@ -125,6 +125,9 @@ Use the built-in module generator to create new API modules with complete struct
 # Generate a new module (e.g., Product)
 composer skeleton-generate-module -- --module=Product
 
+# Generate module with custom table name
+composer skeleton-generate-module -- --module=Order --table=logistic_service
+
 # Generate another module (e.g., Category)
 composer skeleton-generate-module -- --module=Category
 
@@ -139,6 +142,7 @@ composer skeleton-generate-module -- --module=User
 
 # Or use direct PHP script (alternative):
 php scripts/generate-module.php --module=Product
+php scripts/generate-module.php --module=Order --table=logistic_service
 ```
 
 > **Note:** The skeleton comes with an Example module that demonstrates the complete structure. Use the generator above to create additional modules for your specific needs.
@@ -246,6 +250,7 @@ The skeleton includes the following modules out of the box:
 - **Product, Category, Brand, Order, User, etc.**
 - **Purpose:** Your business-specific modules
 - **Generation:** Use `composer skeleton-generate-module -- --module=ModuleName` or `php scripts/generate-module.php --module=ModuleName`
+- **Custom Table:** Use `--table=table_name` for custom table names (e.g., `--module=LogisticService --table=logistic_service`)
 - **Customization:** Modify generated files according to your business logic
 
 ## 6. Install Skeleton
@@ -273,6 +278,9 @@ composer skeleton-copy-examples
 # Generate new module
 ```bash
 composer skeleton-generate-module -- --module=Product
+
+# Generate module with custom table name
+composer skeleton-generate-module -- --module=Order --table=logistic_service
 ```
 ---
 
