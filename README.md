@@ -88,7 +88,7 @@ Open your project's `composer.json` and add the following sections:
 ],
 "skeleton-generate-module": [
     "@php scripts/generate-module.php"
-],
+]
 ```
 
 ### 3. Update Composer
