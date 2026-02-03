@@ -13,6 +13,7 @@ use App\Domain\Shared\ValueObject\DetailInfo;
 // Infrastructure Layer
 use App\Infrastructure\Concerns\HasCoreFeatures;
 use App\Infrastructure\Concerns\HasMongoDBSync;
+use App\Infrastructure\Concerns\ManagesPersistence;
 use App\Infrastructure\Database\MongoDB\MongoDBService;
 use App\Infrastructure\Persistence\Example\MdbExampleSchema;
 use App\Infrastructure\Security\CurrentUserAwareInterface;
@@ -20,6 +21,7 @@ use App\Infrastructure\Security\CurrentUserAwareInterface;
 // Shared Layer
 use App\Shared\Dto\PaginatedResult;
 use App\Shared\Dto\SearchCriteria;
+use App\Shared\Exception\NotFoundException;
 use App\Shared\Exception\OptimisticLockException;
 use App\Shared\Query\QueryConditionApplier;
 use App\Shared\ValueObject\Message;
@@ -37,13 +39,12 @@ use Yiisoft\Db\Query\Query;
  */
 final class ExampleRepository implements ExampleRepositoryInterface, CurrentUserAwareInterface
 {
-    use HasCoreFeatures, HasMongoDBSync;
+    use HasCoreFeatures, HasMongoDBSync, ManagesPersistence;
 
-    private const SEQUENCE_ID = 'example_id_seq';
-    private const TABLE_NAME = 'example';
+    public const TABLE_NAME = 'example';
+    public const SEQUENCE_ID = 'example_id_seq';
+
     private const LIKE_OPERATOR = 'ilike';
-    
-    private ?object $collection = null;
 
     public function __construct(
         private QueryConditionApplier $queryConditionApplier,
@@ -74,7 +75,6 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
             name: $row['name'],
             status: Status::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
-            syncMdb: $row['sync_mdb'] ?? null,
             lockVersion: (int) $row['lock_version']
         );
     }
@@ -101,9 +101,8 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
             name: $row['name'],
             status: Status::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
-            syncMdb: $row['sync_mdb'] ?? null,
             lockVersion: (int) $row['lock_version']
-        );
+        )->updateSyncMdb($row['sync_mdb'] ?? null);
 
         // 3. Restore entity status
         $entity->restore(); // This should change status from DELETED to DRAFT
@@ -131,24 +130,24 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
             name: $row['name'],
             status: Status::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
-            syncMdb: $row['sync_mdb'] ?? null,
             lockVersion: (int) $row['lock_version']
-        );
+        )->updateSyncMdb($row['sync_mdb'] ?? null);
     }
 
     public function delete(Example $example): Example
     {
         return $this->db->transaction(function() use ($example) {
-            // 1. Update di PostgreSQL
-            $this->db->createCommand()
+            $result = $this->db->createCommand()
                 ->update(
                     self::TABLE_NAME,
                     $this->getDeletedState(), 
-                    [
-                        'id' => $example->getId(),
-                    ]
+                    $this->buildSimpleCondition($example)
                 )
                 ->execute();
+
+            if ($result === 0) {
+                $this->handlePersistenceFailure($example, false);
+            }
 
             $deletedExample = $example->markAsDeleted();
 
@@ -254,7 +253,6 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
                 name: $example->getName(),
                 status: $example->getStatus(),
                 detailInfo: $example->getDetailInfo(),
-                syncMdb: $example->getSyncMdb(),
                 lockVersion: 1
             );
 
@@ -267,51 +265,36 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
     public function update(Example $example): Example
     {
         return $this->db->transaction(function() use ($example) {
-            // Get current and new lock versions
-            $currentLockVersion = $example->getLockVersion();
-            $newLockVersion = $currentLockVersion->increment();
+            $currentLock = $example->getLockVersion();
+            $newLock = $currentLock->increment();
             
             $result = $this->db->createCommand()
-                ->update(self::TABLE_NAME, [
-                    'name' => $example->getName(),
-                    'status' => $example->getStatus()->value(),
-                    'detail_info' => $example->getDetailInfo()->toArray(),
-                    'sync_mdb' => $example->getSyncMdb(),
-                    'lock_version' => $newLockVersion->value(),
-                ], [
-                    'id' => $example->getId(),
-                    'lock_version' => $currentLockVersion->value()
-                ])
+                ->update(
+                    self::TABLE_NAME, 
+                    $this->mapEntityToTable($example, $newLock->value()), 
+                    $this->buildLockCondition($example, $currentLock->value())
+                )
                 ->execute();
             
-            // Check if update was successful (optimistic locking)
             if ($result === 0) {
-                throw new OptimisticLockException(
-                    translate: new Message(
-                        key: 'optimistic.lock.failed',
-                        params: [
-                            'resource' => Example::RESOURCE,
-                        ]
-                    )
-                );
+                $this->handlePersistenceFailure($example);
             }
             
             $example->upgradeLockVersion();
-            
             $this->syncMongoDB($example, MdbExampleSchema::class);
             
             return $example;
         });
     }
 
-    private function syncMongoDB(Example $example): void
+    private function mapEntityToTable(Example $example, int $newLockVersion): array
     {
-        if ($this->collection !== null) {
-            $this->collection->updateOne(
-                ['id' => $example->getId()],
-                ['$set' => MdbExampleSchema::toArray($example)],
-                ['upsert' => true]
-            );
-        }
+        return [
+            'name' => $example->getName(),
+            'status' => $example->getStatus()->value(),
+            'detail_info' => $example->getDetailInfo()->toArray(),
+            'sync_mdb' => $example->getSyncMdb(), // State saat ini
+            'lock_version' => $newLockVersion,
+        ];
     }
 }

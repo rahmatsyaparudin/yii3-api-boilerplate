@@ -15,7 +15,7 @@ final readonly class ExampleResponse
         public int $id,
         public string $name,
         public int $status,
-        public bool $sync_mdb,
+        public ?int $sync_mdb,
         public array $detail_info,
         public int $lock_version,
     ) {}

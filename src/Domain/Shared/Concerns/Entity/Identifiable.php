@@ -52,4 +52,20 @@ trait Identifiable
             );
         }
     }
+
+    public function getSyncMdb(): ?int
+    {
+        return $this->syncMdb;
+    }
+
+    public function setSyncMdb(int $syncMdb): self
+    {
+        $this->syncMdb = $syncMdb;
+        return $this;
+    }
+
+    public function updateSyncMdb(?int $syncMdb): void
+    {
+        $this->syncMdb = $syncMdb;
+    }
 }

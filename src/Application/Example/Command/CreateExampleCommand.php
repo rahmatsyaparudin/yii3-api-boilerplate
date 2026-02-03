@@ -10,6 +10,5 @@ final readonly class CreateExampleCommand
         public string $name,
         public int $status,
         public ?array $detailInfo,
-        public ?bool $syncMdb = null,
     ) {}
 }

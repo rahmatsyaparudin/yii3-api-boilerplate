@@ -22,6 +22,7 @@ use Yiisoft\Definitions\Reference;
 return [
     ExampleRepositoryInterface::class => [
         'class' => ExampleRepository::class,
+        'setOptimisticLockEnabled()' => [$params['app/optimisticLock']['enabled'] ?? true],
         'setCurrentUser()' => [Reference::to(CurrentUser::class)],
     ],
 ];

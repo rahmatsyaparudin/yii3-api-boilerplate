@@ -91,7 +91,6 @@ final class ExampleUpdateAction
             name: $params->get('name'),
             status: $params->get('status'),
             detailInfo: $params->get('detail_info'),
-            syncMdb: $params->get('sync_mdb'),
             lockVersion: $params->get('lock_version'),
         );
 

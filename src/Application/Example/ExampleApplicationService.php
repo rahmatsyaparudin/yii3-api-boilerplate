@@ -46,7 +46,7 @@ final class ExampleApplicationService
     private function getEntityById(int $id): Example
     {
         $example = $this->repository->findById($id);
-        
+
         if ($example === null) {
             throw new NotFoundException(
                 translate: new Message(
@@ -91,8 +91,7 @@ final class ExampleApplicationService
         $example = Example::create(
             name: $command->name,
             status: Status::from($command->status),
-            detailInfo: $detailInfo,
-            syncMdb: $command->syncMdb !== null ? ($command->syncMdb ? 1 : 0) : null
+            detailInfo: $detailInfo
         );
 
         return ExampleResponse::fromEntity(example: $this->repository->insert($example));

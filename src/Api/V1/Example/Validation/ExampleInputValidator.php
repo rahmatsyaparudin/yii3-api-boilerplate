@@ -93,7 +93,7 @@ final class ExampleInputValidator extends AbstractValidator
                     ),
                     new Integer(
                         min: 1,
-                        skipOnEmpty: fn() => !$this->isOptimisticLockEnabled()
+                        skipOnEmpty: true,
                     ),
                 ],
             ],

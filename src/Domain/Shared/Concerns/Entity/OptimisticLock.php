@@ -14,6 +14,7 @@ use App\Shared\Exception\OptimisticLockException;
 trait OptimisticLock
 {
     private LockVersion $lockVersion;
+    private bool $optimisticLockEnabled = true;
 
     public function verifyLockVersion(int $version): void
     {
@@ -66,19 +67,19 @@ trait OptimisticLock
 
     /**
      * Check if optimistic locking is enabled for this entity
-     * Simple global check only - no entity override
+     * Set via dependency injection
      */
-    protected function isOptimisticLockEnabled(): bool
+    public function isOptimisticLockEnabled(): bool
     {
-        try {
-            // Try to get from container (if available)
-            $container = \Yiisoft\Yii\Yii::getContainer();
-            $params = $container->get('params');
-            return $params['app/optimisticLock']['enabled'] ?? true;
-        } catch (\Throwable $e) {
-            // Fallback to environment variable or default
-            return filter_var($_ENV['app.optimistic_lock.enabled'] ?? true, FILTER_VALIDATE_BOOLEAN);
-        }
+        return $this->optimisticLockEnabled;
+    }
+
+    /**
+     * Set optimistic lock enabled status (for dependency injection)
+     */
+    public function setOptimisticLockEnabled(bool $enabled): void
+    {
+        $this->optimisticLockEnabled = $enabled;
     }
 
     /**

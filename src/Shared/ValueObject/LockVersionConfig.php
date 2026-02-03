@@ -27,6 +27,20 @@ final class LockVersionConfig
         return !in_array($this->normalize($validatorName), $this->normalizedDisabledList, true);
     }
 
+    public function isGloballyEnabled(): bool
+    {
+        return $this->globalEnabled;
+    }
+
+    public function isEnabledForRepository(string $repositoryName): bool
+    {
+        if (!$this->globalEnabled) {
+            return false;
+        }
+
+        return !in_array($this->normalize($repositoryName), $this->normalizedDisabledList, true);
+    }
+
     private function normalize(string $name): string
     {
         $name = str_ireplace('InputValidator', '', $name);

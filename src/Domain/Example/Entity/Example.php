@@ -63,11 +63,6 @@ final class Example
         return new self($id, $name, $status, $detailInfo, $syncMdb, LockVersion::fromInt($lockVersion));
     }
 
-    public function getSyncMdb(): ?int
-    {
-        return $this->syncMdb;
-    }
-
     public function toArray(): array
     {
         return [
@@ -78,11 +73,6 @@ final class Example
             'sync_mdb' => $this->syncMdb,
             'lock_version' => $this->lockVersion->value(),
         ];
-    }
-
-    public function updateSyncMdb(?int $syncMdb): void
-    {
-        $this->syncMdb = $syncMdb;
     }
     
     public function restore(): void

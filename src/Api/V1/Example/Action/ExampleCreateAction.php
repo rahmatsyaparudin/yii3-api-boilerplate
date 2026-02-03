@@ -53,8 +53,7 @@ final class ExampleCreateAction
         $command = new CreateExampleCommand(
             name: (string) $params->get('name'),
             status: $params->get('status'),
-            detailInfo: $params->get('detail_info'),
-            syncMdb: $params->get('sync_mdb')
+            detailInfo: $params->get('detail_info')
         );
 
         $resource = $this->exampleApplicationService->getResource();
