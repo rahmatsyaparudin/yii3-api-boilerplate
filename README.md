@@ -80,6 +80,9 @@ Open your project's `composer.json` and add the following sections:
 "skeleton-update": [
     "@php scripts/skeleton-update.php"
 ],
+"skeleton-copy-config": [
+    "@php scripts/skeleton-copy-config.php"
+],
 "skeleton-copy-examples": [
     "@php scripts/skeleton-copy-examples.php"
 ],
