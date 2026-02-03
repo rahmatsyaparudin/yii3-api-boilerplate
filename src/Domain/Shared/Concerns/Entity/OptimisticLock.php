@@ -18,7 +18,7 @@ trait OptimisticLock
      */
     public function verifyLockVersion(int $version): void
     {
-        if (!$this->isOptimisticLockEnabled()) {
+        if (!$this->hasOptimisticLockEnabled()) {
             return;
         }
 
@@ -35,7 +35,7 @@ trait OptimisticLock
         }
     }
 
-    public function isOptimisticLockEnabled(): bool
+    public function hasOptimisticLockEnabled(): bool
     {
         return $this->optimisticLockEnabled;
     }
@@ -55,7 +55,7 @@ trait OptimisticLock
 
     public function upgradeLockVersion(): void
     {
-        if ($this->isOptimisticLockEnabled()) {
+        if ($this->hasOptimisticLockEnabled()) {
             $this->lockVersion = $this->getLockVersion()->increment();
         }
     }
