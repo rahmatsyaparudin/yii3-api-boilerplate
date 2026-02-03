@@ -6,7 +6,7 @@ declare(strict_types=1);
 use App\Api;
 
 // Api Layer
-use App\Api\V1\Example\Action as ExampleAction;
+use App\Api\V1\Example\Action as ExampleV1;
 
 // Shared Layer
 use App\Shared\Middleware\RequestParamsMiddleware;
@@ -24,31 +24,31 @@ return [
         ->middleware(RequestParamsMiddleware::class)
         ->routes(
             Route::get('/example')
-                ->action(ExampleAction\ExampleDataAction::class)
+                ->action(ExampleV1\ExampleDataAction::class)
                 ->name('v1/example/index')
                 ->defaults(['permission' => 'example.index']),
             Route::post('/example/data')
-                ->action(ExampleAction\ExampleDataAction::class)
+                ->action(ExampleV1\ExampleDataAction::class)
                 ->name('v1/example/data')
                 ->defaults(['permission' => 'example.data']),
             Route::get('/example/{id:\d+}')
-                ->action(ExampleAction\ExampleViewAction::class)
+                ->action(ExampleV1\ExampleViewAction::class)
                 ->name('v1/example/view')
                 ->defaults(['permission' => 'example.view']),
             Route::post('/example/create')
-                ->action(ExampleAction\ExampleCreateAction::class)
+                ->action(ExampleV1\ExampleCreateAction::class)
                 ->name('v1/example/create')
                 ->defaults(['permission' => 'example.create']),
             Route::put('/example/{id:\d+}')
-                ->action(ExampleAction\ExampleUpdateAction::class)
+                ->action(ExampleV1\ExampleUpdateAction::class)
                 ->name('v1/example/update')
                 ->defaults(['permission' => 'example.update']),
             Route::delete('/example/{id:\d+}')
-                ->action(ExampleAction\ExampleDeleteAction::class)
+                ->action(ExampleV1\ExampleDeleteAction::class)
                 ->name('v1/example/delete')
                 ->defaults(['permission' => 'example.delete']),
             Route::post('/example/{id:\d+}/restore')
-                ->action(ExampleAction\ExampleRestoreAction::class)
+                ->action(ExampleV1\ExampleRestoreAction::class)
                 ->name('v1/example/restore')
                 ->defaults(['permission' => 'example.restore']),
 

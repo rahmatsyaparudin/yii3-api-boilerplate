@@ -258,11 +258,11 @@ final class ModuleGenerator
         }
         
         // Add use statement for all action classes
-        $useStatements = "use App\\Api\\V1\\{$this->moduleName}\\Action as {$this->moduleName}Action;";
+        $useStatements = "use App\\Api\\V1\\{$this->moduleName}\\Action as {$this->moduleName}V1;";
         
         // Add use statements after existing use statements
         // More reliable approach using strpos and manual insertion
-        $usePattern = "use App\\Api\\V1\\Example\\Action as ExampleAction;";
+        $usePattern = "use App\\Api\\V1\\Example\\Action as ExampleV1;";
         $usePos = strpos($content, $usePattern);
         
         if ($usePos !== false) {
@@ -282,31 +282,31 @@ final class ModuleGenerator
         // Add routes with proper formatting
         $routes = "\n\n            // {$this->moduleName} Routes
             Route::get('/{$this->moduleLower}')
-                ->action({$this->moduleName}Action\\{$this->moduleName}DataAction::class)
+                ->action({$this->moduleName}V1\\{$this->moduleName}DataAction::class)
                 ->name('v1/{$this->moduleLower}/index')
                 ->defaults(['permission' => '{$this->moduleLower}.index']),
             Route::post('/{$this->moduleLower}/data')
-                ->action({$this->moduleName}Action\\{$this->moduleName}DataAction::class)
+                ->action({$this->moduleName}V1\\{$this->moduleName}DataAction::class)
                 ->name('v1/{$this->moduleLower}/data')
                 ->defaults(['permission' => '{$this->moduleLower}.data']),
             Route::get('/{$this->moduleLower}/{id:\\d+}')
-                ->action({$this->moduleName}Action\\{$this->moduleName}ViewAction::class)
+                ->action({$this->moduleName}V1\\{$this->moduleName}ViewAction::class)
                 ->name('v1/{$this->moduleLower}/view')
                 ->defaults(['permission' => '{$this->moduleLower}.view']),
             Route::post('/{$this->moduleLower}/create')
-                ->action({$this->moduleName}Action\\{$this->moduleName}CreateAction::class)
+                ->action({$this->moduleName}V1\\{$this->moduleName}CreateAction::class)
                 ->name('v1/{$this->moduleLower}/create')
                 ->defaults(['permission' => '{$this->moduleLower}.create']),
             Route::put('/{$this->moduleLower}/{id:\\d+}')
-                ->action({$this->moduleName}Action\\{$this->moduleName}UpdateAction::class)
+                ->action({$this->moduleName}V1\\{$this->moduleName}UpdateAction::class)
                 ->name('v1/{$this->moduleLower}/update')
                 ->defaults(['permission' => '{$this->moduleLower}.update']),
             Route::delete('/{$this->moduleLower}/{id:\\d+}')
-                ->action({$this->moduleName}Action\\{$this->moduleName}DeleteAction::class)
+                ->action({$this->moduleName}V1\\{$this->moduleName}DeleteAction::class)
                 ->name('v1/{$this->moduleLower}/delete')
                 ->defaults(['permission' => '{$this->moduleLower}.delete']),
             Route::post('/{$this->moduleLower}/{id:\\d+}/restore')
-                ->action({$this->moduleName}Action\\{$this->moduleName}RestoreAction::class)
+                ->action({$this->moduleName}V1\\{$this->moduleName}RestoreAction::class)
                 ->name('v1/{$this->moduleLower}/restore')
                 ->defaults(['permission' => '{$this->moduleLower}.restore']),";
         
