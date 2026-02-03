@@ -78,16 +78,14 @@ Open your project's `composer.json` and add the following sections:
 ### Add this to `composer.json` `scripts` 
 ```json
 "skeleton-update": [
-    "composer update rahmatsyaparudin/yii3-api-boilerplate --ignore-platform-reqs",
-    "@php scripts/skeleton-install.php"
-],
-"skeleton-copy-config": [
-    "@php scripts/skeleton-copy-config.php"
+    "@php scripts/skeleton-update.php"
 ],
 "skeleton-copy-examples": [
     "@php scripts/skeleton-copy-examples.php"
 ],
-"skeleton-generate-module": "php scripts/generate-module.php",
+"skeleton-generate-module": [
+    "@php scripts/generate-module.php"
+],
 ```
 
 ## 2. Update Composer
@@ -109,9 +107,6 @@ mkdir scripts; cp -r -Force vendor/rahmatsyaparudin/yii3-api-boilerplate/scripts
 ```bash
 # Install skeleton structure
 composer skeleton-update
-
-# Copy configuration files (first time only)
-composer skeleton-copy-config
 
 # Copy example files (first time only)
 composer skeleton-copy-examples
@@ -263,11 +258,6 @@ composer update --ignore-platform-reqs
 # Install skeleton structure
 ```bash
 composer skeleton-update
-```
-
-# Copy configuration files (first time only)
-```bash
-composer skeleton-copy-config
 ```
 
 # Copy example files (first time only)
