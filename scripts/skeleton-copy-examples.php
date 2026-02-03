@@ -28,6 +28,8 @@ class SkeletonExamplesCopier
             // Config files
             'config/common/params.php' => 'config/common/params.php',
             'config/common/di/infrastructure.php' => 'config/common/di/infrastructure.php',
+            'config/common/di/optimistic-lock.php' => 'config/common/di/optimistic-lock.php',
+            'config/common/di/validator.php' => 'config/common/di/validator.php',
             'config/console/commands.php' => 'config/console/commands.php',
             'config/console/params.php' => 'config/console/params.php',
             
