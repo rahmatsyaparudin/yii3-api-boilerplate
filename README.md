@@ -36,7 +36,7 @@ This skeleton follows **Domain-Driven Design (DDD)** principles with clean archi
 
 ### Prerequisites
 
-- **PHP 8.1+** with required extensions
+- **PHP 8.3+** with required extensions
 - **Composer** for dependency management
 - **PostgreSQL** database
 - **MongoDB** (optional, for audit trails)
@@ -52,7 +52,7 @@ composer create-project --prefer-dist yiisoft/app yii3-api
 cd yii3-api
 ```
 
-## 3. Add the repository and package to `composer.json` 
+### 2. Add the repository and package to `composer.json` 
 
 Open your project's `composer.json` and add the following sections:
 
@@ -88,13 +88,13 @@ Open your project's `composer.json` and add the following sections:
 ],
 ```
 
-## 2. Update Composer
+### 3. Update Composer
+Update composer dependencies
 ```bash
-# Update dependencies
 composer update --ignore-platform-reqs
 ```
 
-## 3. Copy skeleton scripts
+### 4. Copy skeleton scripts
 
 Make directory `scripts` and Copy the `scripts` folder from the package to your project root:
 
@@ -102,42 +102,28 @@ Make directory `scripts` and Copy the `scripts` folder from the package to your 
 mkdir scripts; cp -r -Force vendor/rahmatsyaparudin/yii3-api-boilerplate/scripts/* ./scripts
 ```
 
-## 4. Install Skeleton
-
+### 5. Install Skeleton
+Install skeleton structure
 ```bash
-# Install skeleton structure
 composer skeleton-update
+```
 
-# Copy example files (first time only)
+Copy example files (first time only)
+```bash
 composer skeleton-copy-examples
 ```
 
-## 5. Generate New Module
+### 6. Generate New Module
 
 Use the built-in module generator to create new API modules with complete structure:
-
+Generate a new module (e.g., Product)
 ```bash
-# Generate a new module (e.g., Product)
-composer skeleton-generate-module -- --module=Product
+composer skeleton-generate-module -- --module=Product --table=product_management
+```
 
-# Generate module with custom table name
-composer skeleton-generate-module -- --module=Order --table=logistic_service
-
-# Generate another module (e.g., Category)
-composer skeleton-generate-module -- --module=Category
-
-# Generate another module (e.g., Brand)
-composer skeleton-generate-module -- --module=Brand
-
-# Generate another module (e.g., Order)
-composer skeleton-generate-module -- --module=Order
-
-# Generate another module (e.g., User)
-composer skeleton-generate-module -- --module=User
-
-# Or use direct PHP script (alternative):
-php scripts/generate-module.php --module=Product
-php scripts/generate-module.php --module=Order --table=logistic_service
+Or use direct PHP script (alternative):
+```bash
+php scripts/generate-module.php --module=Product --table=product_management
 ```
 
 > **Note:** The skeleton comes with an Example module that demonstrates the complete structure. Use the generator above to create additional modules for your specific needs.
@@ -199,13 +185,16 @@ src/Seeder/
 └── Fixtures/
     └── product.yaml              # Alice fixtures for test data
 ```
-
 #### **⚙️ Configuration Updates**
 The generator automatically updates configuration files:
 
-- **`config/common/di/repository.php`** - Adds repository DI binding
 - **`config/common/access.php`** - Adds access control rules  
+- **`config/common/aliases.php`** - Adds aliases  
 - **`config/common/routes.php`** - Adds API routes with proper permissions
+- **`config/common/di/repository.php`** - Adds repository DI binding
+- **`config/common/di/service.php`** - Adds service DI binding
+- **`config/common/di/translator.php`** - Adds translator DI binding
+- **`config/console/commands.php`** - Adds console commands
 
 #### **🔧 Features Included**
 - **✅ Complete CRUD Operations** - Create, Read, Update, Delete, Restore
@@ -221,15 +210,15 @@ The generator automatically updates configuration files:
 
 For each module, the following endpoints are automatically created:
 
-| Method | Endpoint | Action | Permission |
-|--------|-----------|--------|------------|
-| GET | `/v1/{module}` | List items | `{module}.index` |
-| POST | `/v1/{module}/data` | Create item | `{module}.data` |
-| GET | `/v1/{module}/{id}` | View item | `{module}.view` |
-| POST | `/v1/{module}/create` | Create item | `{module}.create` |
-| PUT | `/v1/{module}/{id}` | Update item | `{module}.update` |
-| DELETE | `/v1/{module}/{id}` | Delete item | `{module}.delete` |
-| POST | `/v1/{module}/{id}/restore` | Restore item | `{module}.restore` |
+| Method   | Endpoint                    | Action      | Permission        |
+|----------|-----------------------------|-------------|-------------------|
+| GET      | `/v1/{module}`              | List items  | `{module}.index`  |
+| POST     | `/v1/{module}/data`         | Create item | `{module}.data`   |
+| GET      | `/v1/{module}/{id}`         | View item   | `{module}.view`   |
+| POST     | `/v1/{module}/create`       | Create item | `{module}.create` |
+| PUT      | `/v1/{module}/{id}`         | Update item | `{module}.update` |
+| DELETE   | `/v1/{module}/{id}`         | Delete item | `{module}.delete` |
+| POST     | `/v1/{module}/{id}/restore` | Restore item| `{module}.restore`|
 
 ### 📋 Current Available Modules
 
@@ -244,35 +233,9 @@ The skeleton includes the following modules out of the box:
 #### **🔧 Custom Modules** (Generate as needed)
 - **Product, Category, Brand, Order, User, etc.**
 - **Purpose:** Your business-specific modules
-- **Generation:** Use `composer skeleton-generate-module -- --module=ModuleName` or `php scripts/generate-module.php --module=ModuleName`
-- **Custom Table:** Use `--table=table_name` for custom table names (e.g., `--module=LogisticService --table=logistic_service`)
+- **Generation:** Use `composer skeleton-generate-module -- --module=ModuleName --table=table_name` or `php scripts/generate-module.php --module=ModuleName --table=table_name`
+- **Custom Table:** Use `--table=table_name` for table names (e.g., `--module=Product --table=product_management`)
 - **Customization:** Modify generated files according to your business logic
-
-## 6. Install Skeleton
-
-Update dependencies
-```bash
-composer update --ignore-platform-reqs
-```
-
-# Install skeleton structure
-```bash
-composer skeleton-update
-```
-
-# Copy example files (first time only)
-```bash
-composer skeleton-copy-examples
-```
-
-# Generate new module
-```bash
-composer skeleton-generate-module -- --module=Product
-
-# Generate module with custom table name
-composer skeleton-generate-module -- --module=Order --table=logistic_service
-```
----
 
 ## 📁 Project Structure
 
@@ -293,12 +256,20 @@ yii3-api/
 │   └── index.php          # Application entry point
 ├── resources/              # Application resources
 │   └── messages/           # Translation files
+├── scripts/                # Utility scripts
+│   ├── generate-module.php # Module generator
+│   ├── skeleton-update.php # Skeleton installer
+│   ├── skeleton-copy-examples.php # Example files copier
+│   └── skeleton-copy-config.php # Config files copier
 ├── src/                    # Source code
 │   ├── Api/                # API layer
 │   │   ├── V1/             # API version 1
+│   │   │   ├── Example/    # Example API endpoints
+│   │   │   └── Shared/     # Shared API components
 │   │   └── Shared/         # Shared API components
 │   ├── Application/        # Application layer
-│   │   └── Example/        # Application services
+│   │   ├── Example/        # Application services
+│   │   └── Shared/         # Shared application services
 │   ├── Domain/             # Domain layer
 │   │   ├── Example/        # Domain entities
 │   │   └── Shared/         # Shared domain components
@@ -306,7 +277,15 @@ yii3-api/
 │   │   ├── Audit/         # Audit services
 │   │   ├── Database/      # Database implementations
 │   │   ├── Persistence/   # Repository implementations
+│   │   │   └── Example/    # Example repository
 │   │   └── Security/      # Security services
+│   ├── Migration/          # Database migrations
+│   │   └── M20240101000000CreateExampleTable.php
+│   ├── Seeder/            # Data seeders
+│   │   ├── Fixtures/      # Alice fixtures
+│   │   │   └── example.yaml
+│   │   ├── Faker/         # Faker providers
+│   │   └── SeedExampleData.php
 │   └── Shared/            # Shared utilities
 ├── tests/                  # Test suite
 │   ├── Api/                # API tests
@@ -422,10 +401,10 @@ app.optimistic_lock.disabled.values=["example","example_1"]
 
 **📋 Configuration Options:**
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `app.optimistic_lock.enabled` | boolean | `true` | Enable/disable optimistic locking globally |
-| `app.optimistic_lock.disabled.values` | JSON array | `[]` | List of disabled validators (normalized names) |
+| Setting                               | Type       | Default | Description                                    |
+|---------------------------------------|------------|---------|------------------------------------------------|
+| `app.optimistic_lock.enabled`         | boolean    | `true`  | Enable/disable optimistic locking globally     |
+| `app.optimistic_lock.disabled.values` | JSON array | `[]`    | List of disabled validators (normalized names) |
 
 **🚀 Usage Examples:**
 
@@ -469,6 +448,18 @@ final class ExampleInputValidator extends AbstractValidator
             ValidationContext::UPDATE => [
                 'id' => [new Required(), new Integer(min: 1)],
                 'name' => [new StringValue(skipOnEmpty: true)],
+                // Unique validation with optimistic lock awareness
+                'name' => [
+                    new Required(),
+                    new StringValue(),
+                    new UniqueValue(
+                        targetClass: ExampleRepository::class,
+                        targetAttribute: 'name',
+                        filter: fn() => $this->getFilterForUnique(),
+                        // Automatically respects optimistic lock configuration
+                        skipOnEmpty: fn() => !$this->isOptimisticLockEnabled()
+                    ),
+                ],
                 // lock_version automatically added/removed based on configuration
                 'lock_version' => [
                     new Required(
@@ -484,6 +475,28 @@ final class ExampleInputValidator extends AbstractValidator
         };
     }
 }
+```
+
+**🔧 Advanced Validation Features:**
+
+The system includes advanced validation rules that integrate with optimistic locking:
+
+```php
+// UniqueValue Rule - Prevents duplicate names with optimistic lock support
+new UniqueValue(
+    targetClass: ExampleRepository::class,
+    targetAttribute: 'name',
+    filter: fn() => $this->getFilterForUnique(),
+    message: 'Name must be unique',
+    skipOnEmpty: true
+)
+
+// HasNoDependencies Rule - Validates entity has no dependencies before deletion
+new HasNoDependencies(
+    dependencyChecker: $this->dependencyChecker,
+    errorMessage: 'Cannot delete entity with existing dependencies',
+    skipOnEmpty: false
+)
 ```
 
 **🔧 Implementation in Entities:**
@@ -696,19 +709,6 @@ $app->addMiddleware(new AuthenticationMiddleware($jwtAuthenticator));
 $app->addMiddleware(new AuthorizationMiddleware($rbacAuthorizer));
 ```
 
-### Input Validation
-
-```php
-// Request validation
-final class ExampleValidator
-{
-    public function validate(array $data, ValidationContext $context): void
-    {
-        $this->validator->validate($data, $context);
-    }
-}
-```
-
 ### Audit Trail
 
 ```php
@@ -806,14 +806,17 @@ docker-compose -f docker/prod/compose.yml logs -f
 ### Generating Documentation
 
 ```bash
-# Generate API documentation
-php yii docs:generate
+# Run quality checks with coverage
+php quality quality:check --coverage
 
-# Generate coverage reports
-php quality --coverage
+# Run quality checks with detailed reports
+php quality quality:check --report
 
-# Generate quality reports
-php quality --report
+# Run quality checks with both coverage and reports
+php quality quality:check --coverage --report
+
+# Fix code style issues automatically
+php quality quality:check --fix
 ```
 
 ---
@@ -830,163 +833,26 @@ php quality --report
 ### Running Tests
 
 ```bash
-# Run all tests
+# Run all tests using quality script
+php quality test:run
+
+# Run only unit tests
+php quality test:run --unit
+
+# Run only integration tests
+php quality test:run --integration
+
+# Run tests with coverage
+php quality test:run --coverage
+
+# Run specific test with filter
+php quality test:run --filter=ExampleTest
+
+# Alternative: Direct PHPUnit commands
 vendor/bin/phpunit
-
-# Run with coverage
 vendor/bin/phpunit --coverage-html tests/coverage/html
-
-# Run specific test
 vendor/bin/phpunit tests/Unit/Domain/Example/ExampleTest.php
 ```
-
-### Test Examples
-
-```php
-// Unit Test Example
-class ExampleTest extends TestCase
-{
-    public function testCreateExample(): void
-    {
-        $example = Example::create('Test', Status::ACTIVE, DetailInfo::empty());
-        
-        $this->assertEquals('Test', $example->getName());
-        $this->assertEquals(Status::ACTIVE, $example->getStatus());
-    }
-}
-
-// API Test Example
-class ExampleApiCest extends ApiTester
-{
-    public function testCreateExample(): void
-    {
-        $this->sendPost('/api/v1/examples', [
-            'name' => 'Test Example',
-            'status' => 'active'
-        ]);
-        
-        $this->seeResponseCode(201);
-        $this->seeJsonContains(['name' => 'Test Example']);
-    }
-}
-```
-
----
-
-## 📊 Monitoring & Logging
-
-### Application Logging
-
-```php
-// Structured logging
-Yii::info('User created example', [
-    'user_id' => $userId,
-    'example_id' => $exampleId,
-    'ip' => $request->getServerParam('REMOTE_ADDR')
-]);
-```
-
-### Performance Monitoring
-
-```php
-// Performance metrics
-$startTime = microtime(true);
-$result = $this->complexOperation();
-$duration = (microtime(true) - $startTime) * 1000;
-
-Yii::info('Operation completed', ['duration' => $duration]);
-```
-
-### Error Handling
-
-```php
-try {
-    $result = $this->riskyOperation();
-} catch (\Exception $e) {
-    Yii::error('Operation failed', [
-        'error' => $e->getMessage(),
-        'trace' => $e->getTraceAsString(),
-    ]);
-    throw $e;
-}
-```
-
----
-
-## 🚀 Deployment
-
-### Production Deployment
-
-#### 1. Environment Setup
-
-```bash
-# Set production environment
-export YII_ENV=prod
-export YII_DEBUG=false
-export APP_ENV=production
-```
-
-#### 2. Dependencies
-
-```bash
-# Install production dependencies
-composer install --no-dev --optimize-autoloader
-```
-
-#### 3. Database
-
-```bash
-# Run migrations
-php yii migrate --interactive=0
-
-# Optimize database
-php yii db/optimize
-```
-
-#### 4. Cache
-
-```bash
-# Clear all caches
-php yii cache/flush-all
-
-# Warm up caches
-php yii cache/warm-up
-```
-
-#### 5. Docker Deployment
-
-```bash
-# Build production image
-docker build -t yii3-api:latest .
-
-# Run with Docker Compose
-docker-compose -f docker/prod/compose.yml up -d
-```
-
-### CI/CD Pipeline
-
-#### GitHub Actions Example
-
-```yaml
-name: Deploy to Production
-on:
-  push:
-    branches: [main]
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: shivammathur/setup-php@v2
-      - run: composer install --no-dev
-      - run: php quality
-      - run: php yii migrate --interactive=0
-      - name: Deploy to production
-        run: |
-          # Deployment commands
-```
-
 ---
 
 ## 🔧 Maintenance
@@ -1017,17 +883,10 @@ jobs:
 
 ```bash
 # Clear all caches
-php yii cache/flush-all
 vendor/bin/psalm --clear-cache
 
 # Reinstall dependencies
 composer install --no-dev --optimize-autoloader
-
-# Check configuration
-php yii config/test
-
-# Run diagnostics
-php yii diagnose
 ```
 
 ---
@@ -1036,15 +895,15 @@ php yii diagnose
 
 ### Documentation
 
-- **[Yii3 Documentation](https://www.yiiframework.com/doc/guide/)**: Official Yii3 guide
+- **[Yii3 Documentation](https://yiisoft.github.io/docs/guide/intro/what-is-yii.html)**: Official Yii3 guide
+- **[Yii3 Validator Guide](https://github.com/yiisoft/validator/blob/master/docs/guide/en/README.md)**: Official Yii3 Validator guide
 - **[Psalm Documentation](https://psalm.dev/)**: Static analysis tool
 - **[PHPUnit Documentation](https://phpunit.de/)**: Testing framework
 
 ### Community
 
-- **[Yii3 GitHub](https://github.com/yiisoft/app)**: Official repository
+- **[Yii3 API GitHub](https://github.com/yiisoft/app-api)**: Official repository
 - **[Yii3 Discord](https://discord.gg/yiisoft)**: Community chat
-- **[Stack Overflow](https://stackoverflow.com/questions/tagged/yii3)**: Q&A
 
 ### Quality Tools
 
