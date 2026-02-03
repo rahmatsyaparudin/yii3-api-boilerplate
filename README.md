@@ -343,7 +343,7 @@ app.trusted_hosts.allowedHosts=["127.0.0.1","::1","localhost"]
 
 # Optimistic Lock Configuration
 app.optimistic_lock.enabled=true
-app.optimistic_lock.default_version=1
+app.optimistic_lock.disabled.values=["example","example_1"]
 
 # SSO Configuration (External Keycloak)
 app.jwt.secret=secret-key-harus-panjang-256-bit
@@ -391,24 +391,25 @@ The skeleton includes configurable optimistic locking to prevent concurrent upda
 # Enable/disable optimistic locking (global)
 app.optimistic_lock.enabled=true    # Default: true
 
-# Set default lock version for new records (global)
-app.optimistic_lock.default_version=1  # Default: 1
+# Disable optimistic locking for specific validators (JSON array)
+app.optimistic_lock.disabled.values=["example","example_1"]
 ```
 
 **🔧 Optimistic Lock Features:**
 
 - **✅ Automatic Version Management** - Each entity has a `lock_version` field
 - **✅ Concurrent Update Prevention** - Throws exception on version mismatch
-- **✅ Configurable** - Can be enabled/disabled globally or per entity
+- **✅ Configurable** - Can be enabled/disabled globally or per validator
 - **✅ Performance Optimized** - Skips verification when disabled
-- **✅ Per-Entity Control** - Fine-grained control per entity type
+- **✅ Per-Validator Control** - Fine-grained control per validator type
+- **✅ Smart Normalization** - Automatic validator name normalization
 
 **📋 Configuration Options:**
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `app.optimistic_lock.enabled` | boolean | `true` | Enable/disable optimistic locking globally |
-| `app.optimistic_lock.default_version` | integer | `1` | Default version for new entities |
+| `app.optimistic_lock.disabled.values` | JSON array | `[]` | List of disabled validators (normalized names) |
 
 **🚀 Usage Examples:**
 
@@ -416,67 +417,120 @@ app.optimistic_lock.default_version=1  # Default: 1
 # Disable optimistic locking globally
 app.optimistic_lock.enabled=false
 
-# Use custom default version
-app.optimistic_lock.default_version=100
+# Disable for specific validators
+app.optimistic_lock.disabled.values=["example","user","product"]
+
+# Enable all validators (empty disabled list)
+app.optimistic_lock.disabled.values=[]
 
 # Enable in production for data integrity
 app.optimistic_lock.enabled=true
+app.optimistic_lock.disabled.values=[]
 ```
 
-**🔧 Per-Entity Implementation:**
+**🔧 Validator Name Normalization:**
 
-Control optimistic locking per entity by overriding methods in your entity class:
+The system automatically normalizes validator names for configuration:
+
+```php
+// Validator Class → Normalized Name → Environment Key
+ExampleInputValidator → "example" → app.optimistic_lock.disabled.values=["example"]
+UserInputValidator → "user" → app.optimistic_lock.disabled.values=["user"]
+ProductInputValidator → "product" → app.optimistic_lock.disabled.values=["product"]
+```
+
+**🔧 Implementation in Validators:**
+
+Optimistic lock validation is automatically integrated into validators:
+
+```php
+// In your InputValidator class
+final class ExampleInputValidator extends AbstractValidator
+{
+    protected function rules(string $context): array
+    {
+        return match ($context) {
+            ValidationContext::UPDATE => [
+                'id' => [new Required(), new Integer(min: 1)],
+                'name' => [new StringValue(skipOnEmpty: true)],
+                // lock_version automatically added/removed based on configuration
+                'lock_version' => [
+                    new Required(
+                        when: fn() => $this->isOptimisticLockEnabled()
+                    ),
+                    new Integer(
+                        min: 1,
+                        skipOnEmpty: fn() => !$this->isOptimisticLockEnabled()
+                    ),
+                ],
+            ],
+            // ... other contexts
+        };
+    }
+}
+```
+
+**🔧 Implementation in Entities:**
+
+Entities use the `OptimisticLock` trait for automatic version management:
 
 ```php
 // In your Entity class
-public function hasOptimisticLock(): bool
-{
-    // Option 1: Hard disable for this entity
-    return false;
-    
-    // Option 2: Conditional based on business logic
-    return $this->shouldUseOptimisticLock();
-    
-    // Option 3: Use global configuration (default)
-    return true;
-}
+use App\Domain\Shared\Concerns\Entity\OptimisticLock;
 
-// Optional: Custom default version for this entity
-protected function getDefaultLockVersion(): int
+final class Example extends Entity
 {
-    return 100; // Custom default version
+    use OptimisticLock;
+    
+    // Automatic lock_version management
+    // - verifyLockVersion() for validation
+    // - upgradeLockVersion() for increment
+    // - getLockVersion() for current version
 }
 ```
 
-**📝 Entity Configuration Examples:**
+**📝 Configuration Examples:**
 
-```php
-// Example: Disable optimistic lock for logging entities
-class AuditLog extends Entity
-{
-    public function hasOptimisticLock(): bool
-    {
-        return false; // No locking needed for logs
-    }
-}
+```bash
+# Development: Disable for testing entities
+app.optimistic_lock.enabled=true
+app.optimistic_lock.disabled.values=["example","test"]
 
-// Example: Custom version for migrated entities
-class LegacyProduct extends Entity
-{
-    protected function getDefaultLockVersion(): int
-    {
-        return 1000; // Start from 1000 for legacy data
-    }
-}
+# Production: Enable for all entities
+app.optimistic_lock.enabled=true
+app.optimistic_lock.disabled.values=[]
 
-// Example: Conditional locking based on entity state
-class Order extends Entity
-{
-    public function hasOptimisticLock(): bool
-    {
-        return $this->getStatus() !== OrderStatus::DRAFT;
-    }
-}
+# Maintenance: Disable all optimistic locking
+app.optimistic_lock.enabled=false
+```
+
+**🔧 API Usage:**
+
+When optimistic locking is enabled, include `lock_version` in UPDATE/DELETE requests:
+
+```bash
+# Update with optimistic lock
+curl -X PUT http://localhost:8080/v1/example/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Updated Name",
+    "lock_version": 5
+  }'
+
+# Delete with optimistic lock
+curl -X DELETE http://localhost:8080/v1/example/1 \
+  -H "Content-Type: application/json" \
+  -d '{"lock_version": 5}'
+```
+
+When disabled for a validator, `lock_version` is optional:
+
+```bash
+# Update without lock_version (when disabled)
+curl -X PUT http://localhost:8080/v1/example/1 \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Updated Name"}'
+```
 ```
 
 ---
