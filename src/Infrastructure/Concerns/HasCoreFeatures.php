@@ -31,6 +31,15 @@ trait HasCoreFeatures
         return ['<>', 'status', RecordStatus::DELETED->value];
     }
 
+    public function scopeByStatus(int|null $status): array
+    {
+        if ($status === null) {
+            return [];
+        }
+
+        return ['=', 'status', $status];
+    }
+
     public function scopeWhereDeleted(): array
     {
         return ['=', 'status', RecordStatus::DELETED->value];
@@ -50,7 +59,7 @@ trait HasCoreFeatures
     public function getDeletedState(): array
     {
         return [
-                'status' => RecordStatus::DELETED->value,
-            ];
+            'status' => RecordStatus::DELETED->value,
+        ];
     }
 }

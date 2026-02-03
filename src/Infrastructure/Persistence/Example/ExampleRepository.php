@@ -12,6 +12,7 @@ use App\Domain\Shared\ValueObject\DetailInfo;
 
 // Infrastructure Layer
 use App\Infrastructure\Concerns\HasCoreFeatures;
+use App\Infrastructure\Concerns\HasMongoDBSync;
 use App\Infrastructure\Database\MongoDB\MongoDBService;
 use App\Infrastructure\Persistence\Example\MdbExampleSchema;
 use App\Infrastructure\Security\CurrentUserAwareInterface;
@@ -36,10 +37,10 @@ use Yiisoft\Db\Query\Query;
  */
 final class ExampleRepository implements ExampleRepositoryInterface, CurrentUserAwareInterface
 {
-    use HasCoreFeatures;
+    use HasCoreFeatures, HasMongoDBSync;
 
     private const SEQUENCE_ID = 'example_id_seq';
-    private const TABLE = 'example';
+    private const TABLE_NAME = 'example';
     private const LIKE_OPERATOR = 'ilike';
     
     private ?object $collection = null;
@@ -49,21 +50,19 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
         private ConnectionInterface $db,
         private MongoDBService $mongoDBService,
     ) {
-        $this->db->getSchema()->getTableSchema(self::TABLE);
-        $this->collection = $this->mongoDBService->getCollection(self::TABLE);
+        $this->initMongoDBSync($mongoDBService, self::TABLE_NAME);
     }
 
-    public function findById(int $id): ?Example
+    public function findById(int $id, int|null $status = null): ?Example
     {
         /** @var array<string, mixed>|false $row */
         $row = (new Query($this->db))
-            ->from(self::TABLE)
+            ->from(self::TABLE_NAME)
             ->where([
                 'id' => $id,
             ])
-            ->andWhere(
-                $this->scopeWhereNotDeleted(),
-            )
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
             ->one();
 
         if (!$row) {
@@ -85,7 +84,7 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
         // 1. Find deleted record
         /** @var array<string, mixed>|false $row */
         $row = (new Query($this->db))
-            ->from(self::TABLE)
+            ->from(self::TABLE_NAME)
             ->where(['id' => $id])
             ->andWhere(
                 $this->scopeWhereDeleted(),
@@ -113,13 +112,14 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
         return $this->update($entity);
     }
 
-    public function findByName(string $name): ?Example
+    public function findByName(string $name, int|null $status = null): ?Example
     {
         /** @var array<string, mixed>|false $row */
         $row = (new Query($this->db))
-            ->from(self::TABLE)
+            ->from(self::TABLE_NAME)
             ->where(['name' => $name])
             ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
             ->one();
 
         if (!$row) {
@@ -136,24 +136,13 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
         );
     }
 
-    private function syncToMongo(Example $example): void
-    {
-        if ($this->collection !== null) {
-            $this->collection->updateOne(
-                ['id' => $example->getId()],
-                ['$set' => MdbExampleSchema::toArray($example)],
-                ['upsert' => true]
-            );
-        }
-    }
-
     public function delete(Example $example): Example
     {
         return $this->db->transaction(function() use ($example) {
             // 1. Update di PostgreSQL
             $this->db->createCommand()
                 ->update(
-                    self::TABLE,
+                    self::TABLE_NAME,
                     $this->getDeletedState(), 
                     [
                         'id' => $example->getId(),
@@ -163,18 +152,19 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
 
             $deletedExample = $example->markAsDeleted();
 
-            $this->syncToMongo($deletedExample);
+            $this->syncMongoDB($deletedExample, MdbExampleSchema::class);
 
             return $deletedExample;
         });
     }
 
-    public function existsByName(string $name): bool
+    public function existsByName(string $name, int|null $status = null): bool
     {
         return (new Query($this->db))
-            ->from(self::TABLE)
+            ->from(self::TABLE_NAME)
             ->where(['name' => $name])
             ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
             ->exists();
     }
 
@@ -189,7 +179,7 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
                 'sync_mdb',
                 'lock_version',
             ])
-            ->from(self::TABLE)
+            ->from(self::TABLE_NAME)
             ->where($this->scopeWhereNotDeleted());
 
         $filter = $criteria->filter;
@@ -247,7 +237,7 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
         return $this->db->transaction(function() use ($example) {
             // 1. Insert ke PostgreSQL
             $this->db->createCommand()
-                ->insert(self::TABLE, [
+                ->insert(self::TABLE_NAME, [
                     'name' => $example->getName(),
                     'status' => $example->getStatus()->value(),
                     'detail_info' => $example->getDetailInfo()->toArray(),
@@ -268,8 +258,7 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
                 lockVersion: 1
             );
 
-            // 3. Sync ke MongoDB (jika diperlukan)
-            $this->syncToMongo($newEntity);
+            $this->syncMongoDB($newEntity, MdbExampleSchema::class);
 
             return $newEntity;
         });
@@ -283,7 +272,7 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
             $newLockVersion = $currentLockVersion->increment();
             
             $result = $this->db->createCommand()
-                ->update(self::TABLE, [
+                ->update(self::TABLE_NAME, [
                     'name' => $example->getName(),
                     'status' => $example->getStatus()->value(),
                     'detail_info' => $example->getDetailInfo()->toArray(),
@@ -307,13 +296,22 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
                 );
             }
             
-            // Update the entity's lock version
             $example->upgradeLockVersion();
             
-            // Sync updated entity to MongoDB
-            $this->syncToMongo($example);
+            $this->syncMongoDB($example, MdbExampleSchema::class);
             
             return $example;
         });
+    }
+
+    private function syncMongoDB(Example $example): void
+    {
+        if ($this->collection !== null) {
+            $this->collection->updateOne(
+                ['id' => $example->getId()],
+                ['$set' => MdbExampleSchema::toArray($example)],
+                ['upsert' => true]
+            );
+        }
     }
 }

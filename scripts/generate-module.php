@@ -30,19 +30,22 @@ final class ModuleGenerator
     private string $moduleName;
     private string $moduleLower;
     private string $moduleUpper;
+    private string $tableName;
 
     /**
      * Module Generator constructor
      * 
      * @param string $projectRoot Root directory of the project
      * @param string $moduleName Name of the module to generate
+     * @param string $tableName Custom table name (optional, defaults to lowercase module name)
      */
-    public function __construct(string $projectRoot, string $moduleName)
+    public function __construct(string $projectRoot, string $moduleName, string $tableName = null)
     {
         $this->projectRoot = $projectRoot;
         $this->moduleName = ucfirst($moduleName);
         $this->moduleLower = strtolower($moduleName);
         $this->moduleUpper = strtoupper($moduleName);
+        $this->tableName = $tableName ?? $this->moduleLower;
     }
 
     /**
@@ -419,7 +422,7 @@ final class ModuleGenerator
         
         // Replace constants
         $content = str_replace("protected const YAML_FILE = 'example.yaml';", "protected const YAML_FILE = '{$this->moduleLower}.yaml';", $content);
-        $content = str_replace("protected const TABLE_NAME = 'example';", "protected const TABLE_NAME = '{$this->moduleLower}';", $content);
+        $content = str_replace("protected const TABLE_NAME = 'example';", "protected const TABLE_NAME = '{$this->tableName}';", $content);
         $content = str_replace("protected const ENTITY_CLASS = Example::class;", "protected const ENTITY_CLASS = {$this->moduleName}::class;", $content);
         
         file_put_contents($targetSeed, $content);
@@ -484,7 +487,7 @@ final class ModuleGenerator
         $content = $this->replacePlaceholders($content);
         
         // Replace table name constant
-        $content = str_replace("private const TABLE_NAME = 'example';", "private const TABLE_NAME = '{$this->moduleLower}';", $content);
+        $content = str_replace("private const TABLE_NAME = 'example';", "private const TABLE_NAME = '{$this->tableName}';", $content);
         
         file_put_contents($targetMigration, $content);
         $createdFiles[] = $targetMigration;
@@ -591,7 +594,7 @@ final class ModuleGenerator
     }
 
     /**
-     * Replace placeholders with module-specific values
+     * Replace placeholders in file content
      */
     private function replacePlaceholders(string $content): string
     {
@@ -601,7 +604,16 @@ final class ModuleGenerator
             'EXAMPLE' => $this->moduleUpper,
         ];
         
-        return str_replace(array_keys($replacements), array_values($replacements), $content);
+        $content = str_replace(array_keys($replacements), array_values($replacements), $content);
+        
+        // Replace table name with custom table name (if different from module name)
+        if ($this->tableName !== $this->moduleLower) {
+            $content = str_replace("'{$this->moduleLower}'", "'{$this->tableName}'", $content);
+            $content = str_replace("\"{$this->moduleLower}\"", "\"{$this->tableName}\"", $content);
+            $content = str_replace("{$this->moduleLower}_", "{$this->tableName}_", $content);
+        }
+        
+        return $content;
     }
 
     /**
@@ -642,23 +654,24 @@ function main(): void
     $args = array_slice($GLOBALS['argv'], 1);
     
     if (empty($args)) {
-        echo "📖️ Usage: php scripts/generate-module.php --module=<ModuleName>\n";
+        echo "📖️ Usage: php scripts/generate-module.php --module=<ModuleName> [--table=<TableName>]\n";
         echo "\n📝 Examples:\n";
         echo "  php scripts/generate-module.php --module=Product\n";
-        echo "  php scripts/generate-module.php --module=Order\n";
-        echo "  php scripts/generate-module.php --module=User\n";
-        echo "  php scripts/generate-module.php --module=Blog\n";
-        echo "  php scripts/generate-module.php --module=Payment\n";
+        echo "  php scripts/generate-module.php --module=Product --table=products\n";
+        echo "  php scripts/generate-module.php --module=Order --table=logistic_service\n";
+        echo "  php scripts/generate-module.php --module=User --table=users\n";
+        echo "  php scripts/generate-module.php --module=Blog --table=blog_posts\n";
+        echo "  php scripts/generate-module.php --module=Payment --table=payment_transactions\n";
         exit(1);
     }
     
-    // Parse arguments for --module option
+    // Parse arguments for --module and --table options
     $moduleName = null;
+    $tableName = null;
     
     foreach ($args as $arg) {
         if (str_starts_with($arg, '--module=')) {
             $moduleName = substr($arg, 9); // Remove '--module=' prefix
-            break;
         } elseif (str_starts_with($arg, '--module')) {
             // Handle space-separated format: --module Product
             $argParts = explode('=', $arg, 2);
@@ -671,13 +684,26 @@ function main(): void
                     $moduleName = $args[$argIndex + 1];
                 }
             }
-            break;
+        } elseif (str_starts_with($arg, '--table=')) {
+            $tableName = substr($arg, 8); // Remove '--table=' prefix
+        } elseif (str_starts_with($arg, '--table')) {
+            // Handle space-separated format: --table table_name
+            $argParts = explode('=', $arg, 2);
+            if (count($argParts) === 2) {
+                $tableName = $argParts[1];
+            } else {
+                // Find next argument as table name
+                $argIndex = array_search($arg, $args);
+                if ($argIndex !== false && isset($args[$argIndex + 1])) {
+                    $tableName = $args[$argIndex + 1];
+                }
+            }
         }
     }
     
     if ($moduleName === null) {
         echo "❌ Error: --module option is required\n";
-        echo "📖️ Usage: php scripts/generate-module.php --module=<ModuleName>\n";
+        echo "📖️ Usage: php scripts/generate-module.php --module=<ModuleName> [--table=<TableName>]\n";
         exit(1);
     }
     
@@ -687,7 +713,7 @@ function main(): void
     }
     
     try {
-        $generator = new ModuleGenerator($projectRoot, $moduleName);
+        $generator = new ModuleGenerator($projectRoot, $moduleName, $tableName);
         $generator->generate();
     } catch (Exception $e) {
         echo "❌ Error generating module: {$e->getMessage()}\n";
