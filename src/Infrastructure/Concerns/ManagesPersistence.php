@@ -26,7 +26,7 @@ trait ManagesPersistence
     private function buildLockCondition(object $entity, int $currentLockVersion): array
     {
         $condition = ['id' => $entity->getId()];
-        if (method_exists($entity, 'isOptimisticLockEnabled') && $entity->isOptimisticLockEnabled()) {
+        if ($this->isOptimisticLockEnabled()) {
             $condition['lock_version'] = $currentLockVersion;
         }
         return $condition;
@@ -40,7 +40,7 @@ trait ManagesPersistence
         $resourceName = defined(get_class($entity) . '::RESOURCE') ? $entity::RESOURCE : 'resource';
 
         // Jika kita ingin mengecek lock dan lock aktif
-        if ($checkLock && method_exists($entity, 'isOptimisticLockEnabled') && $entity->isOptimisticLockEnabled()) {
+        if ($checkLock && $this->isOptimisticLockEnabled()) {
             throw new OptimisticLockException(
                 translate: new Message(
                     key: 'optimistic.lock.failed',
