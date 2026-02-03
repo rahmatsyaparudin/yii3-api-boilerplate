@@ -81,6 +81,9 @@ Open your project's `composer.json` and add the following sections:
     "composer update rahmatsyaparudin/yii3-api-boilerplate --ignore-platform-reqs",
     "@php scripts/skeleton-install.php"
 ],
+"skeleton-copy-config": [
+    "@php scripts/skeleton-copy-config.php"
+],
 "skeleton-copy-examples": [
     "@php scripts/skeleton-copy-examples.php"
 ],
@@ -106,6 +109,9 @@ mkdir scripts; cp -r -Force vendor/rahmatsyaparudin/yii3-api-boilerplate/scripts
 ```bash
 # Install skeleton structure
 composer skeleton-update
+
+# Copy configuration files (first time only)
+composer skeleton-copy-config
 
 # Copy example files (first time only)
 composer skeleton-copy-examples
@@ -244,16 +250,28 @@ The skeleton includes the following modules out of the box:
 
 ## 6. Install Skeleton
 
+Update dependencies
 ```bash
-# Update dependencies
 composer update --ignore-platform-reqs
+```
 
 # Install skeleton structure
-composer skeleton-install
+```bash
+composer skeleton-update
+```
+
+# Copy configuration files (first time only)
+```bash
+composer skeleton-copy-config
+```
 
 # Copy example files (first time only)
+```bash
 composer skeleton-copy-examples
+```
 
+# Generate new module
+```bash
 composer skeleton-generate-module -- --module=Product
 ```
 ---

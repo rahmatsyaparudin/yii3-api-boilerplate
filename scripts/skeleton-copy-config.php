@@ -4,7 +4,7 @@
  * Based on Yii2 skeleton copy examples approach
  */
 
-class SkeletonExamplesCopier
+class SkeletonConfigCopier
 {
     private string $projectRoot;
     private string $vendorPath;
@@ -17,36 +17,27 @@ class SkeletonExamplesCopier
     
     public function copy(): void
     {
-        echo "🚀 Copying example files from skeleton...\n";
+        echo "🚀 Copying config files from skeleton...\n";
         
         // Files and directories to copy
         $itemsToCopy = [
-            // Message files
-            'resources/messages/en/app.php' => 'resources/messages/en/app.php',
-            'resources/messages/id/app.php' => 'resources/messages/id/app.php',
+            // Files
+            '.env.example' => '.env.example',
             
             // Config files
-            'config/common/params.php' => 'config/common/params.php',
-            'config/common/di/infrastructure.php' => 'config/common/di/infrastructure.php',
+            'config/common/access.php' => 'config/common/access.php',
+            'config/common/aliases.php' => 'config/common/aliases.php',
+            'config/common/routes.php' => 'config/common/routes.php',
+            'config/common/di/repository.php' => 'config/common/di/repository.php',
+            'config/common/di/service.php' => 'config/common/di/service.php',
+            'config/common/di/translator.php' => 'config/common/di/translator.php',
             'config/console/commands.php' => 'config/console/commands.php',
-            'config/console/params.php' => 'config/console/params.php',
-            
-            // Directories (recursive copy)
-            'src/Api/V1/Example' => 'src/Api/V1/Example',
-            'src/Application/Example' => 'src/Application/Example',
-            'src/Domain/Example' => 'src/Domain/Example',
-            'src/Infrastructure/Persistence/Example' => 'src/Infrastructure/Persistence/Example',
-            'src/Migration' => 'src/Migration',
-
-            'src/Seeder/Fixtures/example.yaml' => 'src/Seeder/Fixtures/example.yaml',
-            'src/Seeder/Faker/SeedDataPoolFaker.php' => 'src/Seeder/Faker/SeedDataPoolFaker.php',
-            'src/Seeder/SeedExampleData.php' => 'src/Seeder/SeedExampleData.php',
         ];
         
-        $flagFile = $this->projectRoot . '/.skeleton_examples_copied';
+        $flagFile = $this->projectRoot . '/.skeleton_config_copied';
         
         if (file_exists($flagFile)) {
-            echo "⚠️  Example files were already copied. Skipping...\n";
+            echo "⚠️  Config files were already copied. Skipping...\n";
             echo "💡 To force re-copy, remove: {$flagFile}\n";
             return;
         }
@@ -58,18 +49,10 @@ class SkeletonExamplesCopier
         // Create flag file
         file_put_contents($flagFile, date(DATE_ATOM));
         
-        echo "✅ Example files copied successfully!\n";
+        echo "✅ Config files copied successfully!\n";
         echo "\n🎯 Next steps:\n";
-        echo "1. Configure your .env file with your database settings\n";
-        echo "2. Run: composer install\n";
-        echo "3. Run: ./yii migrate:up\n";
-        echo "4. Run: ./yii seed --module=example (development only)\n";
-        echo "5. Run: ./yii serve\n";
-        echo "\n🌐 Your API will be available at: http://localhost:8080\n";
-        echo "\n📚 Documentation:\n";
-        echo "- Architecture Guide: docs/architecture-guide.md\n";
-        echo "- Quality Guide: docs/quality-guide.md\n";
-        echo "- Setup Guide: docs/setup-guide.md\n";
+        echo "Copy example files from skeleton\n";
+        echo "Run: composer skeleton-copy-examples\n";
     }
     
     private function copyItem(string $source, string $target): void
