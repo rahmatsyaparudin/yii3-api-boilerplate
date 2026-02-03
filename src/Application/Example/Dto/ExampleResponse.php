@@ -30,7 +30,7 @@ final readonly class ExampleResponse
             id: $example->getId(),
             name: $example->getName(),
             status: $example->getStatus()->value(),
-            sync_mdb: $example->getSyncMdb() !== null,
+            sync_mdb: $example->getSyncMdb(),
             detail_info: $example->getDetailInfo()->toArray(),
             lock_version: $example->getLockVersion()->value(),
         );
