@@ -54,7 +54,7 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
         $this->initMongoDBSync($mongoDBService, self::TABLE_NAME);
     }
 
-    public function findById(int $id, int|null $status = null): ?Example
+    public function findById(int $id, ?int $status = null): ?Example
     {
         /** @var array<string, mixed>|false $row */
         $row = (new Query($this->db))
