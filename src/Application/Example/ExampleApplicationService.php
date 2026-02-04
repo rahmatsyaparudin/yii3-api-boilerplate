@@ -34,7 +34,7 @@ final class ExampleApplicationService
         private AuthorizerInterface $auth,
         private DetailInfoFactory $detailInfoFactory,
         private ExampleRepositoryInterface $repository,
-        private ExampleDomainService $domainService
+        private ExampleDomainService $domainService,
     ) {
     }
 
