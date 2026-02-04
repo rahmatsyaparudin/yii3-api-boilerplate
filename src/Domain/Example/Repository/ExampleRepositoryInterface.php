@@ -19,19 +19,22 @@ use App\Shared\Dto\PaginatedResult;
  */
 interface ExampleRepositoryInterface
 {
-    public function insert(Example $example): Example;
-
-    public function update(Example $example): Example;
+    public function getResource(): string;
 
     public function findById(int $id, ?int $status = null): ?Example;
 
-    public function findByName(string $name): ?Example;
+    public function findByName(string $name, ?int $status = null): ?Example;
 
-    public function existsByName(string $name): bool;
+    public function existsByName(string $name, ?int $status = null): bool;
+    
+    public function list(SearchCriteria $criteria): PaginatedResult;
+    
+    public function insert(Example $example): Example;
+
+    public function update(Example $example): Example;
 
     public function delete(Example $example): Example;
 
     public function restore(int $id): ?Example;
 
-    public function list(SearchCriteria $criteria): PaginatedResult;
 }
