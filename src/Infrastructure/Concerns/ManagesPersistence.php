@@ -23,6 +23,31 @@ trait ManagesPersistence
         return str_ireplace('Repository', '', (new \ReflectionClass($this))->getShortName());
     }
 
+    private function streamRows(Query $query): iterable
+    {
+        foreach ($query->each(100, $this->db) as $row) {
+            /** @var array<string, mixed> $row */
+            $row['detail_info'] = DetailInfo::fromJson($row['detail_info'])->toArray();
+            yield $row;
+        }
+    }
+
+    protected function isOptimisticLockEnabled(object $entity): bool
+    {
+        $className = (new \ReflectionClass($entity))->getShortName();
+        return $this->lockVersionConfig->isEnabledForRepository($className);
+    }
+
+    protected function hasOptimisticLockEnabled(string $className): bool
+    {
+        return $this->lockVersionConfig->isEnabledForRepository($className);
+    }
+
+    public function setLockVersionConfig(LockVersionConfig $lockVersionConfig): void
+    {
+        $this->lockVersionConfig = $lockVersionConfig;
+    }
+
     public function verifyLockVersion(object $entity, ?int $version): void
     {
         if ($version === null || !$this->hasOptimisticLockEnabled($this->getResource())) {
@@ -51,37 +76,6 @@ trait ManagesPersistence
         return $entity->getLockVersion();
     }
 
-    /**
-     * Set LockVersionConfig (for dependency injection)
-     */
-    public function setLockVersionConfig(LockVersionConfig $lockVersionConfig): void
-    {
-        $this->lockVersionConfig = $lockVersionConfig;
-    }
-
-    /**
-     * Kondisi standar hanya berdasarkan ID (tanpa Lock)
-     */
-    private function buildSimpleCondition(object $entity): array
-    {
-        return ['id' => $entity->getId()];
-    }
-
-    /**
-     * Kondisi dengan Lock (untuk Update)
-     */
-    private function buildLockCondition(object $entity, int $currentLockVersion): array
-    {
-        $condition = ['id' => $entity->getId()];
-        if ($this->isOptimisticLockEnabled($entity)) {
-            $condition['lock_version'] = $currentLockVersion;
-        }
-        return $condition;
-    }
-
-    /**
-     * Menangani kegagalan (tetap bisa digunakan untuk Delete maupun Update)
-     */
     private function handlePersistenceFailure(object $entity, bool $checkLock = true): void
     {
         $resourceName = defined(get_class($entity) . '::RESOURCE') ? $entity::RESOURCE : 'resource';
@@ -107,27 +101,17 @@ trait ManagesPersistence
         );
     }
 
-    private function streamRows(Query $query): iterable
+    private function buildSimpleCondition(object $entity): array
     {
-        foreach ($query->each(100, $this->db) as $row) {
-            /** @var array<string, mixed> $row */
-            $row['detail_info'] = DetailInfo::fromJson($row['detail_info'])->toArray();
-            yield $row;
+        return ['id' => $entity->getId()];
+    }
+
+    private function buildLockCondition(object $entity, int $currentLockVersion): array
+    {
+        $condition = ['id' => $entity->getId()];
+        if ($this->isOptimisticLockEnabled($entity)) {
+            $condition['lock_version'] = $currentLockVersion;
         }
-    }
-
-    /**
-     * Check if optimistic locking is enabled for this entity
-     * Uses centralized LockVersionConfig
-     */
-    protected function isOptimisticLockEnabled(object $entity): bool
-    {
-        $className = (new \ReflectionClass($entity))->getShortName();
-        return $this->lockVersionConfig->isEnabledForRepository($className);
-    }
-
-    protected function hasOptimisticLockEnabled(string $className): bool
-    {
-        return $this->lockVersionConfig->isEnabledForRepository($className);
+        return $condition;
     }
 }
