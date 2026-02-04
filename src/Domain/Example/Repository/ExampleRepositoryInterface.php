@@ -23,7 +23,7 @@ interface ExampleRepositoryInterface
 
     public function update(Example $example): Example;
 
-    public function findById(int $id): ?Example;
+    public function findById(int $id, ?int $status = null): ?Example;
 
     public function findByName(string $name): ?Example;
 
