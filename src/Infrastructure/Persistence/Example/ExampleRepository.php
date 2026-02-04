@@ -9,6 +9,7 @@ use App\Domain\Example\Entity\Example;
 use App\Domain\Example\Repository\ExampleRepositoryInterface;
 use App\Domain\Shared\ValueObject\Status;
 use App\Domain\Shared\ValueObject\DetailInfo;
+use App\Domain\Shared\ValueObject\LockVersion;
 
 // Infrastructure Layer
 use App\Infrastructure\Concerns\HasCoreFeatures;
@@ -205,11 +206,7 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
     {
         return $this->db->transaction(function() use ($example) {
             $currentLock = $example->getLockVersion();
-            // $newLock = $currentLock->increment();
-
             $newLock = $this->upgradeEntityLockVersion($example);
-
-            // var_dump($newLock);exit;
 
             $result = $this->db->createCommand()
                 ->update(
@@ -229,7 +226,6 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
                 $this->handlePersistenceFailure($example);
             }
             
-            // $this->upgradeEntityLockVersion($example);
             $this->syncMongoDB(
                 entity: $example,
                 schemaClass: MdbExampleSchema::class

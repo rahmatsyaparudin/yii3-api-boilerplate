@@ -8,7 +8,10 @@ use App\Shared\Exception\OptimisticLockException;
 use App\Shared\Exception\NotFoundException;
 use App\Shared\ValueObject\Message;
 use App\Shared\ValueObject\LockVersionConfig;
+use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\LockVersion;
+use Yiisoft\Db\Query\Query;
+
 
 trait ManagesPersistence
 {
@@ -102,6 +105,15 @@ trait ManagesPersistence
                 ]
             )
         );
+    }
+
+    private function listAllGenerator(Query $query): iterable
+    {
+        foreach ($query->each(100, $this->db) as $row) {
+            /** @var array<string, mixed> $row */
+            $row['detail_info'] = DetailInfo::fromJson($row['detail_info'])->toArray();
+            yield $row;
+        }
     }
 
     /**
