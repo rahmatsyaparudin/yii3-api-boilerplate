@@ -85,7 +85,6 @@ final class ExampleApplicationService
             ->create(
                 detailInfo: []
             )
-            ->withApproved()
             ->build();
 
         $example = Example::create(
@@ -101,10 +100,7 @@ final class ExampleApplicationService
     {
         $example = $this->getEntityById($id);
 
-        // Only verify lock version if optimistic lock is enabled and lockVersion is provided
-        if ($command->lockVersion !== null) {
-            $example->verifyLockVersion($command->lockVersion);
-        }
+        $this->repository->verifyLockVersion($example, $command->lockVersion ?? null);
 
         $newStatus = Status::tryFrom($command->status);
 
@@ -142,10 +138,7 @@ final class ExampleApplicationService
     {
         $example = $this->getEntityById($id);
 
-        // Only verify lock version if optimistic lock is enabled and lockVersion is provided
-        if ($lockVersion !== null) {
-            $example->verifyLockVersion($lockVersion);
-        }
+        $example->verifyLockVersion($lockVersion);
 
         $this->domainService->guardPermission(
             authorizer: $this->auth,

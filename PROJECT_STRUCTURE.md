@@ -137,7 +137,6 @@ src/
 │       │   │   ├── 📄 ChangeLogged.php - Audit trail trait
 │       │   │   ├── 📄 Descriptive.php - Name/description trait
 │       │   │   ├── 📄 Identifiable.php - ID trait
-│       │   │   ├── 📄 OptimisticLock.php - Optimistic locking trait
 │       │   │   └── 📄 Stateful.php - State management trait
 │       │   └── 📁 Service/ - Service concerns
 │       │       └── 📄 DomainValidator.php - Domain validation
@@ -295,7 +294,6 @@ docker/
 
 ### **🔐 Optimistic Locking Implementation**
 - **Value Object**: `LockVersion.php` - Type-safe version handling
-- **Trait**: `OptimisticLock.php` - Reusable optimistic locking
 - **Exception**: `OptimisticLockException.php` - Conflict handling
 - **Repository**: `ExampleRepository.php` - Database-level optimistic locking
 - **API**: `ExampleUpdateAction.php` - Client-side validation

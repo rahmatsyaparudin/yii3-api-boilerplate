@@ -11,18 +11,18 @@ use App\Domain\Shared\ValueObject\LockVersion;
 use App\Domain\Shared\Concerns\Entity\Stateful;
 use App\Domain\Shared\Concerns\Entity\Identifiable;
 use App\Domain\Shared\Concerns\Entity\Descriptive;
-use App\Domain\Shared\Concerns\Entity\OptimisticLock;
 
 // Shared Layer
 use App\Shared\ValueObject\Message;
-use App\Shared\ValueObject\LockVersionConfig;
 use App\Shared\Exception\BadRequestException;
 
 final class Example
 {
-    use Identifiable, Stateful, Descriptive, OptimisticLock;
+    use Identifiable, Stateful, Descriptive;
 
     public const RESOURCE = 'Example';
+
+    private LockVersion $lockVersion;
 
     protected function __construct(
         private readonly ?int $id,
@@ -30,7 +30,7 @@ final class Example
         private Status $status,
         private DetailInfo $detailInfo,
         private ?int $syncMdb = null,
-        ?LockVersion $lockVersion = null
+        ?LockVersion $lockVersion = null,
     ) {
         $this->resource = self::RESOURCE;
         $this->lockVersion = $lockVersion ?? LockVersion::create();

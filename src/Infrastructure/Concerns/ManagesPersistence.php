@@ -8,10 +8,45 @@ use App\Shared\Exception\OptimisticLockException;
 use App\Shared\Exception\NotFoundException;
 use App\Shared\ValueObject\Message;
 use App\Shared\ValueObject\LockVersionConfig;
+use App\Domain\Shared\ValueObject\LockVersion;
 
 trait ManagesPersistence
 {
     protected LockVersionConfig $lockVersionConfig;
+    private LockVersion $lockVersion;
+
+    public function getResource(): string
+    {
+        return str_ireplace('Repository', '', (new \ReflectionClass($this))->getShortName());
+    }
+
+    public function verifyLockVersion(object $entity, ?int $version): void
+    {
+        if ($version === null || !$this->hasOptimisticLockEnabled($this->getResource())) {
+            return;
+        }
+
+        if (!$entity->getLockVersion()->equals(LockVersion::fromInt($version))) {
+            throw new OptimisticLockException(
+                translate: new Message(
+                    key: 'optimistic.lock.failed',
+                    params: [
+                        'resource' => defined('static::RESOURCE') ? static::RESOURCE : 'resource',
+                        'version' => $version,
+                    ]
+                )
+            );
+        }
+    }
+
+    public function upgradeEntityLockVersion(object $entity): LockVersion
+    {
+        if ($this->hasOptimisticLockEnabled($this->getResource())) {
+            $entity->upgradeLockVersion();
+        }
+
+        return $entity->getLockVersion();
+    }
 
     /**
      * Set LockVersionConfig (for dependency injection)
@@ -76,6 +111,11 @@ trait ManagesPersistence
     protected function isOptimisticLockEnabled(object $entity): bool
     {
         $className = (new \ReflectionClass($entity))->getShortName();
+        return $this->lockVersionConfig->isEnabledForRepository($className);
+    }
+
+    protected function hasOptimisticLockEnabled(string $className): bool
+    {
         return $this->lockVersionConfig->isEnabledForRepository($className);
     }
 }
