@@ -11,6 +11,7 @@ use App\Infrastructure\Persistence\Example\ExampleRepository;
 
 // Shared Layer
 use App\Shared\Query\QueryConditionApplier;
+use App\Shared\ValueObject\LockVersionConfig;
 
 // Infrastructure Layer
 use App\Infrastructure\Security\CurrentUserAwareInterface;
@@ -23,7 +24,7 @@ use Yiisoft\Definitions\Reference;
 return [
     ExampleRepositoryInterface::class => [
         'class' => ExampleRepository::class,
-        'setLockVersionConfig()' => [Reference::to('App\Shared\ValueObject\LockVersionConfig')],
+        'setLockVersionConfig()' => [Reference::to(LockVersionConfig::class)],
         'setCurrentUser()' => [Reference::to(CurrentUser::class)],
         '__construct()' => [
             'params' => $params['app/optimisticLock'] ?? [],
