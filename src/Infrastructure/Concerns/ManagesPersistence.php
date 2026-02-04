@@ -107,7 +107,7 @@ trait ManagesPersistence
         );
     }
 
-    private function listAllGenerator(Query $query): iterable
+    private function streamRows(Query $query): iterable
     {
         foreach ($query->each(100, $this->db) as $row) {
             /** @var array<string, mixed> $row */
