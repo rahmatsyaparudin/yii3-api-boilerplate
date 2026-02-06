@@ -155,7 +155,10 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
             ->limit($criteria->pageSize)
             ->offset($criteria->calculateOffset());
 
-       $rows = iterator_to_array($this->streamRows($query));
+       $rows = iterator_to_array($this->streamRows(
+            query: $query, 
+            jsonKeys: []
+        ));
 
         return new PaginatedResult(
             data: $rows,
