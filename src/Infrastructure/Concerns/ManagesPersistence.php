@@ -23,13 +23,40 @@ trait ManagesPersistence
         return str_ireplace('Repository', '', (new \ReflectionClass($this))->getShortName());
     }
 
-    private function streamRows(Query $query): iterable
+    private function streamRows(Query $query, array $jsonKeys = []): iterable
     {
         foreach ($query->each(100, $this->db) as $row) {
             /** @var array<string, mixed> $row */
-            $row['detail_info'] = DetailInfo::fromJson($row['detail_info'])->toArray();
+
+            // 1. Domain Logic encapsulated in Value Object
+            $row['detail_info'] = DetailInfo::fromJson($row['detail_info'] ?? '')->toArray();
+
+            // 2. Generic Logic encapsulated in a helper or VO
+            foreach ($jsonKeys as $key) {
+                $row[$key] = $this->castToArray($row[$key] ?? null);
+            }
+
             yield $row;
         }
+    }
+
+    /**
+     * Encapsulates the messy "double-encoded" JSON logic
+     */
+    private function castToArray(mixed $value): array
+    {
+        if (!is_string($value)) {
+            return is_array($value) ? $value : [];
+        }
+
+        $data = json_decode($value, true);
+
+        // Handle the double-encoded case: "{\"key\": \"val\"}"
+        if (is_string($data)) {
+            $data = json_decode($data, true);
+        }
+
+        return is_array($data) ? $data : [];
     }
 
     protected function isOptimisticLockEnabled(object $entity): bool
