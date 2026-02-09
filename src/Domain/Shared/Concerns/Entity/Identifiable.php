@@ -6,6 +6,7 @@ namespace App\Domain\Shared\Concerns\Entity;
 
 // Domain Layer
 use App\Domain\Shared\ValueObject\Message;
+use App\Domain\Shared\ValueObject\LockVersion;
 
 // Shared Layer
 use App\Shared\Exception\BadRequestException;
@@ -13,7 +14,6 @@ use App\Shared\Exception\BadRequestException;
 trait Identifiable
 {
     protected string $resource;
-    private ?int $syncMdb = null; // null = synced, 1 = not synced
 
     public function getId(): ?int
     {
@@ -33,7 +33,6 @@ trait Identifiable
     public function changeName(string $newName): void
     {
         $newName = trim($newName);
-
         if ($this->name === $newName) {
             return;
         }
@@ -69,5 +68,15 @@ trait Identifiable
     public function updateSyncMdb(?int $syncMdb): void
     {
         $this->syncMdb = $syncMdb;
+    }
+
+    public function getLockVersion(): LockVersion
+    {
+        return $this->lockVersion ??= LockVersion::fromInt(LockVersion::DEFAULT_VALUE);
+    }
+
+    public function upgradeLockVersion(): void
+    {
+        $this->lockVersion = $this->getLockVersion()->increment();
     }
 }
