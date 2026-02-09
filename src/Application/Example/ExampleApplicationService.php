@@ -34,7 +34,7 @@ final class ExampleApplicationService
         private AuthorizerInterface $auth,
         private DetailInfoFactory $detailInfoFactory,
         private ExampleRepositoryInterface $repository,
-        private ExampleDomainService $domainService,
+        private ExampleDomainService $domainService
     ) {
     }
 
@@ -100,7 +100,7 @@ final class ExampleApplicationService
     {
         $example = $this->getEntityById($id);
 
-        $this->repository->verifyLockVersion($example, $command->lockVersion ?? null);
+        $this->repository->verifyLockVersion($command->lockVersion ?? null);
 
         $newStatus = Status::tryFrom($command->status);
 
