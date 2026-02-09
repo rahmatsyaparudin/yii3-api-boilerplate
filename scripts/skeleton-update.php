@@ -344,6 +344,9 @@ class SkeletonInstaller
             'common/di/middleware.php',
             'common/di/monitoring.php',
             'common/di/optimistic-lock.php',
+            'common/di/repository-di.php',
+            'common/di/translator-di.php',
+            'common/di/service-di.php',
             'common/di/security.php',
             'web/di/application.php'
         ];
