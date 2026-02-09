@@ -572,7 +572,6 @@ class SkeletonInstaller
             "firebase/php-jwt" => "^7.0.2",
             "mongodb/mongodb" => "^2.1",
             "psr/clock" => "^1.0",
-            "nelmio/alice" => "^3.1",
             "vlucas/phpdotenv" => "^5.6.3",
             "yiisoft/access" => "2.0",
             "yiisoft/cache" => "^3.2",
@@ -594,8 +593,20 @@ class SkeletonInstaller
         
         $data['require'] = array_merge($data['require'], $requiredPackages);
         
+        // Add development packages
+        if (!isset($data['require-dev'])) {
+            $data['require-dev'] = [];
+        }
+        
+        $devPackages = [
+            "nelmio/alice" => "^3.16.1",
+        ];
+        
+        $data['require-dev'] = array_merge($data['require-dev'], $devPackages);
+        
         // Sort packages alphabetically
         ksort($data['require']);
+        ksort($data['require-dev']);
         
         $newContent = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         file_put_contents($composerFile, $newContent);
