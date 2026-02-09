@@ -42,17 +42,33 @@ abstract class AbstractValidator
     private function formatErrors(Result $result): array
     {
         $errors = [];
-        foreach ($result->getErrorMessagesIndexedByPath() as $property => $errorList) {
-            foreach ($errorList as $message) {
-                // Replace {Property} placeholder with actual field name
-                $formattedMessage = str_replace('{Property}', $property, $message);
-                
-                $errors[] = [
-                    'field'   => $property,
-                    'message' => $formattedMessage,
-                ];
+
+        foreach ($result->getErrors() as $error) {
+            $path = $error->getValuePath();
+            $property = implode('.', $path);
+            
+            $message = $error->getMessage();
+            $parameters = $error->getParameters();
+
+            foreach ($parameters as $key => $value) {
+                if (is_scalar($value)) {
+                    $message = str_replace('{' . $key . ', number}', (string)$value, $message);
+                    $message = str_replace('{' . $key . '}', (string)$value, $message);
+                }
             }
+
+            if (str_contains($message, 'plural')) {
+                $message = preg_replace('/\{(\w+), plural, .*?other\{(.*?)\}\}/', '$2', $message);
+            }
+
+            $message = str_replace('{Property}', $property, $message);
+
+            $errors[] = [
+                'field'   => $property,
+                'message' => trim($message),
+            ];
         }
+
         return $errors;
     }
 
@@ -62,10 +78,6 @@ abstract class AbstractValidator
         return $this->lockVersionConfig->isEnabledFor($shortName);
     }
     
-    /**
-     * Check if optimistic locking is enabled for this validator
-     * Alternative name to avoid conflicts
-     */
     protected function shouldValidateOptimisticLock(): bool
     {
         $shortName = (new \ReflectionClass($this))->getShortName();
