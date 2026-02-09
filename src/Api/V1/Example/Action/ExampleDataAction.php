@@ -56,9 +56,10 @@ final class ExampleDataAction
             context: ValidationContext::SEARCH,
         );
 
-        // $this->db->getSchema()->getTableSchema('example', true);
-
-        $criteria = $this->factory->createFromRequest($payload, self::ALLOWED_SORT);
+        $criteria = $this->factory->createFromRequest(
+            params: $payload,
+            allowedSort: self::ALLOWED_SORT
+        );
 
         $resource = $this->exampleApplicationService->getResource();
         $result = $this->exampleApplicationService->list(criteria: $criteria);

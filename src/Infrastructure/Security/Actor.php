@@ -13,7 +13,8 @@ final class Actor implements ActorInterface
         public readonly int $id = 0,
         public string $username = 'system',
         public string $dept = '',
-        private array $roles = []
+        private array $roles = [],
+        private bool $allowGodMode = false,
     ) {
     }
 
@@ -33,6 +34,10 @@ final class Actor implements ActorInterface
 
     public function isSuperAdmin(string $app): bool
     {
+        if ($this->allowGodMode) {
+            return true;
+        }
+
         return (bool) ($this->roles[$app]['superadmin'] ?? false);
     }
 }

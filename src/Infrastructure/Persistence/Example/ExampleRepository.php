@@ -10,6 +10,7 @@ use App\Domain\Example\Repository\ExampleRepositoryInterface;
 use App\Domain\Shared\ValueObject\Status;
 use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\LockVersion;
+use App\Domain\Shared\ValueObject\SyncMdb;
 
 // Infrastructure Layer
 use App\Infrastructure\Concerns\HasCoreFeatures;
@@ -78,7 +79,7 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
             name: $row['name'],
             status: Status::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
-            lockVersion: (int) $row['lock_version']
+            lockVersion: LockVersion::fromInt($row[LockVersion::field()])
         );
     }
 
@@ -101,8 +102,8 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
             name: $row['name'],
             status: Status::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
-            lockVersion: (int) $row['lock_version']
-        )->updateSyncMdb($row['sync_mdb'] ?? null);
+            lockVersion: LockVersion::fromInt($row[LockVersion::field()])
+        )->updateSyncMdb($row[SyncMdb::field()] ?? null);
     }
 
     public function existsByName(string $name, ?int $status = null): bool
@@ -123,8 +124,8 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
                 'name',
                 'status',
                 'detail_info',
-                'sync_mdb',
-                'lock_version',
+                SyncMdb::field(),
+                LockVersion::field(),
             ])
             ->from(self::TABLE_NAME)
             ->where($this->scopeWhereNotDeleted());
@@ -137,7 +138,7 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
             allowedColumns: [
                 'id', 
                 'status', 
-                'sync_mdb'
+                SyncMdb::field(),
             ]
         );
 
@@ -181,8 +182,8 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
                     'name' => $example->getName(),
                     'status' => $example->getStatus()->value(),
                     'detail_info' => $example->getDetailInfo()->toArray(),
-                    'sync_mdb' => $example->getSyncMdb(),
-                    'lock_version' => 1, 
+                    SyncMdb::field() => $example->getSyncMdbValue(),
+                    LockVersion::field() => LockVersion::create()->value(), 
                 ])
                 ->execute();
 
@@ -193,7 +194,7 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
                 name: $example->getName(),
                 status: $example->getStatus(),
                 detailInfo: $example->getDetailInfo(),
-                lockVersion: 1
+                lockVersion: LockVersion::create(),
             );
 
             $this->syncMongoDB(
@@ -283,8 +284,8 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
             name: $row['name'],
             status: Status::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
-            lockVersion: (int) $row['lock_version']
-        )->updateSyncMdb($row['sync_mdb'] ?? null);
+            lockVersion: LockVersion::fromInt($row[LockVersion::field()])
+        );
 
         $entity->restore();
 
@@ -297,8 +298,8 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
             'name' => $example->getName(),
             'status' => $example->getStatus()->value(),
             'detail_info' => $example->getDetailInfo()->toArray(),
-            'sync_mdb' => $example->getSyncMdb(),
-            'lock_version' => $lockVersion,
+            SyncMdb::field() => $example->getSyncMdbValue(),
+            LockVersion::field() => $lockVersion,
         ];
     }
 }

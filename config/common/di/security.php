@@ -19,7 +19,11 @@ use Yiisoft\Definitions\Reference;
 // @var array $params
 
 return [
-    CurrentUser::class => CurrentUser::class,
+    CurrentUser::class => [
+        '__construct()' => [
+            'allowGodMode' => $params['app/config']['allow_god_mode'] ?? false,
+        ],
+    ],
     Actor::class => static fn (CurrentUser $currentUser) => $currentUser->getActor(),
     AccessChecker::class => static function (CurrentUser $currentUser) {
         $accessMap = require \dirname(__DIR__) . '/access.php';

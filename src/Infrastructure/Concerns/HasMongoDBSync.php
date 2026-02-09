@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Concerns;
 
+use App\Domain\Shared\ValueObject\SyncMdb;
 use App\Infrastructure\Database\MongoDB\MongoDBService;
 
 trait HasMongoDBSync
@@ -39,39 +40,30 @@ trait HasMongoDBSync
             );
             
             // Sync berhasil, reset sync status
-            if ($entity->getSyncMdb() !== null) {
-                $entity->setSyncMdb(null);
-                $this->updateSyncStatusInDb($entity->getId(), null);
+            $syncMdb = $entity->getSyncMdb();
+            if ($syncMdb === null || !$syncMdb->isSynced()) {
+                $entity->setSyncMdb(SyncMdb::synced());
+                $this->updateSyncStatusInDb(
+                    id: $entity->getId(), 
+                    status: SyncMdb::synced()->value()
+                );
             }
             
-        } catch (\MongoDB\Driver\Exception\ConnectionTimeoutException $e) {
-            // Handle connection timeout (code 13053)
-            $this->markAsNotSynced($entity);
-            
-        } catch (\MongoDB\Driver\Exception\ServerSelectionTimeoutException $e) {
-            // Handle server selection timeout
-            $this->markAsNotSynced($entity);
-            
-        } catch (\MongoDB\Driver\Exception\RuntimeException $e) {
-            // Handle other MongoDB runtime errors
-            $this->markAsNotSynced($entity);
-            
-        } catch (\MongoDB\Driver\Exception\Exception $e) {
-            // Handle general MongoDB exceptions
-            $this->markAsNotSynced($entity);
-            
-        } catch (\Exception $e) {
-            // Handle any other unexpected errors
+        } catch (\MongoDB\Driver\Exception\Exception | \Exception $e) {
             $this->markAsNotSynced($entity);
         }
     }
 
     private function markAsNotSynced(object $entity): void
     {
-        // Hanya update jika belum bernilai 1 untuk efisiensi
-        if ($entity->getSyncMdb() !== 1) {
-            $entity->setSyncMdb(1);
-            $this->updateSyncStatusInDb($entity->getId(), 1);
+        // Hanya update jika belum pending untuk efisiensi
+        $syncMdb = $entity->getSyncMdb();
+        if ($syncMdb === null || !$syncMdb->isPending()) {
+            $entity->setSyncMdb(SyncMdb::pending());
+            $this->updateSyncStatusInDb(
+                id: $entity->getId(), 
+                status: SyncMdb::pending()->value()
+            );
         }
     }
 
@@ -80,7 +72,7 @@ trait HasMongoDBSync
         // Pastikan property $this->db tersedia di Repository yang menggunakan trait ini
         if (isset($this->db)) {
             $this->db->createCommand()
-                ->update(self::TABLE_NAME, ['sync_mdb' => $status], ['id' => $id])
+                ->update(self::TABLE_NAME, [SyncMdb::field() => $status], ['id' => $id])
                 ->execute();
         }
     }

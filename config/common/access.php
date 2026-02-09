@@ -9,9 +9,9 @@ use App\Infrastructure\Security\Actor;
 $params  = require __DIR__ . '/params.php';
 $appCode = $params['app/config']['code'] ?? 'default';
 
-$isKasir      = static fn (Actor $actor): bool => $actor->hasRole($appCode, 'kasir');
-$isSpv        = static fn (Actor $actor): bool => $actor->hasRole($appCode, 'spv');
-$isAdmin      = static fn (Actor $actor): bool => $actor->isAdmin($appCode);
+$isKasir = static fn (Actor $actor): bool => $actor->hasRole($appCode, 'kasir');
+$isSpv = static fn (Actor $actor): bool => $actor->hasRole($appCode, 'spv');
+$isAdmin = static fn (Actor $actor): bool => $actor->isAdmin($appCode);
 $isSuperAdmin = static fn (Actor $actor): bool => $actor->isSuperAdmin($appCode);
 
 return [

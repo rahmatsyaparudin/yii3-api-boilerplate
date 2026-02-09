@@ -137,7 +137,7 @@ trait ManagesPersistence
     {
         $condition = ['id' => $entity->getId()];
         if ($this->isOptimisticLockEnabled($entity)) {
-            $condition['lock_version'] = $currentLockVersion;
+            $condition[LockVersion::field()] = $currentLockVersion;
         }
         return $condition;
     } 
