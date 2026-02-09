@@ -139,10 +139,21 @@ final class ModuleGenerator
             $content
         );
         
+        // Add LockVersionConfig use statement after CurrentUser line
+        $content = str_replace(
+            "use App\\Infrastructure\\Security\\CurrentUser;",
+            "use App\\Infrastructure\\Security\\CurrentUser;\nuse App\\Shared\\ValueObject\\LockVersionConfig;",
+            $content
+        );
+        
         // Add repository DI configuration
         $newDiConfig = "    {$this->moduleName}RepositoryInterface::class => [
         'class' => {$this->moduleName}Repository::class,
+        'setLockVersionConfig()' => [Reference::to(LockVersionConfig::class)],
         'setCurrentUser()' => [Reference::to(CurrentUser::class)],
+        '__construct()' => [
+            'params' => \$params['app/optimisticLock'] ?? [],
+        ],
     ],";
         
         // Add before closing bracket
