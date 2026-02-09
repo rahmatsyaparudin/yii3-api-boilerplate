@@ -45,10 +45,10 @@ This skeleton follows **Domain-Driven Design (DDD)** principles with clean archi
 ### 1. Create New Project
 
 ```bash
-# Create new Yii3 project
 composer create-project --prefer-dist yiisoft/app-api yii3-api
+```
 
-# Navigate to project directory
+```bash
 cd yii3-api
 ```
 
