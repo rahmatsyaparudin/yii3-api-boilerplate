@@ -35,7 +35,10 @@ final class ExampleInputValidator extends AbstractValidator
                     new StopOnError([
                         new Required(),
                         new StringValue(),
-                        new Length(min: 3, max: 255),
+                        new Length(
+                            min: 3, 
+                            max: 255,
+                        ),
                         new UniqueValue(
                             table: 'example', 
                             column: 'name', 
@@ -54,7 +57,9 @@ final class ExampleInputValidator extends AbstractValidator
             ValidationContext::UPDATE => [
                 'id' => [
                     new Required(),
-                    new Integer(min: 1),
+                    new Integer(
+                        min: 1,
+                    ),
                     // new HasNoDependencies(
                     //     map: [
                     //         'other_table' => ['example_id'],
@@ -100,7 +105,9 @@ final class ExampleInputValidator extends AbstractValidator
             ValidationContext::DELETE => [
                 'id' => [
                     new Required(), 
-                    new Integer(min: 1),
+                    new Integer(
+                        min: 1,
+                    ),
                     // new HasNoDependencies(
                     //     map: [
                     //         'other_table' => ['example_id'],
