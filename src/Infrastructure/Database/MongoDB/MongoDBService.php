@@ -58,7 +58,12 @@ final class MongoDBService
 
     public function getCollection(string $collectionName): mixed
     {
-        return $this->getSafeNode()->selectCollection($collectionName);
+        #return $this->getSafeNode()->selectCollection($collectionName);
+        if (!$this->enabled || $this->database === null) {
+            return null;
+        }
+        
+        return $this->database->selectCollection($collectionName);
     }
 
     public function find(string $collection, array $filter = [], array $options = []): array
