@@ -18,6 +18,21 @@ return [
         'class' => Client::class,
         '__construct()' => [
             'uri' => $params['mongodb/mongodb']['dsn'],
+            'uriOptions' => [
+                // Mengurangi waktu tunggu jika node mati
+                'connectTimeoutMS' => $params['mongodb/mongodb']['connectTimeoutMS'], 
+                'socketTimeoutMS' => $params['mongodb/mongodb']['socketTimeoutMS'],
+                // Sangat penting untuk replika set/atlas
+                'readPreference' => $params['mongodb/mongodb']['readPreference'], 
+            ],
+            'driverOptions' => [
+                // Menggunakan persistent connection (seperti pooling)
+                'typeMap' => [
+                    'root' => 'array',
+                    'document' => 'array',
+                    'array' => 'array',
+                ],
+            ],
         ],
     ],
 
