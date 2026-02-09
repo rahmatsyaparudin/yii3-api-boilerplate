@@ -100,7 +100,7 @@ final class ExampleApplicationService
     {
         $example = $this->getEntityById($id);
 
-        $this->repository->verifyLockVersion($command->lockVersion ?? null);
+        $this->repository->verifyLockVersion($example, $command->lockVersion ?? null);
 
         $newStatus = Status::tryFrom($command->status);
 
@@ -138,7 +138,7 @@ final class ExampleApplicationService
     {
         $example = $this->getEntityById($id);
 
-        $example->verifyLockVersion($lockVersion);
+        $example->verifyLockVersion($example, $lockVersion);
 
         $this->domainService->guardPermission(
             authorizer: $this->auth,
