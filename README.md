@@ -46,7 +46,7 @@ This skeleton follows **Domain-Driven Design (DDD)** principles with clean archi
 
 ```bash
 # Create new Yii3 project
-composer create-project --prefer-dist yiisoft/app yii3-api
+composer create-project --prefer-dist yiisoft/app-api yii3-api
 
 # Navigate to project directory
 cd yii3-api
