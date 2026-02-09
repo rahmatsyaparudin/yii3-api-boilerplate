@@ -140,5 +140,5 @@ trait ManagesPersistence
             $condition['lock_version'] = $currentLockVersion;
         }
         return $condition;
-    }
+    } 
 }
