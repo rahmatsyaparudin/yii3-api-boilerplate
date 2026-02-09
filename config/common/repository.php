@@ -2,23 +2,12 @@
 
 declare(strict_types=1);
 
-// Domain Layer
 use App\Domain\Example\Repository\ExampleRepositoryInterface;
-use App\Domain\Example\Entity\Example;
-
-// Infrastructure Layer
 use App\Infrastructure\Persistence\Example\ExampleRepository;
-
-// Shared Layer
-use App\Shared\Query\QueryConditionApplier;
+use App\Domain\AttendanceDevice\Repository\AttendanceDeviceRepositoryInterface;
+use App\Infrastructure\Persistence\AttendanceDevice\AttendanceDeviceRepository;
 use App\Shared\ValueObject\LockVersionConfig;
-
-// Infrastructure Layer
-use App\Infrastructure\Security\CurrentUserAwareInterface;
 use App\Infrastructure\Security\CurrentUser;
-
-// Vendor Layer
-use Yiisoft\Db\Connection\ConnectionInterface;
 use Yiisoft\Definitions\Reference;
 
 return [

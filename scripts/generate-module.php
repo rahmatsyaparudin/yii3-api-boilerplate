@@ -110,7 +110,7 @@ final class ModuleGenerator
      */
     private function updateRepositoryDi(array &$createdFiles): void
     {
-        $configFile = 'config/common/di/repository.php';
+        $configFile = 'config/common/repository.php';
         
         if (!file_exists($configFile)) {
             echo "❌ Repository DI config not found: {$configFile}\n";

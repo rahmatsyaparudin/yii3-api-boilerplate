@@ -28,9 +28,9 @@ class SkeletonConfigCopier
             'config/common/access.php' => 'config/common/access.php',
             'config/common/aliases.php' => 'config/common/aliases.php',
             'config/common/routes.php' => 'config/common/routes.php',
-            'config/common/di/repository.php' => 'config/common/di/repository.php',
-            'config/common/di/service.php' => 'config/common/di/service.php',
-            'config/common/di/translator.php' => 'config/common/di/translator.php',
+            'config/common/repository.php' => 'config/common/repository.php',
+            'config/common/service.php' => 'config/common/service.php',
+            'config/common/translator.php' => 'config/common/translator.php',
             'config/console/commands.php' => 'config/console/commands.php',
         ];
         
