@@ -8,6 +8,7 @@ namespace App\Domain\Example\Entity;
 use App\Domain\Shared\ValueObject\Status;
 use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\LockVersion;
+use App\Domain\Shared\ValueObject\SyncMdb;
 use App\Domain\Shared\Concerns\Entity\Stateful;
 use App\Domain\Shared\Concerns\Entity\Identifiable;
 use App\Domain\Shared\Concerns\Entity\Descriptive;
@@ -29,7 +30,7 @@ final class Example
         private string $name,
         private Status $status,
         private DetailInfo $detailInfo,
-        private ?int $syncMdb = null,
+        private ?SyncMdb $syncMdb = null,
         ?LockVersion $lockVersion = null,
     ) {
         $this->resource = self::RESOURCE;
@@ -45,7 +46,7 @@ final class Example
         string $name,
         Status $status,
         DetailInfo $detailInfo,
-        ?int $syncMdb = null
+        ?SyncMdb $syncMdb = null,
     ): self {
         self::guardInitialStatus($status, self::RESOURCE);
 
@@ -57,11 +58,11 @@ final class Example
         string $name,
         Status $status,
         DetailInfo $detailInfo,
-        ?int $syncMdb = null,
-        int $lockVersion = LockVersion::DEFAULT_VALUE,
+        ?SyncMdb $syncMdb = null,
+        ?LockVersion $lockVersion = null,
     ): self {
         // Create instance without validation for database-loaded entities
-        return new self($id, $name, $status, $detailInfo, $syncMdb, LockVersion::fromInt($lockVersion));
+        return new self($id, $name, $status, $detailInfo, $syncMdb, $lockVersion ?? LockVersion::create());
     }
 
     public function toArray(): array
@@ -71,8 +72,8 @@ final class Example
             'name' => $this->name,
             'status' => $this->status->value(),
             'detail_info' => $this->detailInfo->toArray(),
-            'sync_mdb' => $this->syncMdb,
-            'lock_version' => $this->lockVersion->value(),
+            SyncMdb::field() => $this->syncMdb?->value(),
+            LockVersion::field() => $this->lockVersion->value(),
         ];
     }
     
@@ -88,7 +89,7 @@ final class Example
             );
         }
         
-        $this->status = Status::draft();
+        $this->status = Status::restored();
     }
 
     /**

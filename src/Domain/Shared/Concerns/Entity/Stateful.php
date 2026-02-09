@@ -43,7 +43,6 @@ trait Stateful
             return;
         }
 
-        $this->guardStatusTransition($nextState);
         $this->status = $nextState;
     }
 
@@ -132,6 +131,7 @@ trait Stateful
     public function validateStateTransition(
         bool $hasFieldChanges,
         ?Status $newStatus = null,
+        ?bool $isChangingStatus = null,
     ): bool {
         $currentStatus = $this->status;
         

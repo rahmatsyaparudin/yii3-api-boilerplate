@@ -25,7 +25,7 @@ trait HasCoreFeatures
     public function scopeWhereNotDeleted(?string $app = 'api'): array|null
     {
         if (isset($this->currentUser) && $this->currentUser->getActor()?->isSuperAdmin($app)) {
-            return null;
+            return [];
         }
 
         return ['<>', 'status', RecordStatus::DELETED->value];

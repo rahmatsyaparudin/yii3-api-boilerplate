@@ -36,6 +36,11 @@ final readonly class Status
         return new self(RecordStatus::INACTIVE);
     }
 
+    public static function restored(): self
+    {
+        return new self(RecordStatus::INACTIVE);
+    }
+
     public static function deleted(): self
     {
         return new self(RecordStatus::DELETED);

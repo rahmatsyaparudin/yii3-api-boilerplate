@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Domain\Shared\Concerns\Entity;
 
 // Domain Layer
-use App\Domain\Shared\ValueObject\Message;
+use App\Domain\Shared\ValueObject\SyncMdb;
 use App\Domain\Shared\ValueObject\LockVersion;
 
 // Shared Layer
+use App\Shared\ValueObject\Message;
 use App\Shared\Exception\BadRequestException;
 
 trait Identifiable
@@ -54,18 +55,23 @@ trait Identifiable
         }
     }
 
-    public function getSyncMdb(): ?int
+    public function getSyncMdb(): ?SyncMdb
     {
         return $this->syncMdb;
     }
 
-    public function setSyncMdb(int $syncMdb): self
+    public function getSyncMdbValue(): ?int
+    {
+        return $this->syncMdb?->value();
+    }
+
+    public function setSyncMdb(SyncMdb $syncMdb): self
     {
         $this->syncMdb = $syncMdb;
         return $this;
     }
 
-    public function updateSyncMdb(?int $syncMdb): void
+    public function updateSyncMdb(?SyncMdb $syncMdb): void
     {
         $this->syncMdb = $syncMdb;
     }

@@ -7,6 +7,7 @@ namespace App\Domain\Shared\ValueObject;
 // Shared Layer
 use App\Shared\Exception\OptimisticLockException;
 use App\Shared\ValueObject\Message;
+use App\Shared\Enums\AppConstants;
 
 /**
  * Lock Version Value Object for Optimistic Locking
@@ -23,6 +24,11 @@ final readonly class LockVersion
     {
         $this->validate($value);
         $this->value = $value;
+    }
+
+    public static function field(): string
+    {
+        return AppConstants::OPTIMISTIC_LOCK;
     }
 
     /**

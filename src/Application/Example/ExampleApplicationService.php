@@ -14,8 +14,8 @@ use App\Application\Shared\Factory\DetailInfoFactory;
 use App\Domain\Example\Entity\Example;
 use App\Domain\Example\Repository\ExampleRepositoryInterface;
 use App\Domain\Example\Service\ExampleDomainService;
-use App\Domain\Shared\ValueObject\Status;
 use App\Domain\Shared\Security\AuthorizerInterface;
+use App\Domain\Shared\ValueObject\Status;
 
 // Shared Layer
 use App\Shared\Dto\PaginatedResult;
@@ -43,9 +43,12 @@ final class ExampleApplicationService
         return Example::RESOURCE;
     }
 
-    private function getEntityById(int $id): Example
+    private function getEntityById(int $id, ?int $status = null): Example
     {
-        $example = $this->repository->findById($id);
+        $example = $this->repository->findById(
+            id: $id,
+            status: $status
+        );
 
         if ($example === null) {
             throw new NotFoundException(
@@ -70,7 +73,11 @@ final class ExampleApplicationService
 
     public function view(int $id): ExampleResponse
     {
-        $example = $this->getEntityById($id);
+        $example = $this->getEntityById(
+            id: $id,
+            status: null
+        );
+        
         return ExampleResponse::fromEntity($example);
     }
 
@@ -98,9 +105,15 @@ final class ExampleApplicationService
 
     public function update(int $id, UpdateExampleCommand $command): ExampleResponse
     {
-        $example = $this->getEntityById($id);
+        $example = $this->getEntityById(
+            id: $id,
+            status: null
+        );
 
-        $this->repository->verifyLockVersion($example, $command->lockVersion ?? null);
+        $this->repository->verifyLockVersion(
+            entity: $example,
+            version: $command->lockVersion ?? null
+        );
 
         $newStatus = Status::tryFrom($command->status);
 
@@ -136,9 +149,15 @@ final class ExampleApplicationService
 
     public function delete(int $id, ?int $lockVersion = null): ExampleResponse
     {
-        $example = $this->getEntityById($id);
+        $example = $this->getEntityById(
+            id: $id,
+            status: null
+        );
 
-        $this->repository->verifyLockVersion($example, $lockVersion);
+        $this->repository->verifyLockVersion(
+            entity: $example, 
+            version: $lockVersion,
+        );
 
         $this->domainService->guardPermission(
             authorizer: $this->auth,
@@ -166,7 +185,10 @@ final class ExampleApplicationService
 
     public function restore(int $id): ExampleResponse
     {
-        $example = $this->repository->restore($id);
+        $example = $this->getEntityById(
+            id: $id,
+            status: Status::deleted()->value()
+        );
         
         if ($example === null) {
             throw new NotFoundException(
@@ -181,7 +203,7 @@ final class ExampleApplicationService
             );
         }
 
-        $newStatus = Status::draft();
+        $newStatus = Status::inactive();
 
         $example->validateStateTransition(
             hasFieldChanges: false,

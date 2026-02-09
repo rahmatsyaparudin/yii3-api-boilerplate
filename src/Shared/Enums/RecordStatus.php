@@ -132,6 +132,9 @@ enum RecordStatus: int
             self::COMPLETED->value,
             self::REJECTED->value,
         ],
+        self::DELETED->value => [
+            self::INACTIVE->value,
+        ],
     ];
 
     /**

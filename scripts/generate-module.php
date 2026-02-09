@@ -232,8 +232,11 @@ final class ModuleGenerator
         
         // Add access rules with proper newline
         $accessRules = "\n    // {$this->moduleName} Access Rules
-    '{$this->moduleLower}.index' => true,
-    '{$this->moduleLower}.data' => true,
+    '{$this->moduleLower}.index' => static fn (Actor \$actor): bool => true,
+    '{$this->moduleLower}.data' => [
+        \$isSuperAdmin,
+        \$isKasir,
+    ],
     '{$this->moduleLower}.view' => \$isKasir,
     '{$this->moduleLower}.create' => \$isKasir,
     '{$this->moduleLower}.update' => \$isKasir,
