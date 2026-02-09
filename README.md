@@ -112,6 +112,11 @@ Install skeleton structure
 composer skeleton-update
 ```
 
+Copy config files (first time only)
+```bash
+composer skeleton-copy-config
+```
+
 Copy example files (first time only)
 ```bash
 composer skeleton-copy-examples
