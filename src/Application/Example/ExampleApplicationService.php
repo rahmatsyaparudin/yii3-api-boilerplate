@@ -138,7 +138,7 @@ final class ExampleApplicationService
     {
         $example = $this->getEntityById($id);
 
-        $example->verifyLockVersion($example, $lockVersion);
+        $this->repository->verifyLockVersion($example, $lockVersion);
 
         $this->domainService->guardPermission(
             authorizer: $this->auth,
