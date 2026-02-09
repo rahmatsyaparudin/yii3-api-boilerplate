@@ -1,30 +1,37 @@
 # Dependencies
 /vendor/
+node_modules/
 
-# Runtime files
+# Runtime & cache
 /runtime/
 .cache/
 *.log
+.phpunit.cache/
+.phpunit.result.cache
+.php-cs-fixer.cache
 
-# Environment files
+# Environment
 .env
 .env.*
 !.env.example
 
-# Environment-specific configs
+# Environment configs
 /config/environments/dev/
 /config/environments/test/
 /config/environments/prod/
+/config/local/
 
-# IDE / OS
+# Static build
+/dist/
+/build/
+/coverage/
+
+# IDE & OS
 .idea/
 .vscode/
 *.iml
 .DS_Store
 Thumbs.db
 
-# Tests cache
-/.phpunit.result.cache
-
-# Docker (optional)
+# Docker
 /docker/runtime/
