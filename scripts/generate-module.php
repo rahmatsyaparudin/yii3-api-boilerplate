@@ -31,6 +31,7 @@ final class ModuleGenerator
     private string $moduleLower;
     private string $moduleUpper;
     private string $tableName;
+    private string $urlName;
 
     /**
      * Module Generator constructor
@@ -46,6 +47,7 @@ final class ModuleGenerator
         $this->moduleLower = strtolower($moduleName);
         $this->moduleUpper = strtoupper($moduleName);
         $this->tableName = $tableName ?? $this->moduleLower;
+        $this->urlName = $this->toKebabCase($this->moduleName);
     }
 
     /**
@@ -295,31 +297,31 @@ final class ModuleGenerator
         
         // Add routes with proper formatting
         $routes = "\n\n            // {$this->moduleName} Routes
-            Route::get('/{$this->moduleLower}')
+            Route::get('/{$this->urlName}')
                 ->action({$this->moduleName}V1\\{$this->moduleName}DataAction::class)
                 ->name('v1/{$this->moduleLower}/index')
                 ->defaults(['permission' => '{$this->moduleLower}.index']),
-            Route::post('/{$this->moduleLower}/data')
+            Route::post('/{$this->urlName}/data')
                 ->action({$this->moduleName}V1\\{$this->moduleName}DataAction::class)
                 ->name('v1/{$this->moduleLower}/data')
                 ->defaults(['permission' => '{$this->moduleLower}.data']),
-            Route::get('/{$this->moduleLower}/{id:\\d+}')
+            Route::get('/{$this->urlName}/{id:\\d+}')
                 ->action({$this->moduleName}V1\\{$this->moduleName}ViewAction::class)
                 ->name('v1/{$this->moduleLower}/view')
                 ->defaults(['permission' => '{$this->moduleLower}.view']),
-            Route::post('/{$this->moduleLower}/create')
+            Route::post('/{$this->urlName}/create')
                 ->action({$this->moduleName}V1\\{$this->moduleName}CreateAction::class)
                 ->name('v1/{$this->moduleLower}/create')
                 ->defaults(['permission' => '{$this->moduleLower}.create']),
-            Route::put('/{$this->moduleLower}/{id:\\d+}')
+            Route::put('/{$this->urlName}/{id:\\d+}')
                 ->action({$this->moduleName}V1\\{$this->moduleName}UpdateAction::class)
                 ->name('v1/{$this->moduleLower}/update')
                 ->defaults(['permission' => '{$this->moduleLower}.update']),
-            Route::delete('/{$this->moduleLower}/{id:\\d+}')
+            Route::delete('/{$this->urlName}/{id:\\d+}')
                 ->action({$this->moduleName}V1\\{$this->moduleName}DeleteAction::class)
                 ->name('v1/{$this->moduleLower}/delete')
                 ->defaults(['permission' => '{$this->moduleLower}.delete']),
-            Route::post('/{$this->moduleLower}/{id:\\d+}/restore')
+            Route::post('/{$this->urlName}/{id:\\d+}/restore')
                 ->action({$this->moduleName}V1\\{$this->moduleName}RestoreAction::class)
                 ->name('v1/{$this->moduleLower}/restore')
                 ->defaults(['permission' => '{$this->moduleLower}.restore']),";
@@ -650,10 +652,17 @@ final class ModuleGenerator
         if (!empty($files)) {
             echo "📄 Files:\n";
             foreach ($files as $file) {
-                $relativePath = str_replace($this->projectRoot . '/', '', $file);
-                echo "  - {$relativePath}\n";
+                echo "  - {$file}\n";
             }
         }
+    }
+    
+    /**
+     * Convert camelCase to kebab-case
+     */
+    private function toKebabCase(string $string): string
+    {
+        return strtolower(preg_replace('/([A-Z])/', '-$1', lcfirst($string)));
     }
 }
 
