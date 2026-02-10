@@ -114,6 +114,7 @@ class SkeletonInstaller
             'Security',
             'Utility',
             'Validation',
+            'Context',
             'ValueObject'
         ];
         
@@ -203,7 +204,7 @@ class SkeletonInstaller
             'Concerns',
             'Contract',
             'Security',
-            'ValueObject'
+            'ValueObject',
         ];
         
         foreach ($domainSharedDirs as $dir) {
@@ -639,6 +640,12 @@ class SkeletonInstaller
                     mkdir($targetPath, 0755, true);
                 }
             } else {
+                // Skip if target file already exists and it's ValidationContext.php
+                if (file_exists($targetPath) && str_contains($targetPath, 'ValidationContext.php')) {
+                    echo "⏭️  Skipped existing ValidationContext: " . str_replace($this->projectRoot . '/', '', $targetPath) . "\n";
+                    continue;
+                }
+                
                 // Copy file as-is without replacements
                 $content = file_get_contents($sourcePath);
                 

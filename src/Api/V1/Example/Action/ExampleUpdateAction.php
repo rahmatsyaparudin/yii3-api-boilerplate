@@ -86,7 +86,7 @@ final class ExampleUpdateAction
             context: ValidationContext::UPDATE,
         );
 
-        $command = new UpdateExampleCommand(
+        $command = UpdateExampleCommand::create(
             id: (int) $id,
             name: $params->get('name'),
             status: $params->get('status'),

@@ -128,7 +128,7 @@ trait Stateful
         }
     }
 
-    public function validateStateTransition(
+    public function guardAgainstInvalidTransition(
         bool $hasFieldChanges,
         ?Status $newStatus = null,
         ?bool $isChangingStatus = null,

@@ -122,7 +122,7 @@ final class ExampleApplicationService
             removeNulls: true
         );
 
-        $data->validateStateTransition(
+        $data->guardAgainstInvalidTransition(
             hasFieldChanges: $hasFieldChanges,
             newStatus: $newStatus
         );
@@ -205,7 +205,7 @@ final class ExampleApplicationService
 
         $newStatus = Status::inactive();
 
-        $data->validateStateTransition(
+        $data->guardAgainstInvalidTransition(
             hasFieldChanges: false,
             newStatus: $newStatus
         );

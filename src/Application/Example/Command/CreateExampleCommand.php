@@ -11,4 +11,16 @@ final readonly class CreateExampleCommand
         public int $status,
         public ?array $detailInfo,
     ) {}
+
+    public static function create(
+        string $name,
+        int $status,
+        ?array $detailInfo = null,
+    ): self {
+        return new self(
+            name: $name,
+            status: $status,
+            detailInfo: $detailInfo,
+        );
+    }
 }

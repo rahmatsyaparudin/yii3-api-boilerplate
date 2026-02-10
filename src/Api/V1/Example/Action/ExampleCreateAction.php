@@ -50,7 +50,7 @@ final class ExampleCreateAction
             context: ValidationContext::CREATE,
         );
 
-        $command = new CreateExampleCommand(
+        $command = CreateExampleCommand::create(
             name: (string) $params->get('name'),
             status: $params->get('status'),
             detailInfo: $params->get('detail_info')

@@ -25,6 +25,15 @@ final class ExampleDomainService
     public function __construct(
         private ExampleRepositoryInterface $repository
     ) {}
-    
-    
+
+    /**
+     * Place Example-specific business logic here, in addition to those
+     * provided by common traits/concerns (Identifiable, Stateful, etc.).
+     * 
+     * Examples:
+     * - Complex validation rules
+     * - Business calculations
+     * - Domain-specific operations
+     * - Cross-entity business rules
+     */ 
 }

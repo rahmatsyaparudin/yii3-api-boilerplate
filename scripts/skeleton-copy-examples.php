@@ -98,6 +98,12 @@ class SkeletonExamplesCopier
             echo "📁 Created directory: " . str_replace($this->projectRoot . '/', '', $targetDir) . "\n";
         }
         
+        // Skip if target file already exists and it's a messages file
+        if (file_exists($targetPath) && str_contains($target, 'resources/messages/')) {
+            echo "⏭️  Skipped existing messages file: " . str_replace($this->projectRoot . '/', '', $targetPath) . "\n";
+            return;
+        }
+        
         if (is_dir($sourcePath)) {
             // Copy directory recursively
             $this->copyDirectory($sourcePath, $targetPath);
