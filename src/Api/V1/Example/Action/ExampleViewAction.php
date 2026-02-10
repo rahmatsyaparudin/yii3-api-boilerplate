@@ -25,7 +25,7 @@ use Yiisoft\Router\CurrentRoute;
 final readonly class ExampleViewAction
 {
     public function __construct(
-        private ExampleApplicationService $exampleApplicationService,
+        private ExampleApplicationService $applicationService,
         private ResponseFactory $responseFactory,
     ) {
     }
@@ -36,7 +36,7 @@ final readonly class ExampleViewAction
     ): ResponseInterface
     {
         $id = $currentRoute->getArgument('id');
-        $resource = $this->exampleApplicationService->getResource();
+        $resource = $this->applicationService->getResource();
 
         if ($id === null) {
             return $this->responseFactory->fail(
@@ -51,10 +51,10 @@ final readonly class ExampleViewAction
             );
         }
 
-        $exampleResponse = $this->exampleApplicationService->get((int) $id);
+        $response = $this->applicationService->get((int) $id);
 
         return $this->responseFactory->success(
-            data: $exampleResponse->toArray(),
+            data: $response->toArray(),
             translate: new Message(
                 key: 'resource.details_retrieved',
                 params: [
