@@ -51,7 +51,6 @@ return [
                 ->action(ExampleV1\ExampleRestoreAction::class)
                 ->name('v1/example/restore')
                 ->defaults(['permission' => 'example.restore']),
-
         ),
 ];
 

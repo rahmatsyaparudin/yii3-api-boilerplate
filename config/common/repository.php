@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 use App\Domain\Example\Repository\ExampleRepositoryInterface;
 use App\Infrastructure\Persistence\Example\ExampleRepository;
-use App\Domain\AttendanceDevice\Repository\AttendanceDeviceRepositoryInterface;
-use App\Infrastructure\Persistence\AttendanceDevice\AttendanceDeviceRepository;
 use App\Shared\ValueObject\LockVersionConfig;
 use App\Infrastructure\Security\CurrentUser;
 use Yiisoft\Definitions\Reference;

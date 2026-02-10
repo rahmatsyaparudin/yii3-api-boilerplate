@@ -141,12 +141,14 @@ final class ModuleGenerator
             $content
         );
         
-        // Add LockVersionConfig use statement after CurrentUser line
-        $content = str_replace(
-            "use App\\Infrastructure\\Security\\CurrentUser;",
-            "use App\\Infrastructure\\Security\\CurrentUser;\nuse App\\Shared\\ValueObject\\LockVersionConfig;",
-            $content
-        );
+        // Add LockVersionConfig use statement after CurrentUser line (only if not exists)
+        if (!str_contains($content, "use App\\Shared\\ValueObject\\LockVersionConfig;")) {
+            $content = str_replace(
+                "use App\\Infrastructure\\Security\\CurrentUser;",
+                "use App\\Infrastructure\\Security\\CurrentUser;\nuse App\\Shared\\ValueObject\\LockVersionConfig;",
+                $content
+            );
+        }
         
         // Add repository DI configuration
         $newDiConfig = "    {$this->moduleName}RepositoryInterface::class => [
@@ -227,23 +229,23 @@ final class ModuleGenerator
         $content = file_get_contents($configFile);
         
         // Check if module already exists
-        if (str_contains($content, "'{$this->moduleLower}.index'")) {
+        if (str_contains($content, "'{$this->urlName}.index'")) {
             echo "📄 Access config already exists for {$this->moduleName}\n";
             return;
         }
         
         // Add access rules with proper newline
         $accessRules = "\n    // {$this->moduleName} Access Rules
-    '{$this->moduleLower}.index' => static fn (Actor \$actor): bool => true,
-    '{$this->moduleLower}.data' => [
+    '{$this->urlName}.index' => static fn (Actor \$actor): bool => true,
+    '{$this->urlName}.data' => [
         \$isSuperAdmin,
         \$isKasir,
     ],
-    '{$this->moduleLower}.view' => \$isKasir,
-    '{$this->moduleLower}.create' => \$isKasir,
-    '{$this->moduleLower}.update' => \$isKasir,
-    '{$this->moduleLower}.delete' => \$isKasir,
-    '{$this->moduleLower}.restore' => \$isSuperAdmin,";
+    '{$this->urlName}.view' => \$isKasir,
+    '{$this->urlName}.create' => \$isKasir,
+    '{$this->urlName}.update' => \$isKasir,
+    '{$this->urlName}.delete' => \$isKasir,
+    '{$this->urlName}.restore' => \$isSuperAdmin,";
         
         // Add before closing bracket
         $content = preg_replace('/(\];\s*$)/', $accessRules . "\n];", $content);
@@ -299,32 +301,32 @@ final class ModuleGenerator
         $routes = "\n\n            // {$this->moduleName} Routes
             Route::get('/{$this->urlName}')
                 ->action({$this->moduleName}V1\\{$this->moduleName}DataAction::class)
-                ->name('v1/{$this->moduleLower}/index')
-                ->defaults(['permission' => '{$this->moduleLower}.index']),
+                ->name('v1/{$this->urlName}/index')
+                ->defaults(['permission' => '{$this->urlName}.index']),
             Route::post('/{$this->urlName}/data')
                 ->action({$this->moduleName}V1\\{$this->moduleName}DataAction::class)
-                ->name('v1/{$this->moduleLower}/data')
-                ->defaults(['permission' => '{$this->moduleLower}.data']),
+                ->name('v1/{$this->urlName}/data')
+                ->defaults(['permission' => '{$this->urlName}.data']),
             Route::get('/{$this->urlName}/{id:\\d+}')
                 ->action({$this->moduleName}V1\\{$this->moduleName}ViewAction::class)
-                ->name('v1/{$this->moduleLower}/view')
-                ->defaults(['permission' => '{$this->moduleLower}.view']),
+                ->name('v1/{$this->urlName}/view')
+                ->defaults(['permission' => '{$this->urlName}.view']),
             Route::post('/{$this->urlName}/create')
                 ->action({$this->moduleName}V1\\{$this->moduleName}CreateAction::class)
-                ->name('v1/{$this->moduleLower}/create')
-                ->defaults(['permission' => '{$this->moduleLower}.create']),
+                ->name('v1/{$this->urlName}/create')
+                ->defaults(['permission' => '{$this->urlName}.create']),
             Route::put('/{$this->urlName}/{id:\\d+}')
                 ->action({$this->moduleName}V1\\{$this->moduleName}UpdateAction::class)
-                ->name('v1/{$this->moduleLower}/update')
-                ->defaults(['permission' => '{$this->moduleLower}.update']),
+                ->name('v1/{$this->urlName}/update')
+                ->defaults(['permission' => '{$this->urlName}.update']),
             Route::delete('/{$this->urlName}/{id:\\d+}')
                 ->action({$this->moduleName}V1\\{$this->moduleName}DeleteAction::class)
-                ->name('v1/{$this->moduleLower}/delete')
-                ->defaults(['permission' => '{$this->moduleLower}.delete']),
+                ->name('v1/{$this->urlName}/delete')
+                ->defaults(['permission' => '{$this->urlName}.delete']),
             Route::post('/{$this->urlName}/{id:\\d+}/restore')
                 ->action({$this->moduleName}V1\\{$this->moduleName}RestoreAction::class)
-                ->name('v1/{$this->moduleLower}/restore')
-                ->defaults(['permission' => '{$this->moduleLower}.restore']),";
+                ->name('v1/{$this->urlName}/restore')
+                ->defaults(['permission' => '{$this->urlName}.restore']),";
         
         // Add routes using simple string replacement - find the last example route and add after it
         $lastRoutePattern = "/Route::post\('\/example\/\{id:\\d\+\}\/restore'\)[^}]+\'example\.restore\'\]\),/";
@@ -419,12 +421,12 @@ final class ModuleGenerator
         // Replace class name and repository interface
         $content = str_replace("SeedExampleData", "Seed{$this->moduleName}Data", $content);
         $content = str_replace("ExampleRepositoryInterface", "{$this->moduleName}RepositoryInterface", $content);
-        $content = str_replace("exampleRepository", lcfirst($this->moduleName) . "Repository", $content);
+        $content = str_replace("exampleRepository", $this->getVariableName() . "Repository", $content);
         
         // Replace constructor parameters
         $content = str_replace(
             "DetailInfoFactory \$detailInfoFactory,\n        Aliases \$aliases,\n        ExampleRepositoryInterface \$exampleRepository",
-            "DetailInfoFactory \$detailInfoFactory,\n        Aliases \$aliases,\n        {$this->moduleName}RepositoryInterface \$" . lcfirst($this->moduleName) . "Repository",
+            "DetailInfoFactory \$detailInfoFactory,\n        Aliases \$aliases,\n        {$this->moduleName}RepositoryInterface \$" . $this->getVariableName() . "Repository",
             $content
         );
         $content = str_replace(
@@ -615,6 +617,7 @@ final class ModuleGenerator
     private function replacePlaceholders(string $content): string
     {
         $replacements = [
+            '$example' => '$' . $this->getVariableName(),
             'Example' => $this->moduleName,
             'example' => $this->moduleLower,
             'EXAMPLE' => $this->moduleUpper,
@@ -663,6 +666,14 @@ final class ModuleGenerator
     private function toKebabCase(string $string): string
     {
         return strtolower(preg_replace('/([A-Z])/', '-$1', lcfirst($string)));
+    }
+    
+    /**
+     * Convert module name to variable name (camelCase)
+     */
+    private function getVariableName(): string
+    {
+        return lcfirst($this->moduleName);
     }
 }
 

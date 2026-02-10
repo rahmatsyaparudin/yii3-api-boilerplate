@@ -45,12 +45,12 @@ final class ExampleApplicationService
 
     private function getEntityById(int $id, ?int $status = null): Example
     {
-        $example = $this->repository->findById(
+        $data = $this->repository->findById(
             id: $id,
             status: $status
         );
 
-        if ($example === null) {
+        if ($data === null) {
             throw new NotFoundException(
                 translate: new Message(
                     key: 'resource.not_found', 
@@ -63,7 +63,7 @@ final class ExampleApplicationService
             );
         }
         
-        return $example;
+        return $data;
     }
     
     public function list(SearchCriteria $criteria): PaginatedResult
@@ -73,12 +73,12 @@ final class ExampleApplicationService
 
     public function view(int $id): ExampleResponse
     {
-        $example = $this->getEntityById(
+        $data = $this->getEntityById(
             id: $id,
             status: null
         );
         
-        return ExampleResponse::fromEntity($example);
+        return ExampleResponse::fromEntity($data);
     }
 
     public function get(int $id): ExampleResponse
@@ -94,68 +94,68 @@ final class ExampleApplicationService
             )
             ->build();
 
-        $example = Example::create(
+        $data = Example::create(
             name: $command->name,
             status: Status::from($command->status),
             detailInfo: $detailInfo
         );
 
-        return ExampleResponse::fromEntity(example: $this->repository->insert($example));
+        return ExampleResponse::fromEntity(example: $this->repository->insert($data));
     }
 
     public function update(int $id, UpdateExampleCommand $command): ExampleResponse
     {
-        $example = $this->getEntityById(
+        $data = $this->getEntityById(
             id: $id,
             status: null
         );
 
         $this->repository->verifyLockVersion(
-            entity: $example,
+            entity: $data,
             version: $command->lockVersion ?? null
         );
 
         $newStatus = Status::tryFrom($command->status);
 
-        $hasFieldChanges = $example->hasFieldChanges(
+        $hasFieldChanges = $data->hasFieldChanges(
             data: (array) $command,
             removeNulls: true
         );
 
-        $example->validateStateTransition(
+        $data->validateStateTransition(
             hasFieldChanges: $hasFieldChanges,
             newStatus: $newStatus
         );
 
         if (isset($command->name)) {
-            $example->changeName($command->name);
+            $data->changeName($command->name);
         }
 
         if ($newStatus !== null) {
-            $example->transitionTo($newStatus);
+            $data->transitionTo($newStatus);
         }
 
         $detailInfo = $this->detailInfoFactory
             ->update(
-                detailInfo: $example->getDetailInfo(),
+                detailInfo: $data->getDetailInfo(),
                 payload: $command->detailInfo ?? [],
             )
             ->build();
 
-        $example->updateDetailInfo(detailInfo: $detailInfo);
+        $data->updateDetailInfo(detailInfo: $detailInfo);
 
-        return ExampleResponse::fromEntity($this->repository->update($example));
+        return ExampleResponse::fromEntity($this->repository->update($data));
     }
 
     public function delete(int $id, ?int $lockVersion = null): ExampleResponse
     {
-        $example = $this->getEntityById(
+        $data = $this->getEntityById(
             id: $id,
             status: null
         );
 
         $this->repository->verifyLockVersion(
-            entity: $example, 
+            entity: $data, 
             version: $lockVersion,
         );
 
@@ -167,30 +167,30 @@ final class ExampleApplicationService
         );
         
         $this->domainService->validateCanBeDeleted(
-            entity: $example,
+            entity: $data,
             resource: $this->getResource(),
         );
 
         $detailInfo = $this->detailInfoFactory
             ->delete(
-                detailInfo: $example->getDetailInfo(),
+                detailInfo: $data->getDetailInfo(),
                 payload: [],
             )
             ->build();
 
-        $example->updateDetailInfo(detailInfo: $detailInfo);
+        $data->updateDetailInfo(detailInfo: $detailInfo);
 
-        return ExampleResponse::fromEntity($this->repository->delete($example));
+        return ExampleResponse::fromEntity($this->repository->delete($data));
     }
 
     public function restore(int $id): ExampleResponse
     {
-        $example = $this->getEntityById(
+        $data = $this->getEntityById(
             id: $id,
             status: Status::deleted()->value()
         );
         
-        if ($example === null) {
+        if ($data === null) {
             throw new NotFoundException(
                 translate: new Message(
                     key: 'resource.not_found', 
@@ -205,25 +205,25 @@ final class ExampleApplicationService
 
         $newStatus = Status::inactive();
 
-        $example->validateStateTransition(
+        $data->validateStateTransition(
             hasFieldChanges: false,
             newStatus: $newStatus
         );
 
         if ($newStatus !== null) {
-            $example->transitionTo($newStatus);
+            $data->transitionTo($newStatus);
         }
 
         $detailInfo = $this->detailInfoFactory
             ->restore(
-                detailInfo: $example->getDetailInfo(),
+                detailInfo: $data->getDetailInfo(),
                 payload: [],
             )
             ->build();
 
-        $example->updateDetailInfo(detailInfo: $detailInfo);
+        $data->updateDetailInfo(detailInfo: $detailInfo);
 
-        $restoredExample = $this->repository->restore($example->getId());
+        $restoredExample = $this->repository->restore($data->getId());
         
         return ExampleResponse::fromEntity($restoredExample);
     }
