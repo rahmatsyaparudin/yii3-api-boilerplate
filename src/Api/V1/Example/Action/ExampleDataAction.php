@@ -37,7 +37,6 @@ final class ExampleDataAction
         private ExampleInputValidator $inputValidator,
         private ExampleApplicationService $applicationService,
         private ResponseFactory $responseFactory,
-        private \Yiisoft\Db\Connection\ConnectionInterface $db,
     ) {
     }   
 
