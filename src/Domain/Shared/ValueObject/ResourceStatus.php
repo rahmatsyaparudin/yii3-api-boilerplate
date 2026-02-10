@@ -14,7 +14,7 @@ use App\Shared\Enums\RecordStatus;
  * It provides a rich domain model for status management instead of
  * working with primitive integers.
  */
-final readonly class Status
+final readonly class ResourceStatus
 {
     private function __construct(
         private RecordStatus $enum
