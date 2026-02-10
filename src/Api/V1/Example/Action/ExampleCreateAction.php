@@ -61,7 +61,7 @@ final class ExampleCreateAction
 
         return $this->responseFactory->success(
             data: $response->toArray(),
-            translate: new Message(
+            translate: Message::create(
                 key: 'resource.created',
                 params: [
                     'resource' => $resource

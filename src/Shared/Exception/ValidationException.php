@@ -37,7 +37,7 @@ use App\Shared\ValueObject\Message;
  * @example
  * // With localized message using named arguments
  * throw new ValidationException(
- *     translate: new Message(
+ *     translate: Message::create(
  *         key: 'validation.complex_failed',
  *         params: ['step' => 'email_validation']
  *     ),
@@ -60,7 +60,7 @@ use App\Shared\ValueObject\Message;
  *     
  *     if (!empty($errors)) {
  *         throw new ValidationException(
- *             translate: new Message(
+ *             translate: Message::create(
  *                 key: 'registration.validation_failed',
  *                 params: ['field_count' => count($errors)]
  *             ),
@@ -80,7 +80,7 @@ use App\Shared\ValueObject\Message;
  *     
  *     if (!$validationResult->isValid()) {
  *         throw new ValidationException(
- *             translate: new Message(
+ *             translate: Message::create(
  *                 key: 'product.validation_failed',
  *                 params: ['product_name' => $command->name]
  *             ),
@@ -122,7 +122,7 @@ final class ValidationException extends HttpException
      * @example
      * // With localized message using named arguments
      * throw new ValidationException(
-     *     translate: new Message(
+     *     translate: Message::create(
      *         key: 'validation.business_rule_failed',
      *         params: ['rule' => 'unique_email']
      *     )
@@ -143,7 +143,7 @@ final class ValidationException extends HttpException
      * // All parameters with named arguments
      * throw new ValidationException(
      *     errors: $validationErrors,
-     *     translate: new Message(
+     *     translate: Message::create(
      *         key: 'validation.multiple_errors',
      *         params: ['count' => count($validationErrors)]
      *     ),
@@ -154,7 +154,7 @@ final class ValidationException extends HttpException
     {
         $message = $translate instanceof Message 
             ? $translate 
-            : new Message($translate ?? 'validation.failed');
+            : Message::create($translate ?? 'validation.failed');
         parent::__construct(Status::UNPROCESSABLE_ENTITY, $message, $errors, null, $previous);
     }
 }

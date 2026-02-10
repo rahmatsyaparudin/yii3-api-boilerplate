@@ -33,7 +33,7 @@ use App\Shared\ValueObject\Message;
  * @example
  * // With localized message and errors using named arguments
  * throw new ConflictException(
- *     translate: new Message(
+ *     translate: Message::create(
  *         key: 'resource.duplicate',
  *         params: ['field' => 'email', 'value' => 'user@example.com']
  *     ),
@@ -48,7 +48,7 @@ use App\Shared\ValueObject\Message;
  * // In service for duplicate resource check
  * if ($this->repository->findByEmail($email) !== null) {
  *     throw new ConflictException(
- *         translate: new Message(
+ *         translate: Message::create(
      *             key: 'user.email.exists',
      *             params: ['email' => $email]
      *         ),
@@ -64,7 +64,7 @@ use App\Shared\ValueObject\Message;
  * // Business rule conflict
  * if ($order->getStatus() === OrderStatus::CANCELLED) {
  *     throw new ConflictException(
- *         translate: new Message(
+ *         translate: Message::create(
      *             key: 'order.cancelled_modification',
      *             params: ['order_id' => $order->getId()]
      *         ),
@@ -82,7 +82,7 @@ use App\Shared\ValueObject\Message;
  *     $this->validateBusinessRules($data);
  * } catch (BusinessRuleException $e) {
  *     throw new ConflictException(
-     *         translate: new Message(
+     *         translate: Message::create(
      *             key: 'business.rule.violation',
      *             params: ['rule' => $e->getRule()]
      *         ),
@@ -116,7 +116,7 @@ final class ConflictException extends HttpException
      * @example
      * // With localized message using named arguments
      * throw new ConflictException(
-     *     translate: new Message(
+     *     translate: Message::create(
      *         key: 'resource.duplicate',
      *         params: ['field' => 'username']
      *     )
@@ -150,7 +150,7 @@ final class ConflictException extends HttpException
     {
         $message = $translate instanceof Message 
             ? $translate 
-            : new Message($translate ?? 'resource.conflict');
+            : Message::create($translate ?? 'resource.conflict');
             
         parent::__construct(Status::CONFLICT, $message, $errors, null, $previous);
     }

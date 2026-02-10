@@ -32,7 +32,7 @@ use App\Shared\ValueObject\Message;
  * @example
  * // With localized message using named arguments
  * throw new NotFoundException(
- *     translate: new Message(
+ *     translate: Message::create(
  *         key: 'resource.not_found',
  *         params: ['resource' => 'User', 'id' => $userId]
  *     )
@@ -52,7 +52,7 @@ use App\Shared\ValueObject\Message;
  *     $user = $this->query->findOne(['id' => $id]);
  *     if (!$user) {
  *         throw new NotFoundException(
- *             translate: new Message(
+ *             translate: Message::create(
  *                 key: 'user.not_found',
  *                 params: ['id' => $id]
  *             )
@@ -70,7 +70,7 @@ use App\Shared\ValueObject\Message;
  *         return $this->profileRepository->findByUserId($userId);
  *     } catch (NotFoundException $e) {
  *         throw new NotFoundException(
- *             translate: new Message(
+ *             translate: Message::create(
  *                 key: 'user.profile.not_found',
  *                 params: ['user_id' => $userId]
  *             ),
@@ -112,7 +112,7 @@ final class NotFoundException extends HttpException
      * @example
      * // With localized message using named arguments
      * throw new NotFoundException(
-     *         translate: new Message(
+     *         translate: Message::create(
      *             key: 'product.not_found',
      *             params: ['sku' => $sku]
      *         )
@@ -135,7 +135,7 @@ final class NotFoundException extends HttpException
      * @example
      * // All parameters with named arguments
      * throw new NotFoundException(
-     *     translate: new Message(
+     *     translate: Message::create(
      *         key: 'order.not_found',
      *         params: ['order_id' => $orderId]
      *     ),
@@ -147,7 +147,7 @@ final class NotFoundException extends HttpException
     {
         $message = $translate instanceof Message 
             ? $translate 
-            : new Message($translate ?? 'http.not_found');
+            : Message::create($translate ?? 'http.not_found');
             
         parent::__construct(Status::NOT_FOUND, $message, $errors, null, $previous);
     }

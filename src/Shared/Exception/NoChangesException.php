@@ -33,7 +33,7 @@ use App\Shared\ValueObject\Message;
  * @example
  * // With localized message and data using named arguments
  * throw new NoChangesException(
- *     translate: new Message(
+ *     translate: Message::create(
      *         key: 'resource.no_changes',
      *         params: ['resource' => 'User', 'id' => 123]
      *     ),
@@ -52,7 +52,7 @@ use App\Shared\ValueObject\Message;
  *     $changes = $this->detectChanges($user, $data);
  *     if (empty($changes)) {
      *         throw new NoChangesException(
-     *             translate: new Message(
+     *             translate: Message::create(
      *                 key: 'user.no_changes',
      *                 params: ['id' => $user->getId()]
      *             ),
@@ -77,7 +77,7 @@ use App\Shared\ValueObject\Message;
      *         $current = $this->findById($update['id']);
      *         if ($this->isUnchanged($current, $update)) {
      *             throw new NoChangesException(
-     *                 translate: new Message(
+     *                 translate: Message::create(
      *                     key: 'batch.no_changes',
      *                     params: ['id' => $update['id']]
      *                 ),
@@ -129,7 +129,7 @@ final class NoChangesException extends HttpException
      * @example
      * // With localized message using named arguments
      * throw new NoChangesException(
-     *         translate: new Message(
+     *         translate: Message::create(
      *             key: 'resource.no_changes',
      *             params: ['resource' => 'User']
      *         )
@@ -164,7 +164,7 @@ final class NoChangesException extends HttpException
     {
         $message = $translate instanceof Message 
             ? $translate 
-            : new Message($translate ?? 'resource.conflict');
+            : Message::create($translate ?? 'resource.conflict');
             
         parent::__construct(Status::OK, $message, null, $data, $previous);
     }

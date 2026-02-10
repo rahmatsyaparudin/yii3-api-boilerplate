@@ -167,7 +167,7 @@ final readonly class RequestParams
         // Validate page parameter
         if (!is_numeric($pageParam)) {
             throw new BadRequestException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'pagination.invalid_parameter', 
                     params: [
                         'parameter' => 'page'
@@ -180,7 +180,7 @@ final readonly class RequestParams
         // Validate page_size parameter
         if (!is_numeric($pageSizeParam)) {
             throw new BadRequestException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'pagination.invalid_parameter', 
                     params: [
                         'parameter' => 'page_size'
@@ -609,7 +609,7 @@ final readonly class RequestParams
         $params = $request->getAttribute($attribute);
         if (!$params instanceof self) {
             throw new BadRequestException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'http.missing_request_params', 
                     params: [
                         'parameter' => 'page'

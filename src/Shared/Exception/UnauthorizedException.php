@@ -32,7 +32,7 @@ use App\Shared\ValueObject\Message;
  * @example
  * // With localized message using named arguments
  * throw new UnauthorizedException(
- *     translate: new Message(
+ *     translate: Message::create(
  *         key: 'auth.invalid_token',
  *         params: ['reason' => 'expired']
  *     )
@@ -44,7 +44,7 @@ use App\Shared\ValueObject\Message;
  * {
  *     if (!$this->tokenValidator->isValid($token)) {
  *         throw new UnauthorizedException(
- *             translate: new Message(
+ *             translate: Message::create(
  *                 key: 'auth.token_invalid',
  *                 params: ['token_type' => 'JWT']
  *             )
@@ -62,7 +62,7 @@ use App\Shared\ValueObject\Message;
  *     
  *     if (empty($token)) {
  *         throw new UnauthorizedException(
- *             translate: new Message(
+ *             translate: Message::create(
  *                 key: 'auth.token_missing',
  *                 params: ['header' => 'Authorization']
  *             )
@@ -88,7 +88,7 @@ use App\Shared\ValueObject\Message;
  *     
  *     if (!$user->isEmailVerified()) {
  *         throw new UnauthorizedException(
- *             translate: new Message(
+ *             translate: Message::create(
  *                 key: 'auth.email_not_verified',
  *                 params: ['email' => $user->getEmail()]
  *             )
@@ -123,7 +123,7 @@ final class UnauthorizedException extends HttpException
      * @example
      * // With localized message using named arguments
      * throw new UnauthorizedException(
-     *     translate: new Message(
+     *     translate: Message::create(
      *         key: 'auth.session_expired',
  *         params: ['session_id' => $sessionId]
      *     )
@@ -143,7 +143,7 @@ final class UnauthorizedException extends HttpException
      * @example
      * // All parameters with named arguments
      * throw new UnauthorizedException(
-     *     translate: new Message(
+     *     translate: Message::create(
      *         key: 'auth.multiple_attempts',
      *         params: ['attempts' => $attemptCount, 'max_attempts' => 3]
      *     ),
@@ -155,7 +155,7 @@ final class UnauthorizedException extends HttpException
     {
         $message = $translate instanceof Message 
             ? $translate 
-            : new Message($translate ?? 'http.unauthorized');
+            : Message::create($translate ?? 'http.unauthorized');
             
         parent::__construct(Status::UNAUTHORIZED, $message, $errors, null, $previous);
     }

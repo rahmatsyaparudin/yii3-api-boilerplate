@@ -171,7 +171,7 @@ final class JwtMiddleware implements MiddlewareInterface
         $authHeader = $request->getHeaderLine('Authorization');
         if ($authHeader === '') {
             throw new UnauthorizedException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'auth.header_missing'
                 )
             );
@@ -190,7 +190,7 @@ final class JwtMiddleware implements MiddlewareInterface
             $request = $request->withAttribute('actor', $actor);
         } catch (\Exception $e) {
             throw new UnauthorizedException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'auth.invalid_token',
                     params: ['error' => $e->getMessage()]
                 )

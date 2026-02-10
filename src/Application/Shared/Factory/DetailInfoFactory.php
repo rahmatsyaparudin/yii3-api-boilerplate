@@ -182,7 +182,7 @@ final class DetailInfoFactory
     {
         if (!$this->current) {
             throw new ServiceException(
-                translate: new Message(
+                translate: Message::create(
                     key: "factory.detail_info.uninitialized_state",
                     params: [
                         'methods' => 'create() or update()'
@@ -200,7 +200,7 @@ final class DetailInfoFactory
 
         if ($isDeleted) {
             throw new ServiceException(
-                translate: new Message(
+                translate: Message::create(
                     key: "resource.modification_denied_on_deleted",
                     params: [
                         'resource' => 'Resource',

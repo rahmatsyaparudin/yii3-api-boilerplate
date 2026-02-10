@@ -52,7 +52,7 @@ final class ExampleUpdateAction
 
         if ($id === null) {
             return $this->responseFactory->fail(
-                translate: new Message(
+                translate: Message::create(
                     key: 'route.parameter_missing',
                     params: [
                         'resource' => $resource,
@@ -65,7 +65,7 @@ final class ExampleUpdateAction
 
         if ($payload === null) {
             return $this->responseFactory->fail(
-                translate: new Message(
+                translate: Message::create(
                     key: 'validation.invalid_payload',
                     params: [
                         'resource' => $resource,
@@ -101,7 +101,7 @@ final class ExampleUpdateAction
 
         return $this->responseFactory->success(
             data: $response->toArray(),
-            translate: new Message(
+            translate: Message::create(
                 key: 'resource.updated',
                 params: [
                     'resource' => $resource,

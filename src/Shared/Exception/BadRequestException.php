@@ -32,7 +32,7 @@ use App\Shared\ValueObject\Message;
  * @example
  * // With Message value object for localization using named arguments
  * throw new BadRequestException(
- *     translate: new Message(
+ *     translate: Message::create(
  *         key: 'validation.email_invalid',
  *         params: ['email' => $email]
  *     )
@@ -51,7 +51,7 @@ use App\Shared\ValueObject\Message;
  * @example
  * // With all parameters using named arguments
  * throw new BadRequestException(
- *     translate: new Message(
+ *     translate: Message::create(
  *         key: 'validation.required',
  *         params: ['field' => 'email']
  *     ),
@@ -79,7 +79,7 @@ use App\Shared\ValueObject\Message;
  * {
  *     if ($request->amount <= 0) {
  *         throw new BadRequestException(
- *             translate: new Message(
+ *             translate: Message::create(
  *                 key: 'payment.amount_invalid',
  *                 params: ['amount' => $request->amount]
  *             )
@@ -114,7 +114,7 @@ final class BadRequestException extends HttpException
      * @example
      * // With localized message using named arguments
      * throw new BadRequestException(
-     *     translate: new Message(
+     *     translate: Message::create(
      *         key: 'validation.required',
      *         params: ['field' => 'email']
      *     )
@@ -144,7 +144,7 @@ final class BadRequestException extends HttpException
      * @example
      * // All parameters with named arguments
      * throw new BadRequestException(
-     *     translate: new Message(
+     *     translate: Message::create(
      *         key: 'validation.complex',
      *         params: ['step' => 'final']
      *     ),
@@ -156,7 +156,7 @@ final class BadRequestException extends HttpException
     {
         $message = $translate instanceof Message 
             ? $translate 
-            : new Message($translate ?? 'http.bad_request');
+            : Message::create($translate ?? 'http.bad_request');
             
         parent::__construct(Status::BAD_REQUEST, $message, $errors, null, $previous);
     }

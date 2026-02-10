@@ -17,15 +17,15 @@ final readonly class ExampleResponse
         public int $lock_version,
     ) {}
 
-    public static function fromEntity(Example $example): self
+    public static function fromEntity(Example $entity): self
     {
         return new self(
-            id: $example->getId(),
-            name: $example->getName(),
-            status: $example->getStatus()->value(),
-            detail_info: $example->getDetailInfo()->toArray(),
-            sync_mdb: $example->getSyncMdbValue(),
-            lock_version: $example->getLockVersion()->value(),
+            id: $entity->getId(),
+            name: $entity->getName(),
+            status: $entity->getStatus()->value(),
+            detail_info: $entity->getDetailInfo()->toArray(),
+            sync_mdb: $entity->getSyncMdbValue(),
+            lock_version: $entity->getLockVersion()->value(),
         );
     }
 

@@ -27,7 +27,7 @@ final readonly class SyncMdb
     {
         if ($value !== self::SYNCED && $value !== self::NOT_SYNCED) {
             throw new BadRequestException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'validation.sync_mdb.invalid_value',
                     domain: 'validation',
                     params: [
@@ -54,7 +54,7 @@ final readonly class SyncMdb
 
         if (!is_numeric($value)) {
             throw new BadRequestException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'validation.sync_mdb.invalid_format',
                     domain: 'validation',
                     params: ['value' => $value]

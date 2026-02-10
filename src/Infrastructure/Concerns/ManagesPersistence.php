@@ -83,7 +83,7 @@ trait ManagesPersistence
 
         if (!$entity->getLockVersion()->equals(LockVersion::fromInt($version))) {
             throw new OptimisticLockException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'optimistic.lock.failed',
                     params: [
                         'resource' => defined('static::RESOURCE') ? static::RESOURCE : 'resource',
@@ -110,7 +110,7 @@ trait ManagesPersistence
         // Jika kita ingin mengecek lock dan lock aktif
         if ($checkLock && $this->isOptimisticLockEnabled($entity)) {
             throw new OptimisticLockException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'optimistic.lock.failed',
                     params: ['resource' => $resourceName]
                 )
@@ -118,7 +118,7 @@ trait ManagesPersistence
         }
 
         throw new NotFoundException(
-            translate: new Message(
+            translate: Message::create(
                 key: 'resource.not_found',
                 params: [
                     'resource' => $resourceName,

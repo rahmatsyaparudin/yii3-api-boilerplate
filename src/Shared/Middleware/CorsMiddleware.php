@@ -189,7 +189,7 @@ final class CorsMiddleware implements MiddlewareInterface
 
         if (!$this->isOriginAllowed($origin)) {
             throw new ForbiddenException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'request.origin_not_allowed',
                     params: ['origin' => $origin]
                 )

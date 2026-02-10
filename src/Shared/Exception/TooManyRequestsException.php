@@ -26,7 +26,7 @@ use App\Shared\ValueObject\Message;
  * @example
  * // With custom message using named arguments
  * throw new TooManyRequestsException(
- *     translate: new Message(
+ *     translate: Message::create(
  *         key: 'rate_limit.exceeded',
  *         params: [
  *             'limit' => 100,
@@ -40,7 +40,7 @@ use App\Shared\ValueObject\Message;
  * // In rate limiting middleware
  * if ($currentCount >= $this->maxRequests) {
  *     throw new TooManyRequestsException(
- *         translate: new Message(
+ *         translate: Message::create(
  *             key: 'rate_limit.exceeded',
  *             params: [
  *                 'seconds' => $this->windowSize,
@@ -71,7 +71,7 @@ use App\Shared\ValueObject\Message;
  *     $this->checkRateLimit($clientIp);
  * } catch (RateLimitExceededException $e) {
  *     throw new TooManyRequestsException(
- *         translate: new Message(
+ *         translate: Message::create(
  *             key: 'rate_limit.exceeded',
  *             params: ['error' => $e->getMessage()]
  *         ),
@@ -104,7 +104,7 @@ final class TooManyRequestsException extends HttpException
      * @example
      * // With localized message using named arguments
      * throw new TooManyRequestsException(
-     *     translate: new Message(
+     *     translate: Message::create(
      *         key: 'rate_limit.exceeded',
      *         params: [
      *             'limit' => 100,
@@ -117,7 +117,7 @@ final class TooManyRequestsException extends HttpException
      * @example
      * // With error details using named arguments
      * throw new TooManyRequestsException(
-     *     translate: new Message(
+     *     translate: Message::create(
      *         key: 'rate_limit.exceeded',
      *         params: ['limit' => 100]
      *     ),
@@ -145,7 +145,7 @@ final class TooManyRequestsException extends HttpException
     {
         $message = $translate instanceof Message 
             ? $translate 
-            : new Message($translate ?? 'http.too_many_requests');
+            : Message::create($translate ?? 'http.too_many_requests');
             
         parent::__construct(Status::TOO_MANY_REQUESTS, $message, $errors, null, $previous);
     }

@@ -90,7 +90,7 @@ trait Stateful
     {
         if (!$this->status->canTransitionTo($newStatus)) {
             throw new BadRequestException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'status.invalid_transition',
                     domain: 'validation',
                     params: [
@@ -116,7 +116,7 @@ trait Stateful
         // 2. Cek aturan dasar dari Value Object Status
         if (!$status->isValidForCreation() && !$status->isDeleted()) {
             throw new BadRequestException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'status.invalid_on_creation', 
                     domain: 'validation',
                     params: [
@@ -140,7 +140,7 @@ trait Stateful
 
         if ($hasFieldChanges && !$currentStatus->canBeUpdated()) {
             throw new ConflictException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'resource.update_not_allowed_by_status',
                     params: [
                         'resource' => $this->getResource(),
@@ -152,7 +152,7 @@ trait Stateful
 
         if (!$hasFieldChanges && $isChangingStatus && $currentStatus->equals($targetStatus)) {
             throw new ConflictException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'resource.status_already_set',
                     params: [
                         'resource' => $this->getResource(),

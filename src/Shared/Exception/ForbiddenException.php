@@ -33,7 +33,7 @@ use App\Shared\ValueObject\Message;
  * @example
  * // With localized message using named arguments
  * throw new ForbiddenException(
- *     translate: new Message(
+ *     translate: Message::create(
  *         key: 'auth.insufficient_permissions',
  *         params: ['resource' => 'admin_panel']
  *     )
@@ -45,7 +45,7 @@ use App\Shared\ValueObject\Message;
  * {
  *     if (!$this->permissionService->hasPermission($user, $permission)) {
  *         throw new ForbiddenException(
- *             translate: new Message(
+ *             translate: Message::create(
  *                 key: 'auth.permission_denied',
  *                 params: ['permission' => $permission, 'user_id' => $user->getId()]
  *             )
@@ -62,7 +62,7 @@ use App\Shared\ValueObject\Message;
  *     
  *     if (!$this->authorizationService->canDelete($user, $resource)) {
  *         throw new ForbiddenException(
- *             translate: new Message(
+ *             translate: Message::create(
  *                 key: 'auth.cannot_delete_resource',
  *                 params: ['resource' => $resource->getType(), 'resource_id' => $id]
  *             )
@@ -82,7 +82,7 @@ use App\Shared\ValueObject\Message;
  *     
  *     if (!$user->hasRole($requiredRole)) {
  *         throw new ForbiddenException(
- *             translate: new Message(
+ *             translate: Message::create(
  *                 key: 'auth.role_required',
  *                 params: ['required_role' => $requiredRole, 'user_role' => $user->getRole()]
  *             )
@@ -101,7 +101,7 @@ use App\Shared\ValueObject\Message;
  *     
  *     if ($post->getAuthorId() !== $user->getId() && !$user->isAdmin()) {
  *         throw new ForbiddenException(
- *             translate: new Message(
+ *             translate: Message::create(
  *                 key: 'auth.not_owner',
  *                 params: ['resource' => 'post', 'resource_id' => $postId]
  *             )
@@ -136,7 +136,7 @@ final class ForbiddenException extends HttpException
      * @example
      * // With localized message using named arguments
      * throw new ForbiddenException(
-     *     translate: new Message(
+     *     translate: Message::create(
      *         key: 'auth.access_denied',
      *         params: ['action' => 'delete', 'resource_type' => 'user']
      *     )
@@ -156,7 +156,7 @@ final class ForbiddenException extends HttpException
      * @example
      * // All parameters with named arguments
      * throw new ForbiddenException(
-     *     translate: new Message(
+     *     translate: Message::create(
      *         key: 'auth.subscription_required',
      *         params: ['plan' => 'premium', 'feature' => 'advanced_analytics']
      *     ),
@@ -168,7 +168,7 @@ final class ForbiddenException extends HttpException
     {
         $message = $translate instanceof Message 
             ? $translate 
-            : new Message($translate ?? 'http.forbidden');
+            : Message::create($translate ?? 'http.forbidden');
             
         parent::__construct(Status::FORBIDDEN, $message, $errors, null, $previous);
     }

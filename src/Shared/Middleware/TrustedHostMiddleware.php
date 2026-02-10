@@ -149,7 +149,7 @@ final class TrustedHostMiddleware implements MiddlewareInterface
 
         if ($host === '' || !$this->isAllowedHost($host)) {
             throw new UnauthorizedException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'security.host_not_allowed',
                     params: ['host' => $host]
                 )

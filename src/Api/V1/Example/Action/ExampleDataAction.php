@@ -66,7 +66,7 @@ final class ExampleDataAction
 
         return $this->responseFactory->success(
             data: $result->data,
-            translate: new Message(
+            translate: Message::create(
                 key: 'resource.list_retrieved', 
                 params: [
                     'resource' => $resource

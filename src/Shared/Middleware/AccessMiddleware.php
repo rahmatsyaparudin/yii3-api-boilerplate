@@ -181,7 +181,7 @@ final class AccessMiddleware implements MiddlewareInterface
 
         if ($actor === null) {
             throw new ForbiddenException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'access.insufficient_permissions'
                 )
             );
@@ -195,7 +195,7 @@ final class AccessMiddleware implements MiddlewareInterface
 
         if (!$allowed) {
             throw new ForbiddenException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'access.insufficient_permissions'
                 )
             );

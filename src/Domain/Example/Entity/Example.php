@@ -82,7 +82,7 @@ final class Example
         // Restore entity from deleted state to draft
         if (!$this->status->isDeleted()) {
             throw new BadRequestException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'resource.not_deleted',
                     params: ['id' => $this->id]
                 )

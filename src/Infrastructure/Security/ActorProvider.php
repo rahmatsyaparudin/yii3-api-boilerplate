@@ -21,7 +21,7 @@ final class ActorProvider
 
             if (!isset($user->username)) {
                 throw new UnauthorizedException(
-                    translate: new Message(
+                    translate: Message::create(
                         key: 'auth.missing_claim',
                         params: ['claim' => 'user.username']
                     )
@@ -42,7 +42,7 @@ final class ActorProvider
         }
 
         throw new UnauthorizedException(
-            translate: new Message(
+            translate: Message::create(
                 key: 'auth.missing_claim',
                 params: ['claim' => 'username']
             )

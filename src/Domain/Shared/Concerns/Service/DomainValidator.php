@@ -25,7 +25,7 @@ trait DomainValidator
             $action = str_contains($permission, '.') ? explode('.', $permission)[1] : $permission;
 
             throw new ForbiddenException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'validation.action_not_allowed',
                     params: [
                         'action' => $action,
@@ -42,7 +42,7 @@ trait DomainValidator
     {
         if (!$entity) {
             throw new BadRequestException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'validation.not_found',
                     domain: 'validation',
                     params: [
@@ -70,7 +70,7 @@ trait DomainValidator
 
         if ($exists && ($excludeId === null || $exists->getId() !== $excludeId)) {
             throw new BadRequestException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'exists.already_exists',
                     domain: 'validation',
                     params: [
@@ -87,7 +87,7 @@ trait DomainValidator
     {
         if (!$canPerform) {
             throw new ForbiddenException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'http.forbidden',
                     params: [
                         'action' => $action,
@@ -104,7 +104,7 @@ trait DomainValidator
         
         if ($entity === null) {
             throw new BadRequestException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'validation.entity_required',
                     domain: 'validation',
                     params: ['resource' => $resource]
@@ -116,7 +116,7 @@ trait DomainValidator
 
         if ($status->isLocked()) {
             throw new ConflictException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'status.deletion_restricted',
                     domain: 'validation',
                     params: [

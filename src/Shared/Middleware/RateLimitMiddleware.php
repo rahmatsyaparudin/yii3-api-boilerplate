@@ -136,7 +136,7 @@ final class RateLimitMiddleware implements MiddlewareInterface
      * @example
      * // When limit exceeded:
      * throw new TooManyRequestsException(
-     *     translate: new Message(
+     *     translate: Message::create(
      *         key: 'rate_limit.exceeded',
      *         params: [
      *             'seconds' => 60,
@@ -180,7 +180,7 @@ final class RateLimitMiddleware implements MiddlewareInterface
             $resetTime = $now + $this->windowSize;
 
             throw new TooManyRequestsException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'rate_limit.exceeded',
                     params: [
                         'seconds' => $this->windowSize,

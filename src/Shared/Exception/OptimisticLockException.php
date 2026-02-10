@@ -32,7 +32,7 @@ use App\Shared\ValueObject\Message;
  * @example
  * // With localized message and data using named arguments
  * throw new OptimisticLockException(
- *     translate: new Message(
+ *     translate: Message::create(
  *         key: 'optimistic.lock.failed',
  *         params: ['resource' => 'User', 'id' => 123]
  *     ),
@@ -52,7 +52,7 @@ use App\Shared\ValueObject\Message;
  *     $current = $this->findById($user->getId());
  *     if ($current->getVersion() !== $user->getVersion()) {
  *         throw new OptimisticLockException(
- *             translate: new Message(
+ *             translate: Message::create(
  *                 key: 'optimistic.lock.failed',
  *                 params: ['resource' => 'User', 'id' => $user->getId()]
  *             ),
@@ -72,7 +72,7 @@ use App\Shared\ValueObject\Message;
  *     $this->repository->update($entity);
  * } catch (OptimisticLockException $e) {
  *     throw new OptimisticLockException(
- *         translate: new Message(
+ *         translate: Message::create(
  *             key: 'optimistic.lock.retry_failed',
  *             params: ['attempts' => 3]
  *         ),
@@ -106,7 +106,7 @@ final class OptimisticLockException extends HttpException
      * @example
      * // With localized message using named arguments
      * throw new OptimisticLockException(
-     *     translate: new Message(
+     *     translate: Message::create(
      *         key: 'optimistic.lock.failed',
      *         params: ['resource' => 'User', 'id' => 123]
      *     )
@@ -141,7 +141,7 @@ final class OptimisticLockException extends HttpException
     {
         $message = $translate instanceof Message 
             ? $translate 
-            : new Message($translate ?? 'optimistic.lock.failed');
+            : Message::create($translate ?? 'optimistic.lock.failed');
         parent::__construct(Status::CONFLICT, $message, $data, null, $previous);
     }
 }

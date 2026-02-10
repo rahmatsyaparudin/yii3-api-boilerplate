@@ -51,7 +51,7 @@ abstract class AbstractSeederData
         $yamlFile = static::class . '::YAML_FILE';
         if (!defined($yamlFile) || empty(constant($yamlFile))) {
             throw new BadRequestException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'seeder.missing_yaml_file',
                     params: ['class' => static::class]
                 )
@@ -61,7 +61,7 @@ abstract class AbstractSeederData
         $entityClass = static::class . '::ENTITY_CLASS';
         if (!defined($entityClass) || empty(constant($entityClass))) {
             throw new BadRequestException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'seeder.missing_entity_class',
                     params: ['class' => static::class]
                 )
@@ -208,7 +208,7 @@ abstract class AbstractSeederData
         
         if (empty($targetClass)) {
             throw new BadRequestException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'seeder.missing_entity_class',
                     params: ['class' => static::class]
                 )

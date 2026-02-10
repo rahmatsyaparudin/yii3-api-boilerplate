@@ -31,7 +31,7 @@ final class JwtService
         // Validate issuer if configured
         if ($this->issuer !== null && isset($decoded->iss) && $decoded->iss !== $this->issuer) {
             throw new UnauthorizedException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'auth.invalid_issuer'
                 )
             );
@@ -40,7 +40,7 @@ final class JwtService
         // Validate audience if configured
         if ($this->audience !== null && isset($decoded->aud) && $decoded->aud !== $this->audience) {
             throw new UnauthorizedException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'auth.invalid_audience'
                 )
             );

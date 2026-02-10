@@ -110,7 +110,7 @@ final readonly class LockVersion
     {
         if ($value < 0) {
             throw new OptimisticLockException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'lock_version.invalid_negative',
                     params: ['value' => $value]
                 )

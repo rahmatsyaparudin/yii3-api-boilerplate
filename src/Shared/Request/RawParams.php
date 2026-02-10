@@ -428,7 +428,7 @@ final readonly class RawParams
 
         if ($unknown !== []) {
             throw new BadRequestException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'request.unknown_parameters',
                     domain: 'validation',
                     params: [

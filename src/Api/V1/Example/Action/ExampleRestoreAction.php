@@ -44,7 +44,7 @@ final readonly class ExampleRestoreAction
         
         if ($id === null) {
             return $this->responseFactory->fail(
-                translate: new Message(
+                translate: Message::create(
                     key: 'route.parameter_missing',
                     params: [
                         'resource' => $resource,
@@ -61,7 +61,7 @@ final readonly class ExampleRestoreAction
 
         return $this->responseFactory->success(
             data: $response->toArray(),
-            translate: new Message(
+            translate: Message::create(
                 key: 'resource.restored',
                 params: [
                     'resource' => $resource,

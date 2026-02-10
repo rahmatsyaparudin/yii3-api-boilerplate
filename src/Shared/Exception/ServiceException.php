@@ -33,7 +33,7 @@ use App\Shared\ValueObject\Message;
  * @example
  * // With localized message and data using named arguments
  * throw new ServiceException(
- *     translate: new Message(
+ *     translate: Message::create(
  *         key: 'service.payment_failed',
  *         params: ['provider' => 'Stripe', 'amount' => 99.99]
  *     ),
@@ -52,7 +52,7 @@ use App\Shared\ValueObject\Message;
  *     $result = $this->externalService->processPayment($paymentData);
  * } catch (\Exception $e) {
  *     throw new ServiceException(
- *         translate: new Message(
+ *         translate: Message::create(
  *             key: 'service.external_api_error',
  *             params: ['service' => 'payment', 'error' => $e->getMessage()]
  *         ),
@@ -66,7 +66,7 @@ use App\Shared\ValueObject\Message;
  * // Business logic validation in service
  * if (!$this->userCanAccessResource($user, $resource)) {
  *     throw new ServiceException(
- *         translate: new Message(
+ *         translate: Message::create(
  *             key: 'service.access_denied',
  *             params: ['resource' => $resource->getId()]
  *         ),
@@ -102,7 +102,7 @@ final class ServiceException extends HttpException
      * @example
      * // With localized message using named arguments
      * throw new ServiceException(
-     *     translate: new Message(
+     *     translate: Message::create(
      *         key: 'service.validation_failed',
      *         params: ['field' => 'email']
      *     ),
@@ -139,7 +139,7 @@ final class ServiceException extends HttpException
     {
         $message = $translate instanceof Message 
             ? $translate 
-            : new Message($translate ?? 'service.error');
+            : Message::create($translate ?? 'service.error');
         parent::__construct($code, $message, $data, null, $previous);
     }
 }

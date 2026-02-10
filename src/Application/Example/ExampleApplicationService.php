@@ -52,7 +52,7 @@ final class ExampleApplicationService
 
         if ($data === null) {
             throw new NotFoundException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'resource.not_found', 
                     params: [
                         'resource' => $this->getResource(),
@@ -78,7 +78,7 @@ final class ExampleApplicationService
             status: null
         );
         
-        return ExampleResponse::fromEntity($data);
+        return ExampleResponse::fromEntity(entity: $data);
     }
 
     public function get(int $id): ExampleResponse
@@ -100,7 +100,7 @@ final class ExampleApplicationService
             detailInfo: $detailInfo
         );
 
-        return ExampleResponse::fromEntity(example: $this->repository->insert($data));
+        return ExampleResponse::fromEntity(entity: $this->repository->insert($data));
     }
 
     public function update(int $id, UpdateExampleCommand $command): ExampleResponse
@@ -144,7 +144,7 @@ final class ExampleApplicationService
 
         $data->updateDetailInfo(detailInfo: $detailInfo);
 
-        return ExampleResponse::fromEntity($this->repository->update($data));
+        return ExampleResponse::fromEntity(entity: $this->repository->update($data));
     }
 
     public function delete(int $id, ?int $lockVersion = null): ExampleResponse
@@ -180,7 +180,7 @@ final class ExampleApplicationService
 
         $data->updateDetailInfo(detailInfo: $detailInfo);
 
-        return ExampleResponse::fromEntity($this->repository->delete($data));
+        return ExampleResponse::fromEntity(entity: $this->repository->delete($data));
     }
 
     public function restore(int $id): ExampleResponse
@@ -192,7 +192,7 @@ final class ExampleApplicationService
         
         if ($data === null) {
             throw new NotFoundException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'resource.not_found', 
                     params: [
                         'resource' => $this->getResource(),
@@ -223,8 +223,8 @@ final class ExampleApplicationService
 
         $data->updateDetailInfo(detailInfo: $detailInfo);
 
-        $restoredExample = $this->repository->restore($data->getId());
+        $restoredData = $this->repository->restore($data->getId());
         
-        return ExampleResponse::fromEntity($restoredExample);
+        return ExampleResponse::fromEntity(entity: $restoredData);
     }
 }

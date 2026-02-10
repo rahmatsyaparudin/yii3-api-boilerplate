@@ -170,7 +170,7 @@ final class InputSanitizer
         // Prevent deep recursion attacks
         if ($depth > self::MAX_ARRAY_DEPTH) {
             throw new BadRequestException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'input_sanitizer.input_structure_too_deep',
                     domain: 'validation',
                     params: [
@@ -233,7 +233,7 @@ final class InputSanitizer
         // Length check to prevent DoS
         if (strlen($value) > self::MAX_STRING_LENGTH) {
             throw new BadRequestException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'input_sanitizer.input_too_long',
                     domain: 'validation',
                     params: [
@@ -250,7 +250,7 @@ final class InputSanitizer
         // Validate UTF-8 encoding
         if (!mb_check_encoding($value, 'UTF-8')) {
             throw new BadRequestException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'input_sanitizer.invalid_encoding',
                     domain: 'validation',
                     params: [
@@ -320,7 +320,7 @@ final class InputSanitizer
         // Array size check to prevent DoS
         if (count($value) > self::MAX_ARRAY_SIZE) {
             throw new BadRequestException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'input_sanitizer.array_too_large',
                     domain: 'validation',
                     params: [
@@ -376,7 +376,7 @@ final class InputSanitizer
             // Check for integer overflow
             if ($value > PHP_INT_MAX || $value < PHP_INT_MIN) {
                 throw new BadRequestException(
-                    translate: new Message(
+                    translate: Message::create(
                         key: 'input_sanitizer.integer_overflow',
                         domain: 'validation',
                         params: [
@@ -394,7 +394,7 @@ final class InputSanitizer
             // Check for float overflow
             if (!is_finite($value)) {
                 throw new BadRequestException(
-                    translate: new Message(
+                    translate: Message::create(
                         key: 'input_sanitizer.float_overflow',
                         domain: 'validation',
                         params: [
@@ -449,7 +449,7 @@ final class InputSanitizer
     {
         if (!is_string($key) && !is_int($key)) {
             throw new BadRequestException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'input_sanitizer.invalid_array_key_type',
                     domain: 'validation',
                     params: [
@@ -464,7 +464,7 @@ final class InputSanitizer
         // Key length check
         if (strlen($key) > 255) {
             throw new BadRequestException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'input_sanitizer.invalid_array_key_length',
                     domain: 'validation',
                     params: [
@@ -479,7 +479,7 @@ final class InputSanitizer
         
         if ($key === '') {
             throw new BadRequestException(
-                translate: new Message(
+                translate: Message::create(
                     key: 'input_sanitizer.invalid_array_key',
                     domain: 'validation',
                     params: [

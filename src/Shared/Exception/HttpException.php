@@ -28,7 +28,7 @@ use App\Shared\ValueObject\Message;
  *     {
  *         $messageObj = $message instanceof Message 
  *             ? $message 
- *             : new Message($message ?? 'http.payment_required');
+ *             : Message::create($message ?? 'http.payment_required');
  *             
  *         parent::__construct(Status::PAYMENT_REQUIRED, $messageObj, null, $data, $previous);
  *     }
@@ -37,7 +37,7 @@ use App\Shared\ValueObject\Message;
  * @example
  * // Using HTTP exception in controller
  * throw new PaymentRequiredException(
- *     new Message('payment.required', ['amount' => $requiredAmount]),
+ *     Message::create('payment.required', ['amount' => $requiredAmount]),
  *     ['required_amount' => $requiredAmount, 'currency' => 'USD']
  * );
  * 
@@ -75,7 +75,7 @@ abstract class HttpException extends \RuntimeException
      * // Basic HTTP exception
      * parent::__construct(
      *     Status::NOT_FOUND,
-     *     new Message('resource.not_found', ['resource' => 'User']),
+     *     Message::create('resource.not_found', ['resource' => 'User']),
      *     null,
      *     ['user_id' => $userId]
      * );
@@ -84,7 +84,7 @@ abstract class HttpException extends \RuntimeException
      * // With validation errors
      * parent::__construct(
      *     Status::UNPROCESSABLE_ENTITY,
-     *     new Message('validation.failed'),
+     *     Message::create('validation.failed'),
      *     [
      *         'email' => ['Invalid format'],
      *         'password' => ['Too short']
