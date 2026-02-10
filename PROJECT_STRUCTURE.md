@@ -235,7 +235,7 @@ src/
     │   └── 📄 InputSanitizer.php - Input sanitization
     ├── 📁 Utility/ - General utilities
     │   ├── 📄 Arrays.php - Array utilities
-    │   └── 📄 JsonDataHydrator.php - JSON data hydrator
+    │   └── 📄 JsonHandler.php - JSON data Handler
     ├── 📁 Validation/ - Validation utilities
     │   ├── 📄 AbstractValidator.php - Abstract validator
     │   └── 📄 ValidationContext.php - Validation context

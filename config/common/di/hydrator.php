@@ -10,5 +10,5 @@ use Yiisoft\Hydrator\ObjectFactory\ObjectFactoryInterface;
 
 return [
     AttributeResolverFactoryInterface::class => ContainerAttributeResolverFactory::class,
-    ObjectFactoryInterface::class            => ContainerObjectFactory::class,
+    ObjectFactoryInterface::class => ContainerObjectFactory::class,
 ];

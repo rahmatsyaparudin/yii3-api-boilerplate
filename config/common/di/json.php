@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 // Shared Layer
-use App\Shared\Utility\JsonDataHydrator;
+use App\Shared\Utility\JsonHandler;
 
 return [
-    JsonDataHydrator::class => JsonDataHydrator::class,
+    JsonHandler::class => JsonHandler::class,
 ];

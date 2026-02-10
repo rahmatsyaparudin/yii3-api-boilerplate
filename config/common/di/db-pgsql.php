@@ -14,6 +14,10 @@ use Yiisoft\Definitions\Reference;
 use Yiisoft\Definitions\DynamicReference;
 use Yiisoft\Aliases\Aliases;
 
+/** @var array $params */
+
+$pgsql = $params['yiisoft/db-pgsql'];
+
 return [
     SchemaCacheInterface::class => SchemaCache::class,
     FileCache::class => [
@@ -32,9 +36,9 @@ return [
         'class'         => Connection::class,
         '__construct()' => [
             'driver' => new Driver(
-                $params['yiisoft/db-pgsql']['dsn'],
-                $params['yiisoft/db-pgsql']['username'],
-                $params['yiisoft/db-pgsql']['password'],
+                $pgsql['dsn'],
+                $pgsql['username'],
+                $pgsql['password'],
             ),
             'setSchemaCache()' => [Reference::to(SchemaCacheInterface::class)],
             // 'schemaCache' => Reference::to(SchemaCache::class),
