@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Example\Entity;
 
 // Domain Layer
-use App\Domain\Shared\ValueObject\Status;
+use App\Domain\Shared\ValueObject\ResourceStatus;
 use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\LockVersion;
 use App\Domain\Shared\ValueObject\SyncMdb;
@@ -28,7 +28,7 @@ final class Example
     protected function __construct(
         private readonly ?int $id,
         private string $name,
-        private Status $status,
+        private ResourceStatus $status,
         private DetailInfo $detailInfo,
         private ?SyncMdb $syncMdb = null,
         ?LockVersion $lockVersion = null,
@@ -44,7 +44,7 @@ final class Example
 
     public static function create(
         string $name,
-        Status $status,
+        ResourceStatus $status,
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
     ): self {
@@ -56,7 +56,7 @@ final class Example
     public static function reconstitute(
         int $id,
         string $name,
-        Status $status,
+        ResourceStatus $status,
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
         ?LockVersion $lockVersion = null,
@@ -89,7 +89,7 @@ final class Example
             );
         }
         
-        $this->status = Status::restored();
+        $this->status = ResourceStatus::restored();
     }
 
     /**

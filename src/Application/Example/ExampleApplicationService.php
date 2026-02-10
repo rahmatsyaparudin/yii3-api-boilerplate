@@ -15,7 +15,7 @@ use App\Domain\Example\Entity\Example;
 use App\Domain\Example\Repository\ExampleRepositoryInterface;
 use App\Domain\Example\Service\ExampleDomainService;
 use App\Domain\Shared\Security\AuthorizerInterface;
-use App\Domain\Shared\ValueObject\Status;
+use App\Domain\Shared\ValueObject\ResourceStatus;
 
 // Shared Layer
 use App\Shared\Dto\PaginatedResult;
@@ -96,7 +96,7 @@ final class ExampleApplicationService
 
         $data = Example::create(
             name: $command->name,
-            status: Status::from($command->status),
+            status: ResourceStatus::from($command->status),
             detailInfo: $detailInfo
         );
 
@@ -115,7 +115,7 @@ final class ExampleApplicationService
             version: $command->lockVersion ?? null
         );
 
-        $newStatus = Status::tryFrom($command->status);
+        $newStatus = ResourceStatus::tryFrom($command->status);
 
         $hasFieldChanges = $data->hasFieldChanges(
             data: (array) $command,
@@ -187,7 +187,7 @@ final class ExampleApplicationService
     {
         $data = $this->getEntityById(
             id: $id,
-            status: Status::deleted()->value()
+            status: ResourceStatus::deleted()->value()
         );
         
         if ($data === null) {
@@ -203,7 +203,7 @@ final class ExampleApplicationService
             );
         }
 
-        $newStatus = Status::inactive();
+        $newStatus = ResourceStatus::inactive();
 
         $data->guardAgainstInvalidTransition(
             hasFieldChanges: false,

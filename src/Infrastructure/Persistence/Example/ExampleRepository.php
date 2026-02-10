@@ -7,7 +7,7 @@ namespace App\Infrastructure\Persistence\Example;
 // Domain Layer
 use App\Domain\Example\Entity\Example;
 use App\Domain\Example\Repository\ExampleRepositoryInterface;
-use App\Domain\Shared\ValueObject\Status;
+use App\Domain\Shared\ValueObject\ResourceStatus;
 use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\LockVersion;
 use App\Domain\Shared\ValueObject\SyncMdb;
@@ -77,7 +77,7 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
         return Example::reconstitute(
             id: (int) $row['id'],
             name: $row['name'],
-            status: Status::from((int)$row['status']),
+            status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()])
         );
@@ -100,7 +100,7 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
         return Example::reconstitute(
             id: (int) $row['id'],
             name: $row['name'],
-            status: Status::from((int)$row['status']),
+            status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()])
         )->updateSyncMdb($row[SyncMdb::field()] ?? null);
@@ -282,7 +282,7 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
         $entity = Example::reconstitute(
             id: (int) $row['id'],
             name: $row['name'],
-            status: Status::from((int)$row['status']),
+            status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()])
         );

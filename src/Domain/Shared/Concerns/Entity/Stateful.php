@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Shared\Concerns\Entity;
 
 // Domain Layer
-use App\Domain\Shared\ValueObject\Status;
+use App\Domain\Shared\ValueObject\ResourceStatus;
 
 // Shared Layer
 use App\Shared\Exception\BadRequestException;
@@ -20,24 +20,24 @@ trait Stateful
     /**
      * Mengelola state internal
      */
-    public function getStatus(): Status
+    public function getStatus(): ResourceStatus
     {
         return $this->status;
     }
 
     public function markAsDeleted(): self
     {
-        $this->status = Status::deleted();
+        $this->status = ResourceStatus::deleted();
         return $this;
     }
 
     public function markAsRestored(): self
     {
-        $this->status = Status::draft(); // Restore to draft status
+        $this->status = ResourceStatus::draft(); 
         return $this;
     }
 
-    public function transitionTo(Status $nextState): void
+    public function transitionTo(ResourceStatus $nextState): void
     {
         if ($this->status->equals($nextState)) {
             return;
@@ -86,7 +86,7 @@ trait Stateful
         return !empty($updatableData);
     }
 
-    private function guardStatusTransition(Status $newStatus): void
+    private function guardStatusTransition(ResourceStatus $newStatus): void
     {
         if (!$this->status->canTransitionTo($newStatus)) {
             throw new BadRequestException(
@@ -107,7 +107,7 @@ trait Stateful
      * Menjaga agar status awal entitas selalu valid.
      * Digunakan di dalam constructor Entity.
      */
-    protected static function guardInitialStatus(Status $status, ?string $resource = null, ?callable $validator = null): void
+    protected static function guardInitialStatus(ResourceStatus $status, ?string $resource = null, ?callable $validator = null): void
     {
         if ($validator !== null) {
             $validator($status);
@@ -130,7 +130,7 @@ trait Stateful
 
     public function guardAgainstInvalidTransition(
         bool $hasFieldChanges,
-        ?Status $newStatus = null,
+        ?ResourceStatus $newStatus = null,
         ?bool $isChangingStatus = null,
     ): bool {
         $currentStatus = $this->status;

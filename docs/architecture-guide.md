@@ -319,7 +319,7 @@ final class Example
     public function __construct(
         ?int $id,
         string $name,
-        Status $status,
+        ResourceStatus $status,
         DetailInfo $detailInfo,
         ?int $syncMdb = null,
         ?LockVersion $lockVersion = null
@@ -327,7 +327,7 @@ final class Example
         // Entity initialization
     }
     
-    public static function create(string $name, Status $status, DetailInfo $detailInfo, ?int $syncMdb = null): self
+    public static function create(string $name, ResourceStatus $status, DetailInfo $detailInfo, ?int $syncMdb = null): self
     {
         self::guardInitialStatus($status, null, self::RESOURCE);
         
@@ -360,7 +360,7 @@ final class ExampleApplicationService
         // Entity creation
         $example = Example::create(
             name: $command->name,
-            status: Status::from($command->status),
+            status: ResourceStatus::from($command->status),
             detailInfo: $detailInfoFactory->create([])->withApproved()->build(),
             syncMdb: $command->syncMdb !== null ? ($command->syncMdb ? 1 : 0) : null
         );
@@ -446,7 +446,7 @@ final class ExampleFactory
     {
         return Example::create(
             name: $data['name'],
-            status: Status::from($data['status']),
+            status: ResourceStatus::from($data['status']),
             detailInfo: DetailInfo::fromJson($data['detail_info'] ?? []),
             syncMdb: $data['sync_mdb'] ?? null
         );

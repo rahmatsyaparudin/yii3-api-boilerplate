@@ -8,7 +8,7 @@ namespace App\Domain\Example\Service;
 use App\Domain\Example\Entity\Example;
 use App\Domain\Example\Repository\ExampleRepositoryInterface;
 use App\Domain\Shared\Concerns\Service\DomainValidator;
-use App\Domain\Shared\ValueObject\Status;
+use App\Domain\Shared\ValueObject\ResourceStatus;
 
 // Shared Layer
 use App\Shared\ValueObject\Message;
