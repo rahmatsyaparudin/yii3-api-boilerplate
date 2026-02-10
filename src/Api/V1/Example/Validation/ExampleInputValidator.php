@@ -27,6 +27,68 @@ use Yiisoft\Validator\Rule\StopOnError;
  */
 final class ExampleInputValidator extends AbstractValidator
 {
+    /**
+     * Examples for validation rules
+     * 
+     * This validator shows examples of advanced validation rules including
+     * dependency checking and unique value validation.
+     * 
+     * @see HasNoDependencies
+     * @see UniqueValue
+     * 
+     * Usage example for HasNoDependencies:
+     * ```php
+     * ValidationContext::DELETE => [
+     *     'id' => [
+     *         new StopOnError([
+     *             new Required(),
+     *             new Integer(min: 1),
+     *             new HasNoDependencies(
+     *                 map: [
+     *                     'other_table' => ['example_id'],
+     *                 ],
+     *                 message: 'Data tidak bisa dihapus karena masih digunakan di tabel lain.'
+     *             ),
+     *         ]),
+     *     ],
+     * ],
+     * ```
+     * 
+     * Usage example for UniqueValue:
+     * ```php
+     * ValidationContext::CREATE => [
+     *     'name' => [
+     *         new StopOnError([
+     *             new Required(),
+     *             new StringLength(max: 255),
+     *             new UniqueValue(
+     *                 table: 'examples',
+     *                 column: 'name',
+     *                 ignoreId: null,
+     *             ),
+     *         ]),
+     *     ],
+     * ],
+     * 
+     * Usage example for UniqueValue with exclusion (for updates):
+     * ```php
+     * ValidationContext::UPDATE => [
+     *     'name' => [
+     *         new StopOnError([
+     *             new Required(),
+     *             new StringLength(max: 255),
+     *             new UniqueValue(
+     *                 table: 'examples',
+     *                 column: 'name',
+     *                 ignoreId: $this->data['id'] ?? null,
+     *             ),
+     *         ]),
+     *     ],
+     * ],
+     * ```
+     */
+    
+
     protected function rules(string $context): array
     {
         return match ($context) {
@@ -60,12 +122,6 @@ final class ExampleInputValidator extends AbstractValidator
                     new Integer(
                         min: 1,
                     ),
-                    // new HasNoDependencies(
-                    //     map: [
-                    //         'other_table' => ['example_id'],
-                    //     ],
-                    //     message: 'Data tidak bisa dihapus karena masih digunakan di tabel lain.'
-                    // ),
                 ],
                 'name' => [
                     new StopOnError([
