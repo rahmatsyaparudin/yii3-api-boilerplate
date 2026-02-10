@@ -46,9 +46,9 @@ return [
         'enabled' => filter_var($_ENV['db.mongodb.enabled'] ?? true, FILTER_VALIDATE_BOOLEAN),
         'dsn' => "mongodb://{$_ENV['db.mongodb.dsn']}",
         'database' => $_ENV['db.mongodb.name'],
-        'connectTimeoutMS' => $_ENV['db.mongodb.connectTimeoutMS'],
-        'socketTimeoutMS' => $_ENV['db.mongodb.socketTimeoutMS'],
-        'readPreference' => $_ENV['db.mongodb.readPreference'],
+        'connectTimeoutMS' => (int)($_ENV['db.mongodb.connectTimeoutMS'] ?? 2000),
+        'socketTimeoutMS' => (int)($_ENV['db.mongodb.socketTimeoutMS'] ?? 2000),
+        'readPreference' => $_ENV['db.mongodb.readPreference'] ?? 'primary',
     ],
     'app/config'  => [
         'code'     => $_ENV['app.config.code'] ?? 'code',
