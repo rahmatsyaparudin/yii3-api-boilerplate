@@ -26,7 +26,7 @@ final readonly class ExampleDeleteAction
     private const ALLOWED_KEYS = ['id', 'lock_version'];
 
     public function __construct(
-        private ExampleApplicationService $exampleApplicationService,
+        private ExampleApplicationService $applicationService,
         private ResponseFactory $responseFactory,
     ) {
     }
@@ -39,7 +39,7 @@ final readonly class ExampleDeleteAction
         $id = $currentRoute->getArgument('id');
         $parsedBody = $request->getParsedBody();
 
-        $resource = $this->exampleApplicationService->getResource();
+        $resource = $this->applicationService->getResource();
         
         if ($id === null) {
             return $this->responseFactory->fail(
@@ -54,13 +54,13 @@ final readonly class ExampleDeleteAction
             );
         }
 
-        $exampleResponse = $this->exampleApplicationService->delete(
+        $response = $this->applicationService->delete(
             id: (int) $id,
             lockVersion: isset($parsedBody['lock_version']) ? (int) $parsedBody['lock_version'] : null,
         );
 
         return $this->responseFactory->success(
-            data: $exampleResponse->toArray(),
+            data: $response->toArray(),
             translate: new Message(
                 key: 'resource.deleted',
                 params: [

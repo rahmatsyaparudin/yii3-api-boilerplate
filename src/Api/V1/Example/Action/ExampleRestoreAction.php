@@ -28,7 +28,7 @@ use Yiisoft\Router\CurrentRoute;
 final readonly class ExampleRestoreAction
 {
     public function __construct(
-        private ExampleApplicationService $exampleApplicationService,
+        private ExampleApplicationService $applicationService,
         private ResponseFactory $responseFactory,
     ) {
     }
@@ -40,7 +40,7 @@ final readonly class ExampleRestoreAction
     {
         $id = $currentRoute->getArgument('id');
 
-        $resource = $this->exampleApplicationService->getResource();
+        $resource = $this->applicationService->getResource();
         
         if ($id === null) {
             return $this->responseFactory->fail(
@@ -55,12 +55,12 @@ final readonly class ExampleRestoreAction
             );
         }
 
-        $exampleResponse = $this->exampleApplicationService->restore(
+        $response = $this->applicationService->restore(
             id: (int) $id,
         );
 
         return $this->responseFactory->success(
-            data: $exampleResponse->toArray(),
+            data: $response->toArray(),
             translate: new Message(
                 key: 'resource.restored',
                 params: [

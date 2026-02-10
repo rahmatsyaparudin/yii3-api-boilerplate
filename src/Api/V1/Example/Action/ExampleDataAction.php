@@ -34,8 +34,8 @@ final class ExampleDataAction
 
     public function __construct(
         private SearchCriteriaFactory $factory,
-        private ExampleInputValidator $exampleInputValidator,
-        private ExampleApplicationService $exampleApplicationService,
+        private ExampleInputValidator $inputValidator,
+        private ExampleApplicationService $applicationService,
         private ResponseFactory $responseFactory,
         private \Yiisoft\Db\Connection\ConnectionInterface $db,
     ) {
@@ -51,7 +51,7 @@ final class ExampleDataAction
                 allowedKeys: self::ALLOWED_KEYS
             )->with('status', RecordStatus::DRAFT->value);
 
-        $this->exampleInputValidator->validate(
+        $this->inputValidator->validate(
             data: $filter,
             context: ValidationContext::SEARCH,
         );
@@ -61,8 +61,8 @@ final class ExampleDataAction
             allowedSort: self::ALLOWED_SORT
         );
 
-        $resource = $this->exampleApplicationService->getResource();
-        $result = $this->exampleApplicationService->list(criteria: $criteria);
+        $resource = $this->applicationService->getResource();
+        $result = $this->applicationService->list(criteria: $criteria);
 
         return $this->responseFactory->success(
             data: $result->data,

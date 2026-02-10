@@ -32,8 +32,8 @@ final class ExampleUpdateAction
     private const ALLOWED_KEYS = ['name', 'status', 'lock_version'];
 
     public function __construct(
-        private ExampleInputValidator $exampleInputValidator,
-        private ExampleApplicationService $exampleApplicationService,
+        private ExampleInputValidator $inputValidator,
+        private ExampleApplicationService $applicationService,
         private ResponseFactory $responseFactory,
     ) {
     }
@@ -48,7 +48,7 @@ final class ExampleUpdateAction
         
         $id = $currentRoute->getArgument('id');
 
-        $resource = $this->exampleApplicationService->getResource();
+        $resource = $this->applicationService->getResource();
 
         if ($id === null) {
             return $this->responseFactory->fail(
@@ -81,7 +81,7 @@ final class ExampleUpdateAction
             )->with('id', $id)
             ->sanitize();
 
-        $this->exampleInputValidator->validate(
+        $this->inputValidator->validate(
             data: $params,
             context: ValidationContext::UPDATE,
         );
@@ -94,13 +94,13 @@ final class ExampleUpdateAction
             lockVersion: $params->get('lock_version'),
         );
 
-        $exampleResponse = $this->exampleApplicationService->update(
+        $response = $this->applicationService->update(
             id: (int) $id,
             command: $command
         );
 
         return $this->responseFactory->success(
-            data: $exampleResponse->toArray(),
+            data: $response->toArray(),
             translate: new Message(
                 key: 'resource.updated',
                 params: [
