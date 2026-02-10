@@ -102,8 +102,8 @@ class SkeletonExamplesCopier
             echo "📁 Created directory: " . str_replace($this->projectRoot . '/', '', $targetDir) . "\n";
         }
         
-        // Skip if target file already exists and it's a messages file
-        if (file_exists($targetPath) && str_contains($target, 'resources/messages/')) {
+        // Skip if target file already exists and it's app.php in messages folder
+        if (file_exists($targetPath) && str_contains($target, 'resources/messages/') && str_contains($target, 'app.php')) {
             echo "⏭️  Skipped existing messages file: " . str_replace($this->projectRoot . '/', '', $targetPath) . "\n";
             return;
         }
