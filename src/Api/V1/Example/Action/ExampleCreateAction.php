@@ -15,7 +15,7 @@ use App\Application\Example\Command\CreateExampleCommand;
 // Shared Layer
 use App\Shared\Enums\RecordStatus;
 use App\Shared\Request\RawParams;
-use App\Shared\Validation\ValidationContext;
+use App\Shared\Context\ValidationContext;
 use App\Shared\ValueObject\Message;
 use App\Shared\Security\InputSanitizer;
 

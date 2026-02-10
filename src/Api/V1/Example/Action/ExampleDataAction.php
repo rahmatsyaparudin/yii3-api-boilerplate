@@ -16,7 +16,7 @@ use App\Api\V1\Example\Validation\ExampleInputValidator;
 use App\Shared\Enums\RecordStatus;
 use App\Shared\Dto\SearchCriteria;
 use App\Shared\Request\RequestParams;
-use App\Shared\Validation\ValidationContext;
+use App\Shared\Context\ValidationContext;
 use App\Shared\ValueObject\Message;
 
 // PSR Interfaces
