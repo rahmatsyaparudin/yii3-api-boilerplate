@@ -7,7 +7,7 @@ namespace App\Api\V1\Example\Validation;
 // Shared Layer
 use App\Shared\Enums\RecordStatus;
 use App\Shared\Validation\AbstractValidator;
-use App\Shared\Validation\ValidationContext;
+use App\Shared\Context\ValidationContext;
 use App\Shared\Validation\Rules\HasNoDependencies;
 use App\Shared\Validation\Rules\UniqueValue;
 

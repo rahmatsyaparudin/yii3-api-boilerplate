@@ -13,7 +13,7 @@ use App\Api\Shared\ResponseFactory;
 use App\Api\V1\Example\Validation\ExampleInputValidator;
 
 // Shared Layer
-use App\Shared\Validation\ValidationContext;
+use App\Shared\Context\ValidationContext;
 use App\Shared\ValueObject\Message;
 
 // PSR Interfaces
