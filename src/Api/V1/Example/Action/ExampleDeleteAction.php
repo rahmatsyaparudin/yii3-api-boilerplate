@@ -38,7 +38,6 @@ final readonly class ExampleDeleteAction
     {
         $id = $currentRoute->getArgument('id');
         $parsedBody = $request->getParsedBody();
-
         $resource = $this->applicationService->getResource();
         
         if ($id === null) {

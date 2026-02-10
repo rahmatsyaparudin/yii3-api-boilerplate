@@ -44,10 +44,8 @@ final class ExampleUpdateAction
     ): ResponseInterface
     {
         /** @var \App\Shared\Request\RequestParams|null $payload */
-        $payload = $request->getAttribute('payload');
-        
         $id = $currentRoute->getArgument('id');
-
+        $payload = $request->getAttribute('payload');
         $resource = $this->applicationService->getResource();
 
         if ($id === null) {

@@ -39,7 +39,6 @@ final readonly class ExampleRestoreAction
     ): ResponseInterface
     {
         $id = $currentRoute->getArgument('id');
-
         $resource = $this->applicationService->getResource();
         
         if ($id === null) {
