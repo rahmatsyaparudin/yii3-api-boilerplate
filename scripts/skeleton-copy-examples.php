@@ -46,10 +46,12 @@ class SkeletonExamplesCopier
             'src/Seeder/Faker/SeedDataPoolFaker.php' => 'src/Seeder/Faker/SeedDataPoolFaker.php',
             'src/Seeder/SeedExampleData.php' => 'src/Seeder/SeedExampleData.php',
         ];
+
+        $skipFlagFile = true;
         
         $flagFile = $this->projectRoot . '/.skeleton_examples_copied';
         
-        if (file_exists($flagFile)) {
+        if (!$skipFlagFile && file_exists($flagFile)) {
             echo "⚠️  Example files were already copied. Skipping...\n";
             echo "💡 To force re-copy, remove: {$flagFile}\n";
             return;
@@ -60,7 +62,9 @@ class SkeletonExamplesCopier
         }
         
         // Create flag file
-        file_put_contents($flagFile, date(DATE_ATOM));
+        if (!$skipFlagFile) {
+            file_put_contents($flagFile, date(DATE_ATOM));
+        }
         
         echo "✅ Example files copied successfully!\n";
         echo "\n🎯 Next steps:\n";

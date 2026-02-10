@@ -33,7 +33,7 @@ trait Stateful
 
     public function markAsRestored(): self
     {
-        $this->status = ResourceStatus::draft(); 
+        $this->status = ResourceStatus::inactive(); 
         return $this;
     }
 

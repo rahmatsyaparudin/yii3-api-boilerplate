@@ -143,8 +143,7 @@ final readonly class ResourceStatus
         return $this->enum === RecordStatus::DELETED;
     }
 
-    // ====== COMPARISON & CONVERSION ======
-    public function equals(Status $other): bool
+    public function equals(ResourceStatus $other): bool
     {
         return $this->enum === $other->enum;
     }

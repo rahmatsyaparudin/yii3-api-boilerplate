@@ -203,16 +203,12 @@ final class ExampleApplicationService
             );
         }
 
-        $newStatus = ResourceStatus::inactive();
-
         $data->guardAgainstInvalidTransition(
             hasFieldChanges: false,
-            newStatus: $newStatus
+            newStatus: ResourceStatus::restored()
         );
 
-        if ($newStatus !== null) {
-            $data->transitionTo($newStatus);
-        }
+        $data->markAsRestored();
 
         $detailInfo = $this->detailInfoFactory
             ->restore(
