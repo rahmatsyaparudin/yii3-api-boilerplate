@@ -164,11 +164,6 @@ final class ExampleInputValidator extends AbstractValidator
                     new Integer(
                         min: 1,
                     ),
-                    // new HasNoDependencies(
-                    //     map: [
-                    //         'other_table' => ['example_id'],
-                    //     ],
-                    // ),
                 ],
             ],
             ValidationContext::SEARCH => [
