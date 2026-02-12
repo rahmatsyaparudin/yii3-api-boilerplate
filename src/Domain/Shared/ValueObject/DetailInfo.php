@@ -145,7 +145,15 @@ final readonly class DetailInfo
      */
     public function get(string $key, mixed $default = null): mixed
     {
-        return $this->data[$key] ?? $default;
+        $array = $this->data;
+        foreach (explode('.', $key) as $segment) {
+            if (!is_array($array) || !array_key_exists($segment, $array)) {
+                return $default;
+            }
+            $array = $array[$segment];
+        }
+
+        return $array;
     }
 
     /**

@@ -298,7 +298,7 @@ final class ExampleApplicationService
     public function create(CreateExampleCommand $command): ExampleResponse
     {
         // Business logic validation
-        $this->domainService->validateUniqueValue(...);
+        $this->domainService->ensureUnique(...);
         
         // Entity creation
         $example = Example::create(...);

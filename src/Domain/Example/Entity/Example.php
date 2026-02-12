@@ -48,7 +48,10 @@ final class Example
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
     ): self {
-        self::guardInitialStatus($status, self::RESOURCE);
+        self::guardInitialStatus(
+            status: $status,
+            resource: self::RESOURCE
+        );
 
         return new self(null, $name, $status, $detailInfo, $syncMdb, LockVersion::create());
     }

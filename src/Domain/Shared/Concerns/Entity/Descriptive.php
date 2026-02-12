@@ -32,4 +32,9 @@ trait Descriptive
     {
         return $this->detailInfo->toJson();
     }
+
+    public function get(string $key, mixed $default = null): mixed
+    {
+        return $this->detailInfo->get($key, $default);
+    }
 }

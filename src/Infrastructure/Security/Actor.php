@@ -19,7 +19,7 @@ final class Actor implements ActorInterface
     }
 
     public function getId(): int { return $this->id; }
-    public function getUsername(): string { return $this->username; }
+    public function getUsername(): string { return $this->username ?? 'system'; }
     public function getDept(): string { return $this->dept; }
 
     public function hasRole(string $app, string $role): bool

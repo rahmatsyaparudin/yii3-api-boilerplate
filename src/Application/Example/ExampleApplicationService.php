@@ -128,7 +128,7 @@ final class ExampleApplicationService
         );
 
         if (isset($command->name)) {
-            $data->changeName($command->name);
+            $data->updateName($command->name);
         }
 
         if ($newStatus !== null) {
@@ -166,7 +166,7 @@ final class ExampleApplicationService
             id: $id
         );
         
-        $this->domainService->validateCanBeDeleted(
+        $this->domainService->ensureDeletable(
             entity: $data,
             resource: $this->getResource(),
         );
