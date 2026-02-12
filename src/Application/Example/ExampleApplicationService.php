@@ -68,7 +68,9 @@ final class ExampleApplicationService
     
     public function list(SearchCriteria $criteria): PaginatedResult
     {
-        return $this->repository->list($criteria);
+        return $this->repository->list(
+            criteria: $criteria
+        );
     }
 
     public function view(int $id): ExampleResponse
@@ -78,12 +80,9 @@ final class ExampleApplicationService
             status: null
         );
         
-        return ExampleResponse::fromEntity(entity: $data);
-    }
-
-    public function get(int $id): ExampleResponse
-    {
-        return $this->view($id);
+        return ExampleResponse::fromEntity(
+            entity: $data
+        );
     }
 
     public function create(CreateExampleCommand $command): ExampleResponse
@@ -100,7 +99,9 @@ final class ExampleApplicationService
             detailInfo: $detailInfo
         );
 
-        return ExampleResponse::fromEntity(entity: $this->repository->insert($data));
+        return ExampleResponse::fromEntity(
+            entity: $this->repository->insert($data)
+        );
     }
 
     public function update(int $id, UpdateExampleCommand $command): ExampleResponse
@@ -127,8 +128,13 @@ final class ExampleApplicationService
             newStatus: $newStatus
         );
 
-        $data->updateName($command->name);
-        $data->applyStatus($newStatus);
+        $data->updateName(
+            newName: $command->name
+        );
+
+        $data->applyStatus(
+            newStatus: $newStatus
+        );
 
         $detailInfo = $this->detailInfoFactory
             ->update(
@@ -137,9 +143,13 @@ final class ExampleApplicationService
             )
             ->build();
 
-        $data->updateDetailInfo(detailInfo: $detailInfo);
+        $data->updateDetailInfo(
+            detailInfo: $detailInfo
+        );
 
-        return ExampleResponse::fromEntity(entity: $this->repository->update($data));
+        return ExampleResponse::fromEntity(
+            entity: $this->repository->update($data)
+        );
     }
 
     public function delete(int $id, ?int $lockVersion = null): ExampleResponse
@@ -155,10 +165,10 @@ final class ExampleApplicationService
         );
 
         $this->domainService->guardPermission(
+            id: $id,
             authorizer: $this->auth,
             permission: 'example.delete',
             resource: $this->getResource(),
-            id: $id
         );
         
         $this->domainService->ensureDeletable(
@@ -173,9 +183,13 @@ final class ExampleApplicationService
             )
             ->build();
 
-        $data->updateDetailInfo(detailInfo: $detailInfo);
+        $data->updateDetailInfo(
+            detailInfo: $detailInfo
+        );
 
-        return ExampleResponse::fromEntity(entity: $this->repository->delete($data));
+        return ExampleResponse::fromEntity(
+            entity: $this->repository->delete($data)
+        );
     }
 
     public function restore(int $id): ExampleResponse
@@ -212,10 +226,16 @@ final class ExampleApplicationService
             )
             ->build();
 
-        $data->updateDetailInfo(detailInfo: $detailInfo);
+        $data->updateDetailInfo(
+            detailInfo: $detailInfo
+        );
 
-        $restoredData = $this->repository->restore($data->getId());
+        $restoredData = $this->repository->restore(
+            id: $data->getId()
+        );
         
-        return ExampleResponse::fromEntity(entity: $restoredData);
+        return ExampleResponse::fromEntity(
+            entity: $restoredData
+        );
     }
 }

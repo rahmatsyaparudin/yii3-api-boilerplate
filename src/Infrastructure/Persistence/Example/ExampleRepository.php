@@ -50,7 +50,10 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
         private ConnectionInterface $db,
         private MongoDBService $mongoDBService,
     ) {
-        $this->initMongoDBSync($mongoDBService, self::TABLE_NAME);
+        $this->initMongoDBSync(
+            service: $mongoDBService,
+            collection: self::TABLE_NAME
+        );
     }
 
     public function getResource(): string
@@ -79,7 +82,7 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
             name: $row['name'],
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()])
+            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
         );
     }
 
@@ -102,7 +105,7 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
             name: $row['name'],
             status: ResourceStatus::from((int)$row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
-            lockVersion: LockVersion::fromInt($row[LockVersion::field()])
+            lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
         )->updateSyncMdb($row[SyncMdb::field()] ?? null);
     }
 
@@ -174,15 +177,15 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
         );
     }
 
-    public function insert(Example $example): Example 
+    public function insert(Example $entity): Example 
     {
-        return $this->db->transaction(function() use ($example) {
+        return $this->db->transaction(function() use ($entity) {
             $this->db->createCommand()
                 ->insert(self::TABLE_NAME, [
-                    'name' => $example->getName(),
-                    'status' => $example->getStatus()->value(),
-                    'detail_info' => $example->getDetailInfo()->toArray(),
-                    SyncMdb::field() => $example->getSyncMdbValue(),
+                    'name' => $entity->getName(),
+                    'status' => $entity->getStatus()->value(),
+                    'detail_info' => $entity->getDetailInfo()->toArray(),
+                    SyncMdb::field() => $entity->getSyncMdbValue(),
                     LockVersion::field() => LockVersion::create()->value(), 
                 ])
                 ->execute();
@@ -191,9 +194,9 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
 
             $newEntity = Example::reconstitute(
                 id: $newId,
-                name: $example->getName(),
-                status: $example->getStatus(),
-                detailInfo: $example->getDetailInfo(),
+                name: $entity->getName(),
+                status: $entity->getStatus(),
+                detailInfo: $entity->getDetailInfo(),
                 lockVersion: LockVersion::create(),
             );
 
@@ -206,62 +209,62 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
         });
     }
 
-    public function update(Example $example): Example
+    public function update(Example $entity): Example
     {
-        return $this->db->transaction(function() use ($example) {
-            $currentLock = $example->getLockVersion();
-            $newLock = $this->upgradeEntityLockVersion($example);
+        return $this->db->transaction(function() use ($entity) {
+            $currentLock = $entity->getLockVersion();
+            $newLock = $this->upgradeEntityLockVersion($entity);
 
             $result = $this->db->createCommand()
                 ->update(
                     self::TABLE_NAME, 
                     $this->mapEntityToTable(
-                        example: $example, 
+                        entity: $entity, 
                         lockVersion: $newLock->value()
                     ), 
                     $this->buildLockCondition(
-                        entity: $example, 
+                        entity: $entity, 
                         currentLockVersion: $currentLock->value()
                     )
                 )
                 ->execute();
             
             if ($result === 0) {
-                $this->handlePersistenceFailure($example);
+                $this->handlePersistenceFailure($entity);
             }
             
             $this->syncMongoDB(
-                entity: $example,
+                entity: $entity,
                 schemaClass: MdbExampleSchema::class
             );
             
-            return $example;
+            return $entity;
         });
     }
 
-    public function delete(Example $example): Example
+    public function delete(Example $entity): Example
     {
-        return $this->db->transaction(function() use ($example) {
+        return $this->db->transaction(function() use ($entity) {
             $result = $this->db->createCommand()
                 ->update(
                     self::TABLE_NAME,
                     $this->getDeletedState(), 
-                    $this->buildSimpleCondition($example)
+                    $this->buildSimpleCondition($entity)
                 )
                 ->execute();
 
             if ($result === 0) {
-                $this->handlePersistenceFailure($example, false);
+                $this->handlePersistenceFailure($entity, false);
             }
 
-            $deletedExample = $example->markAsDeleted();
+            $deletedEntity = $entity->markAsDeleted();
 
             $this->syncMongoDB(
-                entity: $deletedExample, 
+                entity: $deletedEntity, 
                 schemaClass: MdbExampleSchema::class
             );
 
-            return $deletedExample;
+            return $deletedEntity;
         });
     }
 
@@ -289,16 +292,18 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
 
         $entity->restore();
 
-        return $this->update($entity);
+        return $this->update(
+            entity: $entity,
+        );
     }
 
-    private function mapEntityToTable(Example $example, int $lockVersion): array
+    private function mapEntityToTable(Example $entity, int $lockVersion): array
     {
         return [
-            'name' => $example->getName(),
-            'status' => $example->getStatus()->value(),
-            'detail_info' => $example->getDetailInfo()->toArray(),
-            SyncMdb::field() => $example->getSyncMdbValue(),
+            'name' => $entity->getName(),
+            'status' => $entity->getStatus()->value(),
+            'detail_info' => $entity->getDetailInfo()->toArray(),
+            SyncMdb::field() => $entity->getSyncMdbValue(),
             LockVersion::field() => $lockVersion,
         ];
     }

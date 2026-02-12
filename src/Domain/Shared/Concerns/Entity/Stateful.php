@@ -37,17 +37,17 @@ trait Stateful
         return $this;
     }
 
-    public function applyStatus(?ResourceStatus $nextState): void
+    public function applyStatus(?ResourceStatus $newStatus): void
     {
-        if ($nextState === null) {
+        if ($newStatus === null) {
             return;
         }
         
-        if ($this->status->equals($nextState)) {
+        if ($this->status->equals($newStatus)) {
             return;
         }
 
-        $this->status = $nextState;
+        $this->status = $newStatus;
     }
 
     /**

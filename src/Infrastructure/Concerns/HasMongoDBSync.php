@@ -15,9 +15,9 @@ trait HasMongoDBSync
      * Inisialisasi koneksi MongoDB collection.
      * Dipanggil di constructor Repository.
      */
-    private function initMongoDBSync(MongoDBService $mongoDBService, string $tableName): void
+    private function initMongoDBSync(MongoDBService $service, string $collection): void
     {
-        $this->collection = $mongoDBService->getCollection($tableName);
+        $this->collection = $service->getCollection($collection);
     }
 
     /**
