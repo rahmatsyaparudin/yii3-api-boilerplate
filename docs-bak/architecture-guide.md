@@ -349,7 +349,7 @@ final class ExampleApplicationService
     public function create(CreateExampleCommand $command): ExampleResponse
     {
         // Business logic validation
-        $this->domainService->validateUniqueValue(
+        $this->domainService->ensureUnique(
             value: $command->name,
             field: 'name',
             resource: Example::RESOURCE,

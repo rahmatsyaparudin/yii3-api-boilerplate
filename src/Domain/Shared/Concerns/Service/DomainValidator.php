@@ -38,7 +38,7 @@ trait DomainValidator
     }
     
 
-    public function validateExists(?object $entity, string $resource): void
+    public function ensureExists(?object $entity, string $resource): void
     {
         if (!$entity) {
             throw new BadRequestException(
@@ -53,7 +53,7 @@ trait DomainValidator
         }
     }
 
-    public function validateUniqueValue(
+    public function ensureUnique(
         object $repository,
         string $value,
         string $field,
@@ -83,7 +83,7 @@ trait DomainValidator
         }
     }
 
-    public function validateCanPerformAction(bool $canPerform, string $action, string $resource): void
+    public function ensureIsAllowed(bool $canPerform, string $action, string $resource): void
     {
         if (!$canPerform) {
             throw new ForbiddenException(
@@ -98,9 +98,9 @@ trait DomainValidator
         }
     }
 
-    public function validateCanBeDeleted(?object $entity, string $resource): void
+    public function ensureDeletable(?object $entity, string $resource): void
     {
-        $this->validateExists($entity, $resource);
+        $this->ensureExists($entity, $resource);
         
         if ($entity === null) {
             throw new BadRequestException(

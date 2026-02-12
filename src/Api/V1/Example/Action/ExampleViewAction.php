@@ -51,7 +51,7 @@ final readonly class ExampleViewAction
             );
         }
 
-        $response = $this->applicationService->get((int) $id);
+        $response = $this->applicationService->get(id: (int) $id);
 
         return $this->responseFactory->success(
             data: $response->toArray(),

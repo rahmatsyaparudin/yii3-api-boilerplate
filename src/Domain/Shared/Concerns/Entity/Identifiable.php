@@ -31,18 +31,22 @@ trait Identifiable
         return static::RESOURCE;
     }
 
-    public function changeName(string $newName): void
+    public function updateName(?string $newName): void
     {
+        if ($newName === null) {
+            return;
+        }
+
         $newName = trim($newName);
         if ($this->name === $newName) {
             return;
         }
 
-        $this->validateName($newName);
+        $this->ensureHasName($newName);
         $this->name = $newName;
     }
 
-    protected function validateName(string $name): void
+    protected function ensureHasName(string $name): void
     {
         if (empty($name)) {
             throw new BadRequestException(

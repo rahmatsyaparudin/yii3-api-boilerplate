@@ -37,8 +37,12 @@ trait Stateful
         return $this;
     }
 
-    public function transitionTo(ResourceStatus $nextState): void
+    public function applyStatus(?ResourceStatus $nextState): void
     {
+        if ($nextState === null) {
+            return;
+        }
+        
         if ($this->status->equals($nextState)) {
             return;
         }
@@ -88,7 +92,7 @@ trait Stateful
 
     private function guardStatusTransition(ResourceStatus $newStatus): void
     {
-        if (!$this->status->canTransitionTo($newStatus)) {
+        if (!$this->status->satisfiesTransitionTo($newStatus)) {
             throw new BadRequestException(
                 translate: Message::create(
                     key: 'status.invalid_transition',
