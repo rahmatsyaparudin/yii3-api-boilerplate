@@ -100,7 +100,9 @@ final class ExampleApplicationService
         );
 
         return ExampleResponse::fromEntity(
-            entity: $this->repository->insert($data)
+            entity: $this->repository->insert(
+                entity: $data
+            )
         );
     }
 
@@ -148,7 +150,9 @@ final class ExampleApplicationService
         );
 
         return ExampleResponse::fromEntity(
-            entity: $this->repository->update($data)
+            entity: $this->repository->update(
+                entity: $data
+            )
         );
     }
 
@@ -188,7 +192,9 @@ final class ExampleApplicationService
         );
 
         return ExampleResponse::fromEntity(
-            entity: $this->repository->delete($data)
+            entity: $this->repository->delete(
+                entity: $data
+            )
         );
     }
 

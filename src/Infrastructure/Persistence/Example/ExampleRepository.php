@@ -46,8 +46,8 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
     private const LIKE_OPERATOR = 'ilike';
 
     public function __construct(
-        private QueryConditionApplier $queryConditionApplier,
         private ConnectionInterface $db,
+        private QueryConditionApplier $queryConditionApplier,
         private MongoDBService $mongoDBService,
     ) {
         $this->initMongoDBSync(
@@ -181,13 +181,12 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
     {
         return $this->db->transaction(function() use ($entity) {
             $this->db->createCommand()
-                ->insert(self::TABLE_NAME, [
-                    'name' => $entity->getName(),
-                    'status' => $entity->getStatus()->value(),
-                    'detail_info' => $entity->getDetailInfo()->toArray(),
-                    SyncMdb::field() => $entity->getSyncMdbValue(),
-                    LockVersion::field() => LockVersion::create()->value(), 
-                ])
+                ->insert(self::TABLE_NAME, 
+                    $this->mapEntityToTable(
+                        entity: $entity, 
+                        lockVersion: LockVersion::create()->value()
+                    )
+                )
                 ->execute();
 
             $newId = (int) $this->db->getLastInsertID(self::SEQUENCE_ID);

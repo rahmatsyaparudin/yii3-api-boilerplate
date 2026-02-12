@@ -12,13 +12,13 @@ use MongoDB\BSON\UTCDateTime;
 
 final class MdbExampleSchema
 {
-    public static function toArray(Example $example): array
+    public static function toArray(Example $entity): array
     {
         return [
-            'name' => $example->getName(),
-            'status' => $example->getStatus()->value(),
-            'detail_info' => $example->getDetailInfo()->toArray(),
-            'lock_version' => $example->getLockVersion()->value(),
+            'name' => $entity->getName(),
+            'status' => $entity->getStatus()->value(),
+            'detail_info' => $entity->getDetailInfo()->toArray(),
+            'lock_version' => $entity->getLockVersion()->value(),
             'sync_at' => new UTCDateTime(),
         ];
     }

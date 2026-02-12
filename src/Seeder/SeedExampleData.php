@@ -29,7 +29,7 @@ use Yiisoft\Aliases\Aliases;
  */
 final class SeedExampleData extends AbstractSeederData
 {
-    private ExampleRepositoryInterface $exampleRepository;
+    private ExampleRepositoryInterface $repository;
 
     // Fixture constants
     protected const YAML_FILE = 'example.yaml';
@@ -40,10 +40,10 @@ final class SeedExampleData extends AbstractSeederData
         ClockInterface $clock,
         DetailInfoFactory $detailInfoFactory,
         Aliases $aliases,
-        ExampleRepositoryInterface $exampleRepository
+        ExampleRepositoryInterface $repository
     ) {
         parent::__construct($db, $clock, $detailInfoFactory, $aliases);
-        $this->exampleRepository = $exampleRepository;
+        $this->repository = $repository;
     }
 
     protected function insertEntity(object $entity, mixed $detailInfo): void
@@ -56,6 +56,6 @@ final class SeedExampleData extends AbstractSeederData
         );
         
         // Use repository to insert
-        $this->exampleRepository->insert($newEntity);   
+        $this->repository->insert($newEntity);   
     }
 }
