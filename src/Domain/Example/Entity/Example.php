@@ -54,7 +54,14 @@ final class Example
             resource: self::RESOURCE
         );
 
-        return new self(null, $name, $status, $detailInfo, $syncMdb, LockVersion::create());
+        return new self(
+            id: null, 
+            name: $name, 
+            status: $status, 
+            detailInfo: $detailInfo, 
+            syncMdb: $syncMdb, 
+            lockVersion: LockVersion::create()
+        );
     }
 
     public static function reconstitute(
@@ -66,7 +73,14 @@ final class Example
         ?LockVersion $lockVersion = null,
     ): self {
 
-        return new self($id, $name, $status, $detailInfo, $syncMdb, $lockVersion ?? LockVersion::create());
+        return new self(
+            id: $id, 
+            name: $name, 
+            status: $status, 
+            detailInfo: $detailInfo, 
+            syncMdb: $syncMdb, 
+            lockVersion: $lockVersion ?? LockVersion::create()
+        );
     }
 
     public function toArray(): array
