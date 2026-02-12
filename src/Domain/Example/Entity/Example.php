@@ -4,18 +4,19 @@ declare(strict_types=1);
 
 namespace App\Domain\Example\Entity;
 
+// Shared Layer
+use App\Shared\ValueObject\Message;
+use App\Shared\Exception\BadRequestException;
+
 // Domain Layer
-use App\Domain\Shared\ValueObject\ResourceStatus;
-use App\Domain\Shared\ValueObject\DetailInfo;
-use App\Domain\Shared\ValueObject\LockVersion;
-use App\Domain\Shared\ValueObject\SyncMdb;
 use App\Domain\Shared\Concerns\Entity\Stateful;
 use App\Domain\Shared\Concerns\Entity\Identifiable;
 use App\Domain\Shared\Concerns\Entity\Descriptive;
 
-// Shared Layer
-use App\Shared\ValueObject\Message;
-use App\Shared\Exception\BadRequestException;
+use App\Domain\Shared\ValueObject\ResourceStatus;
+use App\Domain\Shared\ValueObject\DetailInfo;
+use App\Domain\Shared\ValueObject\LockVersion;
+use App\Domain\Shared\ValueObject\SyncMdb;
 
 final class Example
 {
@@ -64,7 +65,7 @@ final class Example
         ?SyncMdb $syncMdb = null,
         ?LockVersion $lockVersion = null,
     ): self {
-        // Create instance without validation for database-loaded entities
+
         return new self($id, $name, $status, $detailInfo, $syncMdb, $lockVersion ?? LockVersion::create());
     }
 
@@ -82,7 +83,6 @@ final class Example
     
     public function restore(): void
     {
-        // Restore entity from deleted state to draft
         if (!$this->status->isDeleted()) {
             throw new BadRequestException(
                 translate: Message::create(
