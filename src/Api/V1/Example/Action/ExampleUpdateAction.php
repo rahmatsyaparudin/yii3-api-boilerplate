@@ -61,17 +61,9 @@ final class ExampleUpdateAction
             );
         }
 
-        if ($payload === null) {
-            return $this->responseFactory->fail(
-                translate: Message::create(
-                    key: 'validation.invalid_payload',
-                    params: [
-                        'resource' => $resource,
-                    ]
-                ),
-                httpCode: Status::BAD_REQUEST
-            );
-        }
+        $payload->ensureExists(
+            resource: $resource
+        );
 
         $params = $payload->getRawParams()
             ->onlyAllowed(
