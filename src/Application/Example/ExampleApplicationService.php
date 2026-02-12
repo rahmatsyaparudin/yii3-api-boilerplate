@@ -127,13 +127,8 @@ final class ExampleApplicationService
             newStatus: $newStatus
         );
 
-        if (isset($command->name)) {
-            $data->updateName($command->name);
-        }
-
-        if ($newStatus !== null) {
-            $data->transitionTo($newStatus);
-        }
+        $data->updateName($command->name);
+        $data->applyStatus($newStatus);
 
         $detailInfo = $this->detailInfoFactory
             ->update(
