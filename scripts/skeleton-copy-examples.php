@@ -24,18 +24,6 @@ class SkeletonExamplesCopier
             '.env.example' => '.env.example',
             'public/.htaccess.example' => 'public/.htaccess',
 
-            // Message files
-            'resources/messages/en/app.php' => 'resources/messages/en/app.php',
-            'resources/messages/id/app.php' => 'resources/messages/id/app.php',
-            
-            // Config files
-            'config/common/params.php' => 'config/common/params.php',
-            'config/common/di/infrastructure.php' => 'config/common/di/infrastructure.php',
-            'config/common/di/optimistic-lock.php' => 'config/common/di/optimistic-lock.php',
-            'config/common/di/validator.php' => 'config/common/di/validator.php',
-            'config/console/commands.php' => 'config/console/commands.php',
-            'config/console/params.php' => 'config/console/params.php',
-            
             // Directories (recursive copy)
             'src/Api/V1/Example' => 'src/Api/V1/Example',
             'src/Application/Example' => 'src/Application/Example',
