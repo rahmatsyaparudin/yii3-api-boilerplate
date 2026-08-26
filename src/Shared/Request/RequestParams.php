@@ -16,7 +16,7 @@ final readonly class RequestParams
     private const DEFAULT_PAGE_SIZE = 50;
     private const MAX_PAGE_SIZE = 200;
     private const DEFAULT_PAGE = 1;
-    private const DEFAULT_SORT_DIR = 'asc';
+    private const DEFAULT_SORT_DIR = 'desc';
 
     private RawParams $rawParams;
     private RawParams $filter;

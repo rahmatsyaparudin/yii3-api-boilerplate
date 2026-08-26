@@ -144,7 +144,7 @@ final readonly class SearchCriteria
         public int $page,
         public int $pageSize = 10,
         public string $sortBy = 'id',
-        public string $sortDir = 'asc',
+        public string $sortDir = 'desc',
         public ?int $offset = null,
         private array $allowedSort = ['id' => 'id'],
     ) {}

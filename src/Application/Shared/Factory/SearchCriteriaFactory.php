@@ -22,7 +22,7 @@ final class SearchCriteriaFactory
             page: $pagination->page ?? 1,
             pageSize: $pagination->page_size ?? $defaultPageSize,
             sortBy: $sort->by ?? array_key_first($allowedSort),
-            sortDir: $sort->dir ?? 'asc',
+            sortDir: $sort->dir ?? 'desc',
             allowedSort: $allowedSort
         );
     }
