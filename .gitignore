@@ -16,15 +16,14 @@ node_modules/
 !.env.example
 
 # Environment configs
-/config/environments/dev/
-/config/environments/test/
-/config/environments/prod/
 /config/local/
 
 # Static build
 /dist/
 /build/
 /coverage/
+sources/
+public/.htaccess
 
 # IDE & OS
 .idea/

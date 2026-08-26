@@ -23,7 +23,6 @@ class SkeletonConfigCopier
         $itemsToCopy = [
             // Files
             '.env.example' => '.env',
-            'public/.htaccess' => 'public/.htaccess',
 
             // Config files
             'config/common/access.php' => 'config/common/access.php',
