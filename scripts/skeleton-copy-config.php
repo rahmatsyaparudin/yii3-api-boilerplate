@@ -24,16 +24,25 @@ class SkeletonConfigCopier
             // Files
             '.env.example' => '.env',
 
+            // Message files
+            'resources/messages/en/app.php' => 'resources/messages/en/app.php',
+            'resources/messages/id/app.php' => 'resources/messages/id/app.php',
+
             // Config files
             'config/common/access.php' => 'config/common/access.php',
             'config/common/aliases.php' => 'config/common/aliases.php',
             'config/common/application.php' => 'config/common/application.php',
+            'config/common/params.php' => 'config/common/params.php',
             'config/common/routes.php' => 'config/common/routes.php',
             'config/common/repository.php' => 'config/common/repository.php',
             'config/common/service.php' => 'config/common/service.php',
             'config/common/translator.php' => 'config/common/translator.php',
             'config/common/di/application.php' => 'config/common/di/application.php',
+            'config/common/di/infrastructure.php' => 'config/common/di/infrastructure.php',
+            'config/common/di/optimistic-lock.php' => 'config/common/di/optimistic-lock.php',
+            'config/common/di/validator.php' => 'config/common/di/validator.php',
             'config/console/commands.php' => 'config/console/commands.php',
+            'config/console/params.php' => 'config/console/params.php',
         ];
         
         $flagFile = $this->projectRoot . '/.skeleton_config_copied';
