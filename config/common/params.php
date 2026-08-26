@@ -53,6 +53,7 @@ return [
     'app/config'  => [
         'code'     => $_ENV['app.config.code'] ?? 'code',
         'name'     => $_ENV['app.config.name'] ?? 'name',
+        'version'  => $_ENV['app.config.version'] ?? '1.0',
         'language' => $_ENV['app.config.language'] ?? 'en',
         'allow_god_mode' => filter_var($_ENV['app.config.allow_god_mode'] ?? true, FILTER_VALIDATE_BOOLEAN),
     ],
