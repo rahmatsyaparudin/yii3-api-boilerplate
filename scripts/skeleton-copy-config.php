@@ -17,6 +17,12 @@ class SkeletonConfigCopier
     
     public function copy(): void
     {
+        echo "\033[41m\033[97m                                                     \033[0m\n";
+        echo "\033[41m\033[97m  WARNING: This script should only be run once.     \033[0m\n";
+        echo "\033[41m\033[97m  Re-running will overwrite existing config files    \033[0m\n";
+        echo "\033[41m\033[97m  and may remove your current setup.                \033[0m\n";
+        echo "\033[41m\033[97m                                                     \033[0m\n\n";
+
         echo "🚀 Copying config files from skeleton...\n";
         
         // Files and directories to copy
