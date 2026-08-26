@@ -23,14 +23,17 @@ class SkeletonConfigCopier
         $itemsToCopy = [
             // Files
             '.env.example' => '.env',
-            
+            'public/.htaccess' => 'public/.htaccess',
+
             // Config files
             'config/common/access.php' => 'config/common/access.php',
             'config/common/aliases.php' => 'config/common/aliases.php',
+            'config/common/application.php' => 'config/common/application.php',
             'config/common/routes.php' => 'config/common/routes.php',
             'config/common/repository.php' => 'config/common/repository.php',
             'config/common/service.php' => 'config/common/service.php',
             'config/common/translator.php' => 'config/common/translator.php',
+            'config/common/di/application.php' => 'config/common/di/application.php',
             'config/console/commands.php' => 'config/console/commands.php',
         ];
         
