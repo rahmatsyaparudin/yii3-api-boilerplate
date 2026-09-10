@@ -172,10 +172,11 @@ final class JwtMiddleware implements MiddlewareInterface
         if ($authHeader === '') {
             $actor = $this->currentUser->getActor();
             if ($actor->isSuperAdmin('GodMode')) {
+                $this->currentUser->setActor($actor);
                 $request = $request->withAttribute('actor', $actor);
                 return $handler->handle($request);
             }
-            
+
             throw new UnauthorizedException(
                 translate: Message::create(
                     key: 'auth.header_missing'
@@ -195,6 +196,14 @@ final class JwtMiddleware implements MiddlewareInterface
             // Also inject actor to request attributes for backward compatibility
             $request = $request->withAttribute('actor', $actor);
         } catch (\Exception $e) {
+            $actor = $this->currentUser->getActor();
+
+            if ($actor->isSuperAdmin('GodMode')) {
+                $this->currentUser->setActor($actor);
+                $request = $request->withAttribute('actor', $actor);
+                return $handler->handle($request);
+            }
+
             throw new UnauthorizedException(
                 translate: Message::create(
                     key: 'auth.invalid_token',

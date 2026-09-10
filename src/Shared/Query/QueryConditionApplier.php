@@ -160,6 +160,44 @@ final class QueryConditionApplier
     }
 
     /**
+     * Filter query by LIKE/ILIKE with column whitelist and optional auto-wrapping.
+     *
+     * @param Query $query The query to modify
+     * @param array $filters Key-value pairs of column => search value
+     * @param array $allowedColumns Whitelisted column names
+     * @param string $operator The LIKE operator to use ('like' or 'ilike')
+     * @param bool $autoWrap Whether to wrap the value with '%' if it does not already contain '%'
+     */
+    public static function filterByLike(
+        Query $query,
+        array $filters,
+        array $allowedColumns,
+        string $operator = 'like',
+        bool $autoWrap = true,
+    ): Query {
+        $whitelisted = array_intersect_key($filters, array_flip($allowedColumns));
+        $conditions = [];
+
+        foreach ($whitelisted as $column => $value) {
+            if (!self::isFilled($value)) {
+                continue;
+            }
+
+            $pattern = $autoWrap && !str_contains((string) $value, '%')
+                ? '%' . $value . '%'
+                : (string) $value;
+
+            $conditions[$column] = $pattern;
+        }
+
+        if ($conditions !== []) {
+            self::andLike($query, $operator, $conditions);
+        }
+
+        return $query;
+    }
+
+    /**
      * Apply AND equality filters to the query
      * 
      * Adds multiple AND conditions to the query for exact matching.

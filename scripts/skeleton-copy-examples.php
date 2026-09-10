@@ -29,11 +29,17 @@ class SkeletonExamplesCopier
             'src/Application/Example' => 'src/Application/Example',
             'src/Domain/Example' => 'src/Domain/Example',
             'src/Infrastructure/Persistence/Example' => 'src/Infrastructure/Persistence/Example',
+            'src/Api/V1/AnotherExample' => 'src/Api/V1/AnotherExample',
+            'src/Application/AnotherExample' => 'src/Application/AnotherExample',
+            'src/Domain/AnotherExample' => 'src/Domain/AnotherExample',
+            'src/Infrastructure/Persistence/AnotherExample' => 'src/Infrastructure/Persistence/AnotherExample',
             'src/Migration' => 'src/Migration',
 
             'src/Seeder/Fixtures/example.yaml' => 'src/Seeder/Fixtures/example.yaml',
+            'src/Seeder/Fixtures/anotherexample.yaml' => 'src/Seeder/Fixtures/anotherexample.yaml',
             'src/Seeder/Faker/SeedDataPoolFaker.php' => 'src/Seeder/Faker/SeedDataPoolFaker.php',
             'src/Seeder/SeedExampleData.php' => 'src/Seeder/SeedExampleData.php',
+            'src/Seeder/SeedAnotherExampleData.php' => 'src/Seeder/SeedAnotherExampleData.php',
         ];
 
         $skipFlagFile = true;
