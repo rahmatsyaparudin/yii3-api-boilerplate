@@ -30,27 +30,39 @@ final class AccessChecker implements AccessCheckerInterface
             return false;
         }
 
+        // Global wildcard / god mode
+        $wildcard = $this->accessMap['*'] ?? null;
+        if ($wildcard !== null) {
+            $allowed = $this->evaluateRule($wildcard, $actor);
+            if ($allowed === true) {
+                return true;
+            }
+        }
+
         $rule = $this->accessMap[$permissionName] ?? null;
         if ($rule === null) {
             return false;
         }
 
-        // If rule is array, execute each with OR logic
-        if (\is_array($rule)) {
-            foreach ($rule as $singleRule) {
-                if (\is_callable($singleRule)) {
-                    $result = (bool) $singleRule($actor);
-                    if ($result) {
-                        return true; // OR logic - return true if any rule passes
-                    }
-                }
-            }
-            return false;
+        return $this->evaluateRule($rule, $actor);
+    }
+
+    private function evaluateRule(mixed $rule, Actor $actor): bool
+    {
+        if (\is_bool($rule)) {
+            return $rule;
         }
 
-        // If rule is callable, execute it
         if (\is_callable($rule)) {
             return (bool) $rule($actor);
+        }
+
+        if (\is_array($rule)) {
+            foreach ($rule as $singleRule) {
+                if (\is_callable($singleRule) && $singleRule($actor)) {
+                    return true;
+                }
+            }
         }
 
         return false;

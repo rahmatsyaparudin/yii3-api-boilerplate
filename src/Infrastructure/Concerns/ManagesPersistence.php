@@ -23,17 +23,23 @@ trait ManagesPersistence
         return str_ireplace('Repository', '', (new \ReflectionClass($this))->getShortName());
     }
 
-    private function streamRows(Query $query, array $jsonKeys = []): iterable
+    private function streamRows(Query $query, array $jsonKeys = [], array $excluded = []): iterable
     {
         foreach ($query->each(100, $this->db) as $row) {
             /** @var array<string, mixed> $row */
 
             // 1. Domain Logic encapsulated in Value Object
-            $row['detail_info'] = DetailInfo::fromJson($row['detail_info'] ?? '')->toArray();
+            if (array_key_exists('detail_info', $row)) {
+                $row['detail_info'] = DetailInfo::fromJson($row['detail_info'] ?? '')->toArray();
+            }
 
             // 2. Generic Logic encapsulated in a helper or VO
             foreach ($jsonKeys as $key) {
                 $row[$key] = $this->castToArray($row[$key] ?? null);
+            }
+
+            foreach ($excluded as $column) {
+                unset($row[$column]);
             }
 
             yield $row;

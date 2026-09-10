@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Example\Entity;
+namespace App\Domain\AnotherExample\Entity;
 
 // Shared Layer
 use App\Shared\ValueObject\Message;
@@ -18,17 +18,18 @@ use App\Domain\Shared\ValueObject\DetailInfo;
 use App\Domain\Shared\ValueObject\LockVersion;
 use App\Domain\Shared\ValueObject\SyncMdb;
 
-final class Example
+final class AnotherExample
 {
     use Identifiable, Stateful, Descriptive;
 
-    public const RESOURCE = 'Example';
+    public const RESOURCE = 'AnotherExample';
 
     private LockVersion $lockVersion;
 
     protected function __construct(
         private readonly ?int $id,
         private string $name,
+        private int $exampleId,
         private ResourceStatus $status,
         private DetailInfo $detailInfo,
         private ?SyncMdb $syncMdb = null,
@@ -47,6 +48,7 @@ final class Example
         string $name,
         ResourceStatus $status,
         DetailInfo $detailInfo,
+        int $exampleId,
         ?SyncMdb $syncMdb = null,
     ): self {
         self::guardInitialStatus(
@@ -57,6 +59,7 @@ final class Example
         return new self(
             id: null, 
             name: $name, 
+            exampleId: $exampleId,
             status: $status, 
             detailInfo: $detailInfo, 
             syncMdb: $syncMdb, 
@@ -69,12 +72,14 @@ final class Example
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'example_id' => $this->exampleId,
         ];
     }
 
     public static function reconstitute(
         int $id,
         string $name,
+        int $exampleId,
         ResourceStatus $status,
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
@@ -84,6 +89,7 @@ final class Example
         return new self(
             id: $id, 
             name: $name, 
+            exampleId: $exampleId,
             status: $status, 
             detailInfo: $detailInfo, 
             syncMdb: $syncMdb, 
@@ -96,11 +102,22 @@ final class Example
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'example_id' => $this->exampleId,
             'status' => $this->status->value(),
             'detail_info' => $this->detailInfo->toArray(),
             SyncMdb::field() => $this->syncMdb?->value(),
             LockVersion::field() => $this->lockVersion->value(),
         ];
+    }
+
+    public function getExampleId(): int
+    {
+        return $this->exampleId;
+    }
+
+    public function updateExampleId(int $exampleId): void
+    {
+        $this->exampleId = $exampleId;
     }
     
     public function restore(): void
@@ -118,7 +135,7 @@ final class Example
     }
 
     /**
-     * Place Example-specific business functions here, in addition to those
+     * Place AnotherExample-specific business functions here, in addition to those
      * provided by common traits/concerns (Identifiable, Stateful, etc.).
      */ 
     
