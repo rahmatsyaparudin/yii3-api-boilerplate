@@ -40,7 +40,7 @@ final class AnotherExampleInputValidator extends AbstractValidator
                             table: 'another_example', 
                             column: 'name', 
                             ignoreId: null
-                        )
+                        ),
                     ])
                 ],
                 'status' => [
@@ -59,7 +59,7 @@ final class AnotherExampleInputValidator extends AbstractValidator
                         table: 'example', 
                         column: 'id', 
                         ignoreId: null
-                    )
+                    ),
                 ],
             ],
             ValidationContext::UPDATE => [
@@ -83,7 +83,7 @@ final class AnotherExampleInputValidator extends AbstractValidator
                             table: 'another_example', 
                             column: 'name', 
                             ignoreId: $this->data['id'] ?? null
-                        )
+                        ),
                     ])
                 ],
                 'status' => [
@@ -103,7 +103,7 @@ final class AnotherExampleInputValidator extends AbstractValidator
                         table: 'example', 
                         column: 'id', 
                         ignoreId: null
-                    )
+                    ),
                 ],
                 'lock_version' => [
                     new Required(
