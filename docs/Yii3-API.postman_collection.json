@@ -1,0 +1,107 @@
+{
+    "info": {
+        "_postman_id": "yii3-api-boilerplate",
+        "name": "Yii3 API",
+        "description": "Yii3 API boilerplate collection. Auth and variables are stored in the collection itself so all requests inherit them.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            { "key": "token", "value": "{{bearer-token}}", "type": "string" }
+        ]
+    },
+    "item": [
+        {
+            "name": "Local",
+            "item": [
+                {
+                    "name": "Index",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{url-local}}/api/v1/",
+                            "host": ["{{url-local}}"],
+                            "path": ["api", "v1", ""]
+                        }
+                    }
+                },
+                {
+                    "name": "AnotherExample - List",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{url-local}}/api/v1/another-example",
+                            "host": ["{{url-local}}"],
+                            "path": ["api", "v1", "another-example"]
+                        }
+                    }
+                },
+                {
+                    "name": "AnotherExample - Create",
+                    "request": {
+                        "method": "POST",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Another example\",\n    \"status\": 1,\n    \"example_id\": 1,\n    \"detail_info\": null\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": {
+                            "raw": "{{url-local}}/api/v1/another-example/create",
+                            "host": ["{{url-local}}"],
+                            "path": ["api", "v1", "another-example", "create"]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Dev",
+            "item": [
+                {
+                    "name": "Index",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{url-dev}}/api/v1/",
+                            "host": ["{{url-dev}}"],
+                            "path": ["api", "v1", ""]
+                        }
+                    }
+                },
+                {
+                    "name": "AnotherExample - List",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{url-dev}}/api/v1/another-example",
+                            "host": ["{{url-dev}}"],
+                            "path": ["api", "v1", "another-example"]
+                        }
+                    }
+                },
+                {
+                    "name": "AnotherExample - Create",
+                    "request": {
+                        "method": "POST",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Another example\",\n    \"status\": 1,\n    \"example_id\": 1,\n    \"detail_info\": null\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": {
+                            "raw": "{{url-dev}}/api/v1/another-example/create",
+                            "host": ["{{url-dev}}"],
+                            "path": ["api", "v1", "another-example", "create"]
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "variable": [
+        { "key": "url-local", "value": "http://localhost:8080", "type": "string" },
+        { "key": "url-dev", "value": "https://dev.example.com", "type": "string" },
+        { "key": "bearer-token", "value": "", "type": "string" }
+    ]
+}
