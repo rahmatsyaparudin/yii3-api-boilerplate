@@ -31,7 +31,10 @@ class SkeletonInstaller
     public function install(): void
     {
         echo "🚀 Installing Shared classes from vendor...\n";
-        
+
+        // Copy scripts first so the latest installer logic is used
+        $this->copyScripts();
+
         // Only copy Shared classes from vendor
         $this->copySharedClasses();
         
@@ -69,11 +72,11 @@ class SkeletonInstaller
         echo "\n🎯 Shared classes copied to src/Shared/\n";
         echo "📁 Directories created: Core/{Dto, Enums, ErrorHandler, Exception, Middleware, Query, Request, Security, Utility, Context, ValueObject}, Common\n";
         echo "🏗️  Infrastructure classes copied to src/Infrastructure/\n";
-        echo "📁 Directories created: Audit, Clock, Concerns, Database, Monitoring, RateLimit, Security, Time, Persistence\n";
+        echo "📁 Directories created: Core/{Audit, Clock, Concerns, Database, Monitoring, RateLimit, Security, Seeder, Time}, Common/Persistence\n";
         echo "🧠 Domain Shared classes copied to src/Domain/Shared/\n";
-        echo "📁 Directories created: Audit, Concerns, Contract, Security, ValueObject\n";
+        echo "📁 Directories created: Core/{Audit, Concerns, Contract, Security, ValueObject}, Common\n";
         echo "⚙️  Application Shared classes copied to src/Application/Shared/\n";
-        echo "📁 Directories created: Factory\n";
+        echo "📁 Directories created: Core/Factory, Common\n";
         echo "🌐 API Shared classes copied to src/Api/Shared/\n";
         echo "📁 Directories created: Presenter, ExceptionResponderFactory.php, ResponseFactory.php\n";
         echo "⚙️  Config files copied to config/\n";
@@ -89,6 +92,74 @@ class SkeletonInstaller
         echo "📁 Files copied: quality\n";
         echo "📦 Composer packages updated in composer.json\n";
         echo "📁 Packages added: firebase/php-jwt, psr/clock, vlucas/phpdotenv, yiisoft/* packages\n";
+    }
+
+    private function copyScripts(): void
+    {
+        // Scripts are only copied from the vendor package (no project fallback)
+        $vendorScriptsPath = $this->vendorPath . '/scripts';
+
+        if (!is_dir($vendorScriptsPath)) {
+            return;
+        }
+
+        // Compare scripts/skeleton.version instead of comparing files
+        $vendorVersionFile  = $vendorScriptsPath . '/skeleton.version';
+        $currentVersionFile = $this->projectRoot . '/scripts/skeleton.version';
+
+        if (!file_exists($vendorVersionFile)) {
+            return;
+        }
+
+        $vendorVersion  = trim((string) file_get_contents($vendorVersionFile));
+        $currentVersion = file_exists($currentVersionFile)
+            ? trim((string) file_get_contents($currentVersionFile))
+            : null;
+
+        if ($vendorVersion === '' || $vendorVersion === $currentVersion) {
+            return;
+        }
+
+        echo "📜 Updating scripts (skeleton {$currentVersion} -> {$vendorVersion})...\n";
+
+        $targetScriptsPath = $this->projectRoot . '/scripts';
+        if (!is_dir($targetScriptsPath)) {
+            mkdir($targetScriptsPath, 0755, true);
+        }
+
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($vendorScriptsPath, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::SELF_FIRST
+        );
+
+        foreach ($iterator as $file) {
+            $sourcePath   = $file->getPathname();
+            $relativePath = str_replace($vendorScriptsPath, '', $sourcePath);
+            $targetPath   = $targetScriptsPath . $relativePath;
+
+            if ($file->isDir()) {
+                if (!is_dir($targetPath)) {
+                    mkdir($targetPath, 0755, true);
+                }
+                continue;
+            }
+
+            $targetDir = dirname($targetPath);
+            if (!is_dir($targetDir)) {
+                mkdir($targetDir, 0755, true);
+            }
+
+            copy($sourcePath, $targetPath);
+            echo "✅ Copied script: scripts" . str_replace('\\', '/', $relativePath) . "\n";
+        }
+
+        // Version changed — restart once so the new installer logic applies immediately
+        if (getenv('SKELETON_SELF_UPDATED') !== '1') {
+            echo "🔄 Skeleton updated to {$vendorVersion} — restarting with the new installer...\n";
+            putenv('SKELETON_SELF_UPDATED=1');
+            passthru(PHP_BINARY . ' ' . escapeshellarg($targetScriptsPath . '/skeleton-update.php'), $exitCode);
+            exit($exitCode);
+        }
     }
 
     private function copySharedClasses(): void
