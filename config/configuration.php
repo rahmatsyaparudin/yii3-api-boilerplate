@@ -16,7 +16,10 @@ return [
             '$params',
             'console/params.php',
         ],
-        'di'     => 'common/di/*.php',
+        'di'     => [
+            'common/repository.php',
+            'common/di/*.php',
+        ],
         'di-web' => [
             '$di',
             'web/di/*.php',

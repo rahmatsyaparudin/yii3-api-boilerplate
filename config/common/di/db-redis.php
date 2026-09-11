@@ -7,8 +7,11 @@ use App\Infrastructure\Core\Database\Redis\RedisService;
 
 /** @var array $params */
 
-// Core Redis service binding. Project-owned repository bindings are
-// merged from config/common/redis.php and may override these.
+// Core Redis service binding. Project-owned Redis bindings (services, cache,
+// queue, or optional repository override) are merged from config/common/redis.php.
+// Redis is normally a side service, but you may bind a repository interface here
+// if a specific domain should use Redis as its storage. Bindings in redis.php
+// are loaded after common/repository.php, so they will override SQL defaults.
 $projectBindings = \dirname(__DIR__) . '/redis.php';
 
 return array_merge([
