@@ -10,6 +10,7 @@ use App\Domain\AnotherExample\Repository\AnotherExampleRepositoryInterface;
 use App\Domain\Shared\Core\ValueObject\DetailInfo;
 use App\Domain\Shared\Core\ValueObject\LockVersion;
 use App\Domain\Shared\Core\ValueObject\ResourceStatus;
+use App\Domain\Shared\Core\ValueObject\SyncFlag;
 use App\Domain\Shared\Core\ValueObject\SyncMdb;
 // Infrastructure Layer
 use App\Infrastructure\Core\Concerns\HasCoreFeatures;
@@ -80,6 +81,7 @@ final class AnotherExampleRepository implements AnotherExampleRepositoryInterfac
             exampleId: (int) $row['example_id'],
             status: ResourceStatus::from((int) $row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
+            syncFlag: SyncFlag::fromArray($row),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
         );
     }
@@ -104,8 +106,10 @@ final class AnotherExampleRepository implements AnotherExampleRepositoryInterfac
             exampleId: (int) $row['example_id'],
             status: ResourceStatus::from((int) $row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
+            syncMdb: isset($row[SyncMdb::field()]) ? SyncMdb::fromInt((int) $row[SyncMdb::field()]) : null,
+            syncFlag: SyncFlag::fromArray($row),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
-        )->updateSyncMdb($row[SyncMdb::field()] ?? null);
+        );
     }
 
     public function existsByName(string $name, ?int $status = null): bool
@@ -128,6 +132,8 @@ final class AnotherExampleRepository implements AnotherExampleRepositoryInterfac
                 'status',
                 'detail_info',
                 SyncMdb::field(),
+                SyncFlag::fieldOriginId(),
+                SyncFlag::fieldSyncFlag(),
                 LockVersion::field(),
             ])
             ->from(self::TABLE_NAME)
@@ -143,6 +149,8 @@ final class AnotherExampleRepository implements AnotherExampleRepositoryInterfac
                 'status',
                 'example_id',
                 SyncMdb::field(),
+                SyncFlag::fieldOriginId(),
+                SyncFlag::fieldSyncFlag(),
             ]
         );
 
@@ -199,6 +207,7 @@ final class AnotherExampleRepository implements AnotherExampleRepositoryInterfac
                 exampleId: $entity->getExampleId(),
                 status: $entity->getStatus(),
                 detailInfo: $entity->getDetailInfo(),
+                syncFlag: $entity->getSyncFlag(),
                 lockVersion: LockVersion::create(),
             );
 
@@ -290,6 +299,7 @@ final class AnotherExampleRepository implements AnotherExampleRepositoryInterfac
             exampleId: (int) $row['example_id'],
             status: ResourceStatus::from((int) $row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
+            syncFlag: SyncFlag::fromArray($row),
             lockVersion: LockVersion::fromInt($row[LockVersion::field()])
         );
 
@@ -308,6 +318,8 @@ final class AnotherExampleRepository implements AnotherExampleRepositoryInterfac
             'status'             => $entity->getStatus()->value(),
             'detail_info'        => $entity->getDetailInfo()->toArray(),
             SyncMdb::field()     => $entity->getSyncMdbValue(),
+            SyncFlag::fieldOriginId() => $entity->getOriginId(),
+            SyncFlag::fieldSyncFlag() => $entity->getSyncFlagValue(),
             LockVersion::field() => $lockVersion,
         ];
     }

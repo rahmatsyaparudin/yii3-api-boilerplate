@@ -47,6 +47,7 @@ final class SeedAnotherExampleData extends AbstractSeederData
             status: $entity->getStatus(),
             detailInfo: $detailInfo,
             syncMdb: $entity->getSyncMdb(),
+            syncFlag: $entity->getSyncFlag(),
             exampleId: $entity->getExampleId(),
         );
 

@@ -11,6 +11,8 @@ final readonly class CreateAnotherExampleCommand
         public int $status,
         public int $exampleId,
         public ?array $detailInfo,
+        public ?int $originId,
+        public ?int $syncFlag,
     ) {
     }
 
@@ -19,12 +21,16 @@ final readonly class CreateAnotherExampleCommand
         int $status,
         int $exampleId,
         ?array $detailInfo = null,
+        ?int $originId = null,
+        ?int $syncFlag = null,
     ): self {
         return new self(
             name: $name,
             status: $status,
             exampleId: $exampleId,
             detailInfo: $detailInfo,
+            originId: $originId,
+            syncFlag: $syncFlag,
         );
     }
 }

@@ -15,6 +15,8 @@ final readonly class AnotherExampleResponse
         public int $status,
         public array $detail_info,
         public ?int $sync_mdb,
+        public ?int $origin_id,
+        public ?int $sync_flag,
         public int $lock_version,
     ) {
     }
@@ -28,6 +30,8 @@ final readonly class AnotherExampleResponse
             status: $entity->getStatus()->value(),
             detail_info: $entity->getDetailInfo()->toArray(),
             sync_mdb: $entity->getSyncMdbValue(),
+            origin_id: $entity->getOriginId(),
+            sync_flag: $entity->getSyncFlagValue(),
             lock_version: $entity->getLockVersion()->value(),
         );
     }

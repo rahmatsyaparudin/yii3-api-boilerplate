@@ -900,25 +900,26 @@ $sync->toInt();      // null | 1 — for DB writes
 
 ### Master–Origin Sync — `SyncFlag`
 
-`App\Domain\Shared\Core\ValueObject\SyncFlag` manages the `origin_id` / `sync_flag` columns plus a sync direction. `origin_id` is an integer (default `null`); `sync_flag` is a smallint (`null` = synced, `1` = not synced, default `1`):
+`App\Domain\Shared\Core\ValueObject\SyncFlag` manages the `origin_id` / `sync_flag` columns plus a sync direction. `origin_id` is an integer (default `null`); `sync_flag` is a smallint (`null` = synced, `1` = not synced, default `1`). Status and direction are typed enums in `App\Domain\Shared\Core\Enum`:
 
-| Constant | Value | Meaning |
-|----------|-------|---------|
-| `SYNCED` | `null` | Record already synced |
-| `NOT_SYNCED` | `1` | Record needs syncing |
-| `DIR_NONE` | `0` | No direction |
-| `DIR_MASTER_TO_ORIGIN` | `1` | Push from master to origin |
-| `DIR_ORIGIN_TO_MASTER` | `2` | Push from origin to master |
-| `DIR_BIDIRECTIONAL` | `3` | Sync both ways |
+| Enum | Case | DB Value | Meaning |
+|------|------|----------|---------|
+| `SyncStatus` | `SYNCED` | `null` | Record already synced |
+| `SyncStatus` | `NOT_SYNCED` | `1` | Record needs syncing |
+| `SyncDirection` | `NONE` | `0` | No direction |
+| `SyncDirection` | `MASTER_TO_ORIGIN` | `1` | Push from master to origin |
+| `SyncDirection` | `ORIGIN_TO_MASTER` | `2` | Push from origin to master |
+| `SyncDirection` | `BIDIRECTIONAL` | `3` | Sync both ways |
 
 ```php
+use App\Domain\Shared\Core\Enum\SyncStatus;
 use App\Domain\Shared\Core\ValueObject\SyncFlag;
 
 // Direction is auto-resolved when not given:
-//   sync_flag=null           -> DIR_NONE
-//   sync_flag=1, no origin   -> DIR_MASTER_TO_ORIGIN
-//   sync_flag=1, origin set  -> DIR_ORIGIN_TO_MASTER
-$sync = SyncFlag::create(originId: null, syncFlag: 1);
+//   sync_flag=null           -> SyncDirection::NONE
+//   sync_flag=1, no origin   -> SyncDirection::MASTER_TO_ORIGIN
+//   sync_flag=1, origin set  -> SyncDirection::ORIGIN_TO_MASTER
+$sync = SyncFlag::create(originId: null, status: SyncStatus::NOT_SYNCED);
 
 $sync = SyncFlag::masterToOrigin();        // to all origins
 $sync = SyncFlag::masterToOrigin(5);       // to origin #5

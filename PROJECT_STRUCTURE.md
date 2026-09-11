@@ -149,6 +149,9 @@ src/
 │       │   │   ├── 📄 ActorInterface.php - Actor contract
 │       │   │   ├── 📄 CurrentUserInterface.php - Current user contract
 │       │   │   └── 📄 DateTimeProviderInterface.php - DateTime provider contract
+│       │   ├── 📁 Enum/ - Domain enums
+│       │   │   ├── 📄 SyncDirection.php - Sync direction enum
+│       │   │   └── 📄 SyncStatus.php - Sync status enum
 │       │   ├── 📁 Security/ - Security contracts
 │       │   │   └── 📄 AuthorizerInterface.php - Authorization contract
 │       │   └── 📁 ValueObject/ - Value objects
