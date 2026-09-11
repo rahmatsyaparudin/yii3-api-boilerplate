@@ -48,7 +48,15 @@ trait Identifiable
     protected function ensureHasName(string $name): void
     {
         if (empty($name)) {
-            throw new BadRequestException(translate: new Message(key: 'name_required', domain: 'validation', params: ['resource' => $this->getResource()]));
+            throw new BadRequestException(
+                translate: new Message(
+                    domain: 'validation', 
+                    key: 'name_required', 
+                    params: [
+                        'resource' => $this->getResource()
+                    ]
+                )
+            );
         }
     }
 

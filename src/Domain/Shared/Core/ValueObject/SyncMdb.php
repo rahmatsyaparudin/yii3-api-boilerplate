@@ -26,7 +26,16 @@ final readonly class SyncMdb
     public static function create(?int $value): self
     {
         if ($value !== self::SYNCED && $value !== self::NOT_SYNCED) {
-            throw new BadRequestException(translate: Message::create(key: 'sync_mdb.invalid_value', domain: 'validation', params: ['allowed_values' => 'null, 1', 'value' => $value]));
+            throw new BadRequestException(
+                translate: Message::create(
+                    domain: 'validation', 
+                    key: 'sync_mdb.invalid_value', 
+                    params: [
+                        'allowed_values' => 'null, 1', 
+                        'value' => $value
+                    ]
+                )
+            );
         }
 
         return new self($value);
@@ -44,7 +53,15 @@ final readonly class SyncMdb
         }
 
         if (!\is_numeric($value)) {
-            throw new BadRequestException(translate: Message::create(key: 'sync_mdb.invalid_format', domain: 'validation', params: ['value' => $value]));
+            throw new BadRequestException(
+                translate: Message::create(
+                    domain: 'validation', 
+                    key: 'sync_mdb.invalid_format', 
+                    params: [
+                        'value' => $value
+                    ]
+                )
+            );
         }
 
         return self::create((int) $value);
