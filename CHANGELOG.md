@@ -18,6 +18,7 @@
 - Direction terminology changed from master/slave to master/origin (`masterToOrigin()`, `originToMaster()`, `needsSyncToOrigin()`, `shouldPushToOrigin()`, etc.).
 - `SyncFlagFactory::create()`/`resolveDirection()` now work with `SyncStatus`/`SyncDirection` enums; `resolveDirection()` returns `SyncDirection`.
 - `changelog/CHANGELOG_SYNC_SLAVE.md` renamed to `changelog/CHANGELOG_SYNC_FLAG.md` and updated.
+- `scripts/skeleton.version` bumped to `1.1.0`.
 
 ### Fixed
 - `AnotherExampleRepository::findByName()` no longer chains the void `updateSyncMdb()` on `reconstitute()` (which always returned `null` and mis-hydrated `sync_mdb`); `sync_mdb` and `sync_flag` now hydrate via `reconstitute()`.
