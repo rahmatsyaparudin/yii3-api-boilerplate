@@ -10,10 +10,8 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Yii\Runner\Http\HttpApplicationRunner;
 
-use function dirname;
-
 /**
- * Inherited Methods
+ * Inherited Methods.
  *
  * @method void wantToTest($text)
  * @method void wantTo($text)
@@ -27,19 +25,18 @@ use function dirname;
  * @method void pause($vars = [])
  *
  * @SuppressWarnings(PHPMD)
-*/
+ */
 class FunctionalTester extends Actor
 {
     use _generated\FunctionalTesterActions;
 
     /**
-     * Define custom actions here
+     * Define custom actions here.
      */
-
     public function sendRequest(ServerRequestInterface $request): ResponseInterface
     {
         $runner = new HttpApplicationRunner(
-            rootPath: dirname(__DIR__, 2),
+            rootPath: \dirname(__DIR__, 2),
             environment: Environment::appEnv(),
         );
 

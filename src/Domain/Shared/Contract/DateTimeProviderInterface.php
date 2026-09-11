@@ -10,7 +10,7 @@ use DateTimeImmutable;
 interface DateTimeProviderInterface
 {
     /** Format standar Object Menghasilkan format DateTimeImmutable */
-    public function object(): DateTimeImmutable;
+    public function object(): \DateTimeImmutable;
 
     /** Format standar Database Menghasilkan format Y-m-d H:i:s */
     public function database(): string;

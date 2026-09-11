@@ -11,7 +11,7 @@ Value Objects provide immutable, type-safe representations of domain concepts wi
 ### Directory Structure
 
 ```
-src/Shared/ValueObject/
+src/Shared/Core/ValueObject/
 └── Message.php    # Translation message value object
 ```
 
@@ -50,7 +50,7 @@ src/Shared/ValueObject/
 
 declare(strict_types=1);
 
-namespace App\Shared\ValueObject;
+namespace App\Shared\Core\ValueObject;
 
 /**
  * Translation Message Value Object
@@ -374,7 +374,7 @@ return $this->responseFactory->success(
 
 declare(strict_types=1);
 
-namespace App\Shared\ValueObject;
+namespace App\Shared\Core\ValueObject;
 
 final readonly class Email
 {
@@ -424,7 +424,7 @@ final readonly class Email
 
 declare(strict_types=1);
 
-namespace App\Shared\ValueObject;
+namespace App\Shared\Core\ValueObject;
 
 final readonly class Money
 {
@@ -498,7 +498,7 @@ final readonly class Money
 
 declare(strict_types=1);
 
-namespace App\Shared\ValueObject;
+namespace App\Shared\Core\ValueObject;
 
 final readonly class Address
 {

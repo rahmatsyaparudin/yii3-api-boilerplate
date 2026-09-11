@@ -6,7 +6,6 @@ namespace App\Console;
 
 // PSR Interfaces
 use Psr\Container\ContainerInterface;
-
 // Vendor Layer
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -48,14 +47,15 @@ final class SeederCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         // Check if running in development environment
-        if (!in_array($_ENV['APP_ENV'] ?? '', ['dev', 'development'], true)) {
+        if (!\in_array($_ENV['APP_ENV'] ?? '', ['dev', 'development'], true)) {
             $output->writeln('<error>Seeding is only allowed in development environment!</error>');
+
             return Command::FAILURE;
         }
 
         $module = $input->getOption('module');
-        $count = (int) $input->getOption('count');
-        
+        $count  = (int) $input->getOption('count');
+
         if ($module) {
             // Seed specific module
             $this->seedModule($module, $count, $output);
@@ -69,10 +69,11 @@ final class SeederCommand extends Command
 
     private function seedModule(string $module, int $count, OutputInterface $output): void
     {
-        $seederClass = "App\\Seeder\\Seed" . ucfirst($module) . "Data";
-        
-        if (!class_exists($seederClass)) {
+        $seederClass = 'App\\Seeder\\Seed' . \ucfirst($module) . 'Data';
+
+        if (!\class_exists($seederClass)) {
             $output->writeln("<error>Seeder not found: {$seederClass}</error>");
+
             return;
         }
 
@@ -87,20 +88,21 @@ final class SeederCommand extends Command
 
     private function seedAll(int $count, OutputInterface $output): void
     {
-        $seedDir = __DIR__ . '/../Seeder';
-        $seedFiles = glob($seedDir . '/Seed*Data.php');
-        
+        $seedDir   = __DIR__ . '/../Seeder';
+        $seedFiles = \glob($seedDir . '/Seed*Data.php');
+
         if (empty($seedFiles)) {
             $output->writeln('<comment>No seeders found in ' . $seedDir . '</comment>');
+
             return;
         }
 
-        $output->writeln('<info>Found ' . count($seedFiles) . ' seeders:</info>');
-        
+        $output->writeln('<info>Found ' . \count($seedFiles) . ' seeders:</info>');
+
         foreach ($seedFiles as $seedFile) {
-            $className = basename($seedFile, '.php');
-            $module = strtolower(str_replace(['Seed', 'Data'], '', $className));
-            
+            $className = \basename($seedFile, '.php');
+            $module    = \strtolower(\str_replace(['Seed', 'Data'], '', $className));
+
             $this->seedModule($module, $count, $output);
         }
     }

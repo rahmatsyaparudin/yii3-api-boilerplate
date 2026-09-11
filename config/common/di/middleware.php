@@ -3,24 +3,21 @@
 declare(strict_types=1);
 
 // Infrastructure Layer
-use App\Infrastructure\Monitoring\ErrorMonitoringMiddleware;
-use App\Infrastructure\Monitoring\MetricsMiddleware;
-use App\Infrastructure\Monitoring\RequestIdMiddleware;
-use App\Infrastructure\Monitoring\StructuredLoggingMiddleware;
-use App\Infrastructure\Security\AccessChecker;
-use App\Infrastructure\Security\CurrentUser;
-use App\Infrastructure\Security\HstsMiddleware;
-
+use App\Infrastructure\Core\Monitoring\ErrorMonitoringMiddleware;
+use App\Infrastructure\Core\Monitoring\MetricsMiddleware;
+use App\Infrastructure\Core\Monitoring\RequestIdMiddleware;
+use App\Infrastructure\Core\Monitoring\StructuredLoggingMiddleware;
+use App\Infrastructure\Core\Security\AccessChecker;
+use App\Infrastructure\Core\Security\CurrentUser;
+use App\Infrastructure\Core\Security\HstsMiddleware;
 // Shared Layer
-use App\Shared\Middleware\AccessMiddleware;
-use App\Shared\Middleware\CorsMiddleware;
-use App\Shared\Middleware\RateLimitMiddleware;
-use App\Shared\Middleware\RequestParamsMiddleware;
-use App\Shared\Middleware\SecureHeadersMiddleware;
-
+use App\Shared\Core\Middleware\AccessMiddleware;
+use App\Shared\Core\Middleware\CorsMiddleware;
+use App\Shared\Core\Middleware\RateLimitMiddleware;
+use App\Shared\Core\Middleware\RequestParamsMiddleware;
+use App\Shared\Core\Middleware\SecureHeadersMiddleware;
 // PSR Interfaces
 use Psr\Http\Message\ResponseFactoryInterface;
-
 // Vendor Layer
 use Yiisoft\Router\FastRoute\UrlMatcher;
 

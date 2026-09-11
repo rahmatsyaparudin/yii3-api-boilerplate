@@ -9,23 +9,21 @@ use App\Application\Example\Command\CreateExampleCommand;
 use App\Application\Example\Command\UpdateExampleCommand;
 use App\Application\Example\Dto\ExampleResponse;
 use App\Application\Shared\Factory\DetailInfoFactory;
-
 // Domain Layer
 use App\Domain\Example\Entity\Example;
 use App\Domain\Example\Repository\ExampleRepositoryInterface;
 use App\Domain\Example\Service\ExampleDomainService;
 use App\Domain\Shared\Security\AuthorizerInterface;
 use App\Domain\Shared\ValueObject\ResourceStatus;
-
 // Shared Layer
-use App\Shared\Dto\PaginatedResult;
-use App\Shared\Dto\SearchCriteria;
-use App\Shared\Exception\NotFoundException;
-use App\Shared\ValueObject\Message;
+use App\Shared\Core\Dto\PaginatedResult;
+use App\Shared\Core\Dto\SearchCriteria;
+use App\Shared\Core\Exception\NotFoundException;
+use App\Shared\Core\ValueObject\Message;
 
 /**
- * Example Application Service (Mandor/Alur Kerja)
- * 
+ * Example Application Service (Mandor/Alur Kerja).
+ *
  * Orchestrates use cases and coordinates domain & infrastructure
  */
 final class ExampleApplicationService
@@ -51,21 +49,12 @@ final class ExampleApplicationService
         );
 
         if ($data === null) {
-            throw new NotFoundException(
-                translate: Message::create(
-                    key: 'resource.not_found', 
-                    params: [
-                        'resource' => $this->getResource(),
-                        'field' => 'id',
-                        'value' => $id
-                    ]
-                )
-            );
+            throw new NotFoundException(translate: Message::create(key: 'resource.not_found', params: ['resource' => $this->getResource(), 'field' => 'id', 'value' => $id]));
         }
-        
+
         return $data;
     }
-    
+
     public function list(SearchCriteria $criteria): PaginatedResult
     {
         return $this->repository->list(
@@ -79,7 +68,7 @@ final class ExampleApplicationService
             id: $id,
             status: null
         );
-        
+
         return ExampleResponse::fromEntity(
             entity: $data
         );
@@ -164,7 +153,7 @@ final class ExampleApplicationService
         );
 
         $this->repository->verifyLockVersion(
-            entity: $data, 
+            entity: $data,
             version: $lockVersion,
         );
 
@@ -174,7 +163,7 @@ final class ExampleApplicationService
             permission: 'example.delete',
             resource: $this->getResource(),
         );
-        
+
         $this->domainService->ensureDeletable(
             entity: $data,
             resource: $this->getResource(),
@@ -204,18 +193,9 @@ final class ExampleApplicationService
             id: $id,
             status: ResourceStatus::deleted()->value()
         );
-        
+
         if ($data === null) {
-            throw new NotFoundException(
-                translate: Message::create(
-                    key: 'resource.not_found', 
-                    params: [
-                        'resource' => $this->getResource(),
-                        'field' => 'id',
-                        'value' => $id
-                    ]
-                )
-            );
+            throw new NotFoundException(translate: Message::create(key: 'resource.not_found', params: ['resource' => $this->getResource(), 'field' => 'id', 'value' => $id]));
         }
 
         $data->guardAgainstInvalidTransition(
@@ -239,7 +219,7 @@ final class ExampleApplicationService
         $restoredData = $this->repository->restore(
             id: $data->getId()
         );
-        
+
         return ExampleResponse::fromEntity(
             entity: $restoredData
         );

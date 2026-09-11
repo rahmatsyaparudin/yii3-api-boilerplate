@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Seeder\Faker;
 
+use App\Infrastructure\Core\Seeder\SeederProviderInterface;
 use Faker\Provider\Base;
-use Faker\UniqueGenerator;
-use App\Infrastructure\Seeder\SeederProviderInterface;
 
 /**
  * @psalm-suppress PropertyNotSetInConstructor

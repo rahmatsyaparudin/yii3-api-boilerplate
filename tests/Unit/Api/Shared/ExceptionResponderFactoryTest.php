@@ -10,7 +10,6 @@ use Codeception\Test\Unit;
 use HttpSoft\Message\ResponseFactory as PsrResponseFactory;
 use HttpSoft\Message\ServerRequest;
 use HttpSoft\Message\StreamFactory;
-use LogicException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -21,6 +20,8 @@ use Yiisoft\ErrorHandler\Exception\UserException;
 use Yiisoft\ErrorHandler\Middleware\ExceptionResponder;
 use Yiisoft\Injector\Injector;
 use Yiisoft\Input\Http\InputValidationException;
+use Yiisoft\Translator\CategorySource;
+use Yiisoft\Translator\TranslatorInterface;
 use Yiisoft\Validator\Result;
 
 final class ExceptionResponderFactoryTest extends Unit
@@ -31,9 +32,7 @@ final class ExceptionResponderFactoryTest extends Unit
         $handler = new class implements RequestHandlerInterface {
             public function handle(ServerRequestInterface $request): ResponseInterface
             {
-                throw new InputValidationException(
-                    (new Result())->addError('error1', valuePath: ['name']),
-                );
+                throw new InputValidationException((new Result())->addError('error1', valuePath: ['name']));
             }
         };
 
@@ -42,9 +41,10 @@ final class ExceptionResponderFactoryTest extends Unit
         $this->assertInstanceOf(DataResponse::class, $response);
         $this->assertSame(
             [
-                'status' => 'failed',
-                'error_message' => 'Validation failed.',
-                'error_data' => [
+                'code'    => 422,
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors'  => [
                     'name' => ['error1'],
                 ],
             ],
@@ -64,14 +64,15 @@ final class ExceptionResponderFactoryTest extends Unit
 
         $response = $this->createExceptionResponder()->process($request, $handler);
 
-        $this->assertInstanceOf(DataResponse::class, $response);
+        $this->assertSame(400, $response->getStatusCode());
         $this->assertSame(
             [
-                'status' => 'failed',
-                'error_message' => 'Hello, Exception!',
-                'error_code' => 0,
+                'code'    => 400,
+                'success' => false,
+                'message' => 'Hello, Exception!',
+                'errors'  => [],
             ],
-            $response->getData(),
+            \json_decode((string) $response->getBody(), true),
         );
     }
 
@@ -81,13 +82,22 @@ final class ExceptionResponderFactoryTest extends Unit
         $handler = new class implements RequestHandlerInterface {
             public function handle(ServerRequestInterface $request): ResponseInterface
             {
-                throw new LogicException('Hello, Exception!');
+                throw new \LogicException('Hello, Exception!');
             }
         };
 
-        $this->expectException(LogicException::class);
-        $this->expectExceptionMessage('Hello, Exception!');
-        $this->createExceptionResponder()->process($request, $handler);
+        $response = $this->createExceptionResponder()->process($request, $handler);
+
+        $this->assertSame(500, $response->getStatusCode());
+        $this->assertSame(
+            [
+                'code'    => 500,
+                'success' => false,
+                'message' => 'Hello, Exception!',
+                'errors'  => [],
+            ],
+            \json_decode((string) $response->getBody(), true),
+        );
     }
 
     private function createExceptionResponder(): ExceptionResponder
@@ -99,8 +109,53 @@ final class ExceptionResponderFactoryTest extends Unit
                     new PsrResponseFactory(),
                     new StreamFactory(),
                 ),
+                $this->createTranslator(),
             ),
+            $this->createTranslator(),
             new Injector(new Container()),
         ))->create();
+    }
+
+    private function createTranslator(): TranslatorInterface
+    {
+        return new class implements TranslatorInterface {
+            public function addCategorySources(CategorySource ...$categories): static
+            {
+                return $this;
+            }
+
+            public function setLocale(string $locale): static
+            {
+                return $this;
+            }
+
+            public function getLocale(): string
+            {
+                return 'en';
+            }
+
+            public function translate(
+                string|\Stringable $id,
+                array $parameters = [],
+                ?string $category = null,
+                ?string $locale = null,
+            ): string {
+                return match ($id) {
+                    'http.not_found'    => 'Not found.',
+                    'validation.failed' => 'Validation failed.',
+                    default             => (string) $id,
+                };
+            }
+
+            public function withDefaultCategory(string $category): static
+            {
+                return $this;
+            }
+
+            public function withLocale(string $locale): static
+            {
+                return $this;
+            }
+        };
     }
 }

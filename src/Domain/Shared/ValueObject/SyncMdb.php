@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\ValueObject;
 
-use App\Shared\Exception\BadRequestException;
-use App\Shared\ValueObject\Message;
-use App\Shared\Enums\AppConstants;
+use App\Shared\Core\Enums\AppConstants;
+use App\Shared\Core\Exception\BadRequestException;
+use App\Shared\Core\ValueObject\Message;
 
 final readonly class SyncMdb
 {
-    private const SYNCED = null;
+    private const SYNCED     = null;
     private const NOT_SYNCED = 1;
 
     private function __construct(
@@ -26,16 +26,7 @@ final readonly class SyncMdb
     public static function create(?int $value): self
     {
         if ($value !== self::SYNCED && $value !== self::NOT_SYNCED) {
-            throw new BadRequestException(
-                translate: Message::create(
-                    key: 'validation.sync_mdb.invalid_value',
-                    domain: 'validation',
-                    params: [
-                        'allowed_values' => 'null, 1',
-                        'value' => $value
-                    ]
-                )
-            );
+            throw new BadRequestException(translate: Message::create(key: 'sync_mdb.invalid_value', domain: 'validation', params: ['allowed_values' => 'null, 1', 'value' => $value]));
         }
 
         return new self($value);
@@ -52,14 +43,8 @@ final readonly class SyncMdb
             return new self(self::SYNCED);
         }
 
-        if (!is_numeric($value)) {
-            throw new BadRequestException(
-                translate: Message::create(
-                    key: 'validation.sync_mdb.invalid_format',
-                    domain: 'validation',
-                    params: ['value' => $value]
-                )
-            );
+        if (!\is_numeric($value)) {
+            throw new BadRequestException(translate: Message::create(key: 'sync_mdb.invalid_format', domain: 'validation', params: ['value' => $value]));
         }
 
         return self::create((int) $value);

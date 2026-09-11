@@ -15,6 +15,9 @@ return [
     'required.without' => 'Kolom {resource} wajib diisi jika tidak terdapat {other}',
     'filled' => 'Kolom {resource} tidak boleh kosong',
     'present' => 'Kolom {resource} harus tersedia',
+    'not_found' => 'Data {resource} tidak ditemukan',
+    'entity_required' => 'Entitas {resource} wajib ada',
+    'name_required' => 'Nama {resource} wajib diisi',
     
     // String Prefix
     'string.invalid' => 'Kolom {field} harus berupa teks',
@@ -95,6 +98,9 @@ return [
     'array.between' => 'Kolom {resource} harus memiliki antara {min} dan {max} item',
     'array.distinct' => 'Kolom {resource} memiliki nilai duplikat',
     
+    // Permission Prefix
+    'action_not_allowed' => 'Anda tidak memiliki izin untuk {action} {resource} ini',
+
     // Existence Prefix
     'exists.invalid' => '{resource} yang dipilih tidak ditemukan',
     'exists.unique' => '{resource} sudah digunakan',
@@ -118,6 +124,12 @@ return [
     'resource.restored' => '{resource} berhasil dipulihkan',
     'resource.restore_failed' => 'Gagal memulihkan {resource}: {error}',
     'resource.not_deleted' => '{resource} data tidak dalam status "Deleted"',
+
+    // Sync Prefix
+    'sync_mdb.invalid_value' => 'Nilai sync_mdb "{value}" tidak valid. Nilai yang diizinkan: {allowed_values}',
+    'sync_mdb.invalid_format' => 'Format sync_mdb "{value}" tidak valid. Harus berupa angka atau null',
+    'sync_slave.invalid_value' => 'Nilai sync_slave "{value}" tidak valid. Nilai yang diizinkan: {allowed_values}',
+    'sync_slave.invalid_direction' => 'Arah sinkronisasi "{value}" tidak valid. Nilai yang diizinkan: {allowed_values}',
 
     // Request Prefix
     'request.unknown_parameters' => 'Parameter tidak dikenal: {unknown_keys}. Parameter yang diizinkan: {allowed_keys}',

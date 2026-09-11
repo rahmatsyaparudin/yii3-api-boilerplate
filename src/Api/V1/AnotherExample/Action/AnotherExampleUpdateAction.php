@@ -5,27 +5,23 @@ declare(strict_types=1);
 namespace App\Api\V1\AnotherExample\Action;
 
 // Application Layer
-use App\Application\AnotherExample\AnotherExampleApplicationService;
-use App\Application\AnotherExample\Command\UpdateAnotherExampleCommand;
-
-// API Layer
 use App\Api\Shared\ResponseFactory;
 use App\Api\V1\AnotherExample\Validation\AnotherExampleInputValidator;
-
+// API Layer
+use App\Application\AnotherExample\AnotherExampleApplicationService;
+use App\Application\AnotherExample\Command\UpdateAnotherExampleCommand;
 // Shared Layer
-use App\Shared\Context\ValidationContext;
-use App\Shared\ValueObject\Message;
-
+use App\Shared\Core\Context\ValidationContext;
+use App\Shared\Core\ValueObject\Message;
 // PSR Interfaces
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-
 // Vendor Layer
 use Yiisoft\Http\Status;
 use Yiisoft\Router\CurrentRoute;
 
 /**
- * AnotherExample Update API Action
+ * AnotherExample Update API Action.
  */
 final class AnotherExampleUpdateAction
 {
@@ -41,11 +37,10 @@ final class AnotherExampleUpdateAction
     public function __invoke(
         ServerRequestInterface $request,
         CurrentRoute $currentRoute,
-    ): ResponseInterface
-    {
-        /** @var \App\Shared\Request\RequestParams|null $payload */
-        $id = $currentRoute->getArgument('id');
-        $payload = $request->getAttribute('payload');
+    ): ResponseInterface {
+        /** @var \App\Shared\Core\Request\RequestParams|null $payload */
+        $id       = $currentRoute->getArgument('id');
+        $payload  = $request->getAttribute('payload');
         $resource = $this->applicationService->getResource();
 
         if ($id === null) {
@@ -53,7 +48,7 @@ final class AnotherExampleUpdateAction
                 translate: Message::create(
                     key: 'route.parameter_missing',
                     params: [
-                        'resource' => $resource,
+                        'resource'  => $resource,
                         'parameter' => 'id',
                     ]
                 ),

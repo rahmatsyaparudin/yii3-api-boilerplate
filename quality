@@ -42,16 +42,17 @@ class QualityCheckCommand extends Command
 
         // 3. Unit Tests
         $output->writeln('<comment>3. Running unit tests...</comment>');
-        $testCmd = 'vendor/bin/phpunit --testdox';
-        
+        putenv('APP_ENV=test');
+        $testCmd = 'vendor/bin/codecept run Unit';
+
         if ($input->getOption('coverage')) {
             $testCmd .= ' --coverage-html=tests/coverage/html --coverage-text=tests/coverage/coverage.txt';
         }
-        
+
         if ($input->getOption('report')) {
-            $testCmd .= ' --coverage-clover=tests/coverage/clover.xml';
+            $testCmd .= ' --coverage-xml=tests/coverage/clover.xml';
         }
-        
+
         $this->runCommand($testCmd, $output, $success);
 
         // 4. Security Audit
@@ -120,18 +121,19 @@ class TestCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $command = 'vendor/bin/phpunit --testdox';
-        
+        putenv('APP_ENV=test');
+        $command = 'vendor/bin/codecept run';
+
         if ($input->getOption('unit')) {
-            $command .= ' --testsuite=Unit';
+            $command .= ' Unit';
         } elseif ($input->getOption('integration')) {
-            $command .= ' --testsuite=Integration';
+            $command .= ' Functional';
         }
-        
+
         if ($input->getOption('coverage')) {
             $command .= ' --coverage-html=tests/coverage/html --coverage-text';
         }
-        
+
         if ($input->getOption('filter')) {
             $command .= ' --filter=' . $input->getOption('filter');
         }

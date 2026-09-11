@@ -11,7 +11,7 @@ Utility functions provide helpful, reusable functionality for common operations 
 ### Directory Structure
 
 ```
-src/Shared/Utility/
+src/Shared/Core/Utility/
 ├── Arrays.php            # Array manipulation utilities
 └── JsonDataHydrator.php  # JSON data hydration utilities
 ```
@@ -51,7 +51,7 @@ src/Shared/Utility/
 
 declare(strict_types=1);
 
-namespace App\Shared\Utility;
+namespace App\Shared\Core\Utility;
 
 /**
  * Array manipulation utilities
@@ -582,9 +582,9 @@ $stats = Arrays::getStats($data);
 
 declare(strict_types=1);
 
-namespace App\Shared\Utility;
+namespace App\Shared\Core\Utility;
 
-use App\Shared\Exception\BadRequestException;
+use App\Shared\Core\Exception\BadRequestException;
 
 /**
  * JSON Data Hydrator

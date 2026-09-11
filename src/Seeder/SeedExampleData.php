@@ -5,24 +5,18 @@ declare(strict_types=1);
 namespace App\Seeder;
 
 // Domain Layer
-use App\Domain\Example\Entity\Example;
-// use App\Infrastructure\Persistence\Example\ExampleRepository;
-use App\Domain\Example\Repository\ExampleRepositoryInterface;
-
-// PSR Interfaces
-use Psr\Clock\ClockInterface;
-
-// Vendor Layer
-use Yiisoft\Db\Connection\ConnectionInterface;
-
-// Application Layer
 use App\Application\Shared\Factory\DetailInfoFactory;
-use App\Shared\Query\QueryConditionApplier;
-
+// use App\Infrastructure\Common\Persistence\Example\ExampleRepository;
+use App\Domain\Example\Entity\Example;
+// PSR Interfaces
+use App\Domain\Example\Repository\ExampleRepositoryInterface;
+// Vendor Layer
+use App\Infrastructure\Core\Seeder\AbstractSeederData;
+// Application Layer
+use Psr\Clock\ClockInterface;
 // Infrastructure Layer
-use App\Infrastructure\Seeder\AbstractSeederData;
-use App\Infrastructure\Database\MongoDB\MongoDBService;
 use Yiisoft\Aliases\Aliases;
+use Yiisoft\Db\Connection\ConnectionInterface;
 
 /**
  * Seeds example table using Alice fixtures.
@@ -32,7 +26,7 @@ final class SeedExampleData extends AbstractSeederData
     private ExampleRepositoryInterface $repository;
 
     // Fixture constants
-    protected const YAML_FILE = 'example.yaml';
+    protected const YAML_FILE    = 'example.yaml';
     protected const ENTITY_CLASS = Example::class;
 
     public function __construct(
@@ -54,8 +48,8 @@ final class SeedExampleData extends AbstractSeederData
             $entity->getStatus(),
             $detailInfo
         );
-        
+
         // Use repository to insert
-        $this->repository->insert($newEntity);   
+        $this->repository->insert($newEntity);
     }
 }

@@ -37,31 +37,37 @@ The script creates the following structure:
 ### Shared Classes (`src/Shared/`)
 ```
 src/Shared/
-├── Dto/           # Data Transfer Objects
-├── Enums/         # Enumerations  
-├── ErrorHandler/  # Error handling utilities
-├── Exception/     # Custom exceptions
-├── Middleware/    # HTTP middleware
-├── Query/         # Query builders and utilities
-├── Repository/    # Repository base classes
-├── Request/       # Request handling classes
-├── Security/      # Security utilities
-├── Utility/       # General utilities
-├── Validation/    # Validation classes
-└── ValueObject/   # Value objects
+├── Common/        # Common shared helpers
+└── Core/
+    ├── Dto/           # Data Transfer Objects
+    ├── Enums/         # Enumerations  
+    ├── ErrorHandler/  # Error handling utilities
+    ├── Exception/     # Custom exceptions
+    ├── Middleware/    # HTTP middleware
+    ├── Query/         # Query builders and utilities
+    ├── Repository/    # Repository base classes
+    ├── Request/       # Request handling classes
+    ├── Security/      # Security utilities
+    ├── Utility/       # General utilities
+    ├── Validation/    # Validation classes
+    └── ValueObject/   # Value objects
 ```
 
 ### Infrastructure Classes (`src/Infrastructure/`)
 ```
 src/Infrastructure/
-├── Audit/         # Audit logging components
-├── Clock/         # Time/clock utilities
-├── Concerns/      # Infrastructure traits
-├── Monitoring/    # Monitoring and logging
-├── RateLimit/     # Rate limiting components
-├── Security/      # Security infrastructure
-├── Time/          # Time management
-└── Persistence/   # Database persistence (empty directory)
+├── Core/          # Core infrastructure
+│   ├── Audit/         # Audit logging components
+│   ├── Clock/         # Time/clock utilities
+│   ├── Concerns/      # Infrastructure traits
+│   ├── Database/      # Database implementations
+│   ├── Monitoring/    # Monitoring and logging
+│   ├── RateLimit/     # Rate limiting components
+│   ├── Security/      # Security infrastructure
+│   ├── Seeder/        # Seeder base classes
+│   └── Time/          # Time management
+└── Common/        # Common infrastructure
+    └── Persistence/   # Database persistence (empty directory)
 ```
 
 ### Domain Shared Classes (`src/Domain/Shared/`)
@@ -106,7 +112,7 @@ src/
 ├── Api/V1/Example/              # Example API endpoints
 ├── Application/Example/          # Example application services
 ├── Domain/Example/              # Example domain entities
-└── Infrastructure/Persistence/Example/  # Example repositories
+└── Infrastructure/Common/Persistence/Example/  # Example repositories
 ```
 
 ### Config Files (`config/`)
@@ -203,14 +209,16 @@ If you prefer to set up manually:
    cp -r vendor/rahmatsyaparudin/yii3-api-boilerplate/src/Api/V1/Example src/Api/V1/
    cp -r vendor/rahmatsyaparudin/yii3-api-boilerplate/src/Application/Example src/Application/
    cp -r vendor/rahmatsyaparudin/yii3-api-boilerplate/src/Domain/Example src/Domain/
-   cp -r vendor/rahmatsyaparudin/yii3-api-boilerplate/src/Infrastructure/Persistence/Example src/Infrastructure/Persistence/
+   cp -r vendor/rahmatsyaparudin/yii3-api-boilerplate/src/Infrastructure/Common/Persistence/Example src/Infrastructure/Common/Persistence/
    cp -r vendor/rahmatsyaparudin/yii3-api-boilerplate/src/Migration src/
    ```
 
 10. Create required directories:
     ```bash
-    mkdir -p src/Shared/{Dto,Enums,ErrorHandler,Exception,Middleware,Query,Repository,Request,Security,Utility,Validation,ValueObject}
-    mkdir -p src/Infrastructure/{Audit,Clock,Concerns,Monitoring,RateLimit,Security,Time,Persistence}
+    mkdir -p src/Shared/Core/{Dto,Enums,ErrorHandler,Exception,Middleware,Query,Repository,Request,Security,Utility,Validation,ValueObject}
+    mkdir -p src/Shared/Common
+    mkdir -p src/Infrastructure/Core/{Audit,Clock,Concerns,Database,Monitoring,RateLimit,Security,Seeder,Time}
+    mkdir -p src/Infrastructure/Common/Persistence
     mkdir -p src/Domain/Shared/{Audit,Concerns,Contract,Security,ValueObject}
     mkdir -p src/Application/Shared/Factory
     mkdir -p src/Api/Shared/Presenter

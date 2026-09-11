@@ -10,6 +10,8 @@ use HttpSoft\Message\ResponseFactory as PsrResponseFactory;
 use HttpSoft\Message\StreamFactory;
 use Yiisoft\DataResponse\DataResponse;
 use Yiisoft\DataResponse\DataResponseFactory;
+use Yiisoft\Translator\CategorySource;
+use Yiisoft\Translator\TranslatorInterface;
 use Yiisoft\Validator\Result;
 
 final class ResponseFactoryTest extends Unit
@@ -23,8 +25,10 @@ final class ResponseFactoryTest extends Unit
         $this->assertInstanceOf(DataResponse::class, $response);
         $this->assertSame(
             [
-                'status' => 'success',
-                'data' => ['name' => 'test'],
+                'code'    => 200,
+                'success' => true,
+                'message' => 'Success',
+                'data'    => ['name' => 'test'],
             ],
             $response->getData(),
         );
@@ -34,13 +38,15 @@ final class ResponseFactoryTest extends Unit
     {
         $response = $this
             ->createResponseFactory()
-            ->fail('error text');
+            ->fail(translate: 'error text');
 
         $this->assertInstanceOf(DataResponse::class, $response);
         $this->assertSame(
             [
-                'status' => 'failed',
-                'error_message' => 'error text',
+                'code'    => 400,
+                'success' => false,
+                'message' => 'error text',
+                'errors'  => [],
             ],
             $response->getData(),
         );
@@ -55,8 +61,10 @@ final class ResponseFactoryTest extends Unit
         $this->assertInstanceOf(DataResponse::class, $response);
         $this->assertSame(
             [
-                'status' => 'failed',
-                'error_message' => 'Not found.',
+                'code'    => 404,
+                'success' => false,
+                'message' => 'Not found.',
+                'errors'  => [],
             ],
             $response->getData(),
         );
@@ -75,11 +83,12 @@ final class ResponseFactoryTest extends Unit
         $this->assertInstanceOf(DataResponse::class, $response);
         $this->assertSame(
             [
-                'status' => 'failed',
-                'error_message' => 'Validation failed.',
-                'error_data' => [
+                'code'    => 422,
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors'  => [
                     'name' => ['error1', 'error2'],
-                    'age' => ['error3'],
+                    'age'  => ['error3'],
                 ],
             ],
             $response->getData(),
@@ -93,6 +102,50 @@ final class ResponseFactoryTest extends Unit
                 new PsrResponseFactory(),
                 new StreamFactory(),
             ),
+            $this->createTranslator(),
         );
+    }
+
+    private function createTranslator(): TranslatorInterface
+    {
+        return new class implements TranslatorInterface {
+            public function addCategorySources(CategorySource ...$categories): static
+            {
+                return $this;
+            }
+
+            public function setLocale(string $locale): static
+            {
+                return $this;
+            }
+
+            public function getLocale(): string
+            {
+                return 'en';
+            }
+
+            public function translate(
+                string|\Stringable $id,
+                array $parameters = [],
+                ?string $category = null,
+                ?string $locale = null,
+            ): string {
+                return match ($id) {
+                    'http.not_found'    => 'Not found.',
+                    'validation.failed' => 'Validation failed.',
+                    default             => (string) $id,
+                };
+            }
+
+            public function withDefaultCategory(string $category): static
+            {
+                return $this;
+            }
+
+            public function withLocale(string $locale): static
+            {
+                return $this;
+            }
+        };
     }
 }

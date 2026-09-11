@@ -11,7 +11,7 @@ Enumerations (Enums) provide a way to define a set of named constants that repre
 ### Directory Structure
 
 ```
-src/Shared/Enums/
+src/Shared/Core/Enums/
 ├── AppConstants.php    # Application-wide constants
 └── RecordStatus.php     # Record status enumeration
 ```
@@ -51,7 +51,7 @@ src/Shared/Enums/
 
 declare(strict_types=1);
 
-namespace App\Shared\Enums;
+namespace App\Shared\Core\Enums;
 
 /**
  * Application-wide constants
@@ -345,7 +345,7 @@ return $this->responseFactory->success(
 
 declare(strict_types=1);
 
-namespace App\Shared\Enums;
+namespace App\Shared\Core\Enums;
 
 /**
  * Record status enumeration

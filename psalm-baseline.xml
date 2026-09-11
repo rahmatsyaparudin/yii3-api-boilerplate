@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<files psalm-version="6.16.1@f1f5de594dc76faf8784e02d3dc4716c91c6f6ac">
+  <file src="src/Api/Shared/Presenter/AsIsPresenter.php">
+    <DeprecatedClass>
+      <code><![CDATA[$response->withData($value)]]></code>
+      <code><![CDATA[DataResponse]]></code>
+      <code><![CDATA[DataResponse]]></code>
+    </DeprecatedClass>
+  </file>
+  <file src="src/Api/Shared/Presenter/CollectionPresenter.php">
+    <DeprecatedClass>
+      <code><![CDATA[DataResponse]]></code>
+      <code><![CDATA[DataResponse]]></code>
+    </DeprecatedClass>
+  </file>
+  <file src="src/Api/Shared/Presenter/FailPresenter.php">
+    <DeprecatedClass>
+      <code><![CDATA[$response->withData($result)->withStatus($this->httpCode)]]></code>
+      <code><![CDATA[DataResponse]]></code>
+      <code><![CDATA[DataResponse]]></code>
+    </DeprecatedClass>
+  </file>
+  <file src="src/Api/Shared/Presenter/OffsetPaginatorPresenter.php">
+    <DeprecatedClass>
+      <code><![CDATA[DataResponse]]></code>
+      <code><![CDATA[DataResponse]]></code>
+    </DeprecatedClass>
+  </file>
+  <file src="src/Api/Shared/Presenter/PresenterInterface.php">
+    <DeprecatedClass>
+      <code><![CDATA[DataResponse]]></code>
+      <code><![CDATA[DataResponse]]></code>
+    </DeprecatedClass>
+  </file>
+  <file src="src/Api/Shared/Presenter/SuccessPresenter.php">
+    <DeprecatedClass>
+      <code><![CDATA[$response
+            ->withData([
+                'code'    => $response->getStatusCode(),
+                'success' => true,
+                'message' => $this->message,
+                'data'    => $response->getData(),
+            ])
+            ->withStatus(Status::OK)]]></code>
+      <code><![CDATA[DataResponse]]></code>
+      <code><![CDATA[DataResponse]]></code>
+    </DeprecatedClass>
+  </file>
+  <file src="src/Api/Shared/Presenter/SuccessWithMetaPresenter.php">
+    <DeprecatedClass>
+      <code><![CDATA[$response
+            ->withData([
+                'code'    => $response->getStatusCode(),
+                'success' => true,
+                'message' => $this->message,
+                'meta'    => $this->meta,
+                'data'    => $response->getData(),
+            ])
+            ->withStatus(Status::OK)]]></code>
+      <code><![CDATA[DataResponse]]></code>
+      <code><![CDATA[DataResponse]]></code>
+    </DeprecatedClass>
+  </file>
+  <file src="src/Api/Shared/Presenter/ValidationResultPresenter.php">
+    <DeprecatedClass>
+      <code><![CDATA[DataResponse]]></code>
+      <code><![CDATA[DataResponse]]></code>
+    </DeprecatedClass>
+  </file>
+  <file src="src/Api/Shared/ResponseFactory.php">
+    <DeprecatedClass>
+      <code><![CDATA[$this->dataResponseFactory->createResponse()]]></code>
+    </DeprecatedClass>
+    <DeprecatedInterface>
+      <code><![CDATA[private]]></code>
+    </DeprecatedInterface>
+  </file>
+  <file src="src/Application/AnotherExample/AnotherExampleApplicationService.php">
+    <InvalidNamedArgument>
+      <code><![CDATA[entity]]></code>
+      <code><![CDATA[entity]]></code>
+      <code><![CDATA[entity]]></code>
+    </InvalidNamedArgument>
+    <UndefinedInterfaceMethod>
+      <code><![CDATA[verifyLockVersion]]></code>
+      <code><![CDATA[verifyLockVersion]]></code>
+    </UndefinedInterfaceMethod>
+  </file>
+  <file src="src/Application/Example/ExampleApplicationService.php">
+    <InvalidNamedArgument>
+      <code><![CDATA[entity]]></code>
+      <code><![CDATA[entity]]></code>
+      <code><![CDATA[entity]]></code>
+    </InvalidNamedArgument>
+    <UndefinedInterfaceMethod>
+      <code><![CDATA[verifyLockVersion]]></code>
+      <code><![CDATA[verifyLockVersion]]></code>
+    </UndefinedInterfaceMethod>
+  </file>
+  <file src="src/Domain/Shared/Concerns/Entity/Identifiable.php">
+    <RedundantPropertyInitializationCheck>
+      <code><![CDATA[$this->lockVersion]]></code>
+      <code><![CDATA[LockVersion::fromInt(LockVersion::DEFAULT_VALUE)]]></code>
+    </RedundantPropertyInitializationCheck>
+  </file>
+  <file src="src/Infrastructure/Core/Concerns/HasMongoDBSync.php">
+    <InvalidStringClass>
+      <code><![CDATA[$schemaClass::toArray($entity)]]></code>
+    </InvalidStringClass>
+  </file>
+  <file src="src/Infrastructure/Common/Persistence/AnotherExample/AnotherExampleRepository.php">
+    <ParamNameMismatch>
+      <code><![CDATA[$entity]]></code>
+      <code><![CDATA[$entity]]></code>
+      <code><![CDATA[$entity]]></code>
+    </ParamNameMismatch>
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[AnotherExampleRepository]]></code>
+      <code><![CDATA[AnotherExampleRepository]]></code>
+    </PropertyNotSetInConstructor>
+  </file>
+  <file src="src/Infrastructure/Common/Persistence/Example/ExampleRepository.php">
+    <ParamNameMismatch>
+      <code><![CDATA[$entity]]></code>
+      <code><![CDATA[$entity]]></code>
+      <code><![CDATA[$entity]]></code>
+    </ParamNameMismatch>
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[ExampleRepository]]></code>
+      <code><![CDATA[ExampleRepository]]></code>
+    </PropertyNotSetInConstructor>
+  </file>
+  <file src="src/Infrastructure/Core/Security/AccessChecker.php">
+    <ArgumentTypeCoercion>
+      <code><![CDATA[$actor]]></code>
+      <code><![CDATA[$actor]]></code>
+    </ArgumentTypeCoercion>
+  </file>
+  <file src="src/Shared/Core/Validation/Rules/HasNoDependenciesHandler.php">
+    <NoInterfaceProperties>
+      <code><![CDATA[$rule->map]]></code>
+      <code><![CDATA[$rule->message]]></code>
+    </NoInterfaceProperties>
+    <TooFewArguments>
+      <code><![CDATA[new Query()]]></code>
+    </TooFewArguments>
+  </file>
+  <file src="src/Shared/Core/Validation/Rules/UniqueValueHandler.php">
+    <NoInterfaceProperties>
+      <code><![CDATA[$rule->column]]></code>
+      <code><![CDATA[$rule->idColumn]]></code>
+      <code><![CDATA[$rule->ignoreId]]></code>
+      <code><![CDATA[$rule->table]]></code>
+    </NoInterfaceProperties>
+  </file>
+  <file src="src/Shared/Core/ValueObject/LockVersionConfig.php">
+    <InvalidNullableReturnType>
+      <code><![CDATA[string]]></code>
+    </InvalidNullableReturnType>
+    <NullableReturnStatement>
+      <code><![CDATA[\preg_replace('/[^a-z0-9]/', '', \strtolower(\trim($name)))]]></code>
+    </NullableReturnStatement>
+  </file>
+</files>

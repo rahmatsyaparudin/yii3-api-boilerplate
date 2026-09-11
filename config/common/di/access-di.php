@@ -3,13 +3,12 @@
 declare(strict_types=1);
 
 // Vendor Layer
+use App\Infrastructure\Core\Security\Rule\PermissionMapRule;
 use Yiisoft\Access\AccessChecker;
 use Yiisoft\Access\Assignment\Assignment;
 use Yiisoft\Access\Permission\Permission;
-use Yiisoft\Access\Rule\RuleFactory;
-
 // Shared Layer
-use App\Infrastructure\Security\Rule\PermissionMapRule;
+use Yiisoft\Access\Rule\RuleFactory;
 
 $permissionMap = require __DIR__ . '/../access.php';
 

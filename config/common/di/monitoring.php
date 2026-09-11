@@ -3,9 +3,8 @@
 declare(strict_types=1);
 
 // Infrastructure Layer
-use App\Infrastructure\Monitoring\CustomMonitoringService;
-use App\Infrastructure\Monitoring\MonitoringServiceInterface;
-
+use App\Infrastructure\Core\Monitoring\CustomMonitoringService;
+use App\Infrastructure\Core\Monitoring\MonitoringServiceInterface;
 // Vendor Layer
 use Yiisoft\Di\Container;
 

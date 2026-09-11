@@ -5,25 +5,20 @@ declare(strict_types=1);
 namespace App\Api\V1\AnotherExample\Action;
 
 // Application Layer
-use App\Application\AnotherExample\AnotherExampleApplicationService;
-
-// API Layer
 use App\Api\Shared\ResponseFactory;
+// API Layer
 use App\Api\V1\AnotherExample\Validation\AnotherExampleInputValidator;
+use App\Application\AnotherExample\AnotherExampleApplicationService;
 use App\Application\AnotherExample\Command\CreateAnotherExampleCommand;
-
 // Shared Layer
-use App\Shared\Enums\RecordStatus;
-use App\Shared\Request\RawParams;
-use App\Shared\Context\ValidationContext;
-use App\Shared\ValueObject\Message;
-use App\Shared\Security\InputSanitizer;
-
+use App\Shared\Core\Context\ValidationContext;
+use App\Shared\Core\Enums\RecordStatus;
+use App\Shared\Core\ValueObject\Message;
 // PSR Interfaces
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-final class AnotherExampleCreateAction 
+final class AnotherExampleCreateAction
 {
     private const ALLOWED_KEYS = ['name', 'status', 'example_id', 'sync_mdb', 'detail_info'];
 
@@ -36,7 +31,7 @@ final class AnotherExampleCreateAction
 
     public function __invoke(ServerRequestInterface $request): ResponseInterface
     {
-        /** @var \App\Shared\Request\RequestParams $payload */
+        /** @var \App\Shared\Core\Request\RequestParams $payload */
         $payload = $request->getAttribute('payload');
 
         $params = $payload->getRawParams()
@@ -65,7 +60,7 @@ final class AnotherExampleCreateAction
             translate: Message::create(
                 key: 'resource.created',
                 params: [
-                    'resource' => $resource
+                    'resource' => $resource,
                 ]
             )
         );

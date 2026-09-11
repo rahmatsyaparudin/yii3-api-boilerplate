@@ -11,7 +11,7 @@ Validation utilities provide a structured way to validate data throughout the Yi
 ### Directory Structure
 
 ```
-src/Shared/Validation/
+src/Shared/Core/Validation/
 ├── AbstractValidator.php    # Base validator class
 └── ValidationContext.php    # Validation context and state
 ```
@@ -51,9 +51,9 @@ src/Shared/Validation/
 
 declare(strict_types=1);
 
-namespace App\Shared\Validation;
+namespace App\Shared\Core\Validation;
 
-use App\Shared\Exception\ValidationException;
+use App\Shared\Core\Exception\ValidationException;
 use Yiisoft\Translator\TranslatorInterface;
 
 /**
@@ -469,7 +469,7 @@ final class ArrayValidator extends AbstractValidator
 
 declare(strict_types=1);
 
-namespace App\Shared\Validation;
+namespace App\Shared\Core\Validation;
 
 /**
  * Validation Context

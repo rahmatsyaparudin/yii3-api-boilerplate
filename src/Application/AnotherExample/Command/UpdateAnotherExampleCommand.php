@@ -13,7 +13,8 @@ final readonly class UpdateAnotherExampleCommand
         public int $exampleId,
         public ?array $detailInfo,
         public ?int $lockVersion,
-    ) {}
+    ) {
+    }
 
     public static function create(
         int $id,

@@ -15,7 +15,8 @@ final readonly class ExampleResponse
         public array $detail_info,
         public ?int $sync_mdb,
         public int $lock_version,
-    ) {}
+    ) {
+    }
 
     public static function fromEntity(Example $entity): self
     {
@@ -31,6 +32,6 @@ final readonly class ExampleResponse
 
     public function toArray(): array
     {
-        return get_object_vars($this);
+        return \get_object_vars($this);
     }
 }

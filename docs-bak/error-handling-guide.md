@@ -11,7 +11,7 @@ Error handling utilities provide centralized error processing, response formatti
 ### Directory Structure
 
 ```
-src/Shared/ErrorHandler/
+src/Shared/Core/ErrorHandler/
 └── ErrorHandlerResponse.php    # Error response formatting
 ```
 
@@ -50,10 +50,10 @@ src/Shared/ErrorHandler/
 
 declare(strict_types=1);
 
-namespace App\Shared\ErrorHandler;
+namespace App\Shared\Core\ErrorHandler;
 
-use App\Shared\Exception\HttpException;
-use App\Shared\ValueObject\Message;
+use App\Shared\Core\Exception\HttpException;
+use App\Shared\Core\ValueObject\Message;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Yiisoft\Http\Status;

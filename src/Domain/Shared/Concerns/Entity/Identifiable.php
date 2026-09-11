@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace App\Domain\Shared\Concerns\Entity;
 
 // Domain Layer
-use App\Domain\Shared\ValueObject\SyncMdb;
 use App\Domain\Shared\ValueObject\LockVersion;
-
+use App\Domain\Shared\ValueObject\SyncMdb;
 // Shared Layer
-use App\Shared\ValueObject\Message;
-use App\Shared\Exception\BadRequestException;
+use App\Shared\Core\Exception\BadRequestException;
+use App\Shared\Core\ValueObject\Message;
 
 trait Identifiable
 {
@@ -37,7 +36,7 @@ trait Identifiable
             return;
         }
 
-        $newName = trim($newName);
+        $newName = \trim($newName);
         if ($this->name === $newName) {
             return;
         }
@@ -49,13 +48,7 @@ trait Identifiable
     protected function ensureHasName(string $name): void
     {
         if (empty($name)) {
-            throw new BadRequestException(
-                translate: new \App\Shared\ValueObject\Message(
-                    key: 'validation.name_required',
-                    domain: 'validation',
-                    params: ['resource' => $this->getResource()]
-                )
-            );
+            throw new BadRequestException(translate: new Message(key: 'name_required', domain: 'validation', params: ['resource' => $this->getResource()]));
         }
     }
 
@@ -72,6 +65,7 @@ trait Identifiable
     public function setSyncMdb(SyncMdb $syncMdb): self
     {
         $this->syncMdb = $syncMdb;
+
         return $this;
     }
 

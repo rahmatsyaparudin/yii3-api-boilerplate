@@ -18,7 +18,7 @@ trait ChangeLogged
         string $user,
         array $payload = []
     ): array {
-        return array_merge($payload, [
+        return \array_merge($payload, [
             'change_log' => [
                 'created_at' => $dateTime->iso8601(),
                 'created_by' => $user,
@@ -26,7 +26,7 @@ trait ChangeLogged
                 'updated_by' => null,
                 'deleted_at' => null,
                 'deleted_by' => null,
-            ]
+            ],
         ]);
     }
 

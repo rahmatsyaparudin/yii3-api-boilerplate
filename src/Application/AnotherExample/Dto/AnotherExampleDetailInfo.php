@@ -8,7 +8,8 @@ final readonly class AnotherExampleDetailInfo
 {
     public function __construct(
         public ?array $example,
-    ) {}
+    ) {
+    }
 
     public function toArray(): array
     {

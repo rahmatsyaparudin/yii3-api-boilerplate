@@ -10,7 +10,7 @@ use App\Domain\Shared\ValueObject\DetailInfo;
 trait Descriptive
 {
     /**
-     * Get the description/detail object
+     * Get the description/detail object.
      */
     public function getDetailInfo(): DetailInfo
     {
@@ -18,7 +18,7 @@ trait Descriptive
     }
 
     /**
-     * Update the descriptive information
+     * Update the descriptive information.
      */
     public function updateDetailInfo(DetailInfo $detailInfo): void
     {
@@ -26,7 +26,7 @@ trait Descriptive
     }
 
     /**
-     * Helper for persistence layer
+     * Helper for persistence layer.
      */
     public function getDetailInfoJson(): string
     {

@@ -161,11 +161,11 @@ use App\Infrastructure\Security\CurrentUser;
 use App\Infrastructure\Security\HstsMiddleware;
 
 // Shared Layer
-use App\Shared\Middleware\AccessMiddleware;
-use App\Shared\Middleware\CorsMiddleware;
-use App\Shared\Middleware\RateLimitMiddleware;
-use App\Shared\Middleware\RequestParamsMiddleware;
-use App\Shared\Middleware\SecureHeadersMiddleware;
+use App\Shared\Core\Middleware\AccessMiddleware;
+use App\Shared\Core\Middleware\CorsMiddleware;
+use App\Shared\Core\Middleware\RateLimitMiddleware;
+use App\Shared\Core\Middleware\RequestParamsMiddleware;
+use App\Shared\Core\Middleware\SecureHeadersMiddleware;
 
 // PSR Interfaces
 use Psr\Http\Message\ResponseFactoryInterface;

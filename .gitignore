@@ -22,7 +22,6 @@ node_modules/
 /dist/
 /build/
 /coverage/
-sources/
 public/.htaccess
 
 # IDE & OS

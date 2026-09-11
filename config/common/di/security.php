@@ -3,18 +3,15 @@
 declare(strict_types=1);
 
 // Infrastructure Layer
-use App\Infrastructure\Security\Actor;
-use App\Infrastructure\Security\AccessChecker;
-use App\Infrastructure\Security\CurrentUser;
-use App\Infrastructure\Security\CurrentUserAwareInterface;
-use App\Infrastructure\Security\PermissionChecker;
-use App\Infrastructure\Security\RbacAuthorizer;
-
-// Domain Layer
 use App\Domain\Shared\Security\AuthorizerInterface;
+use App\Infrastructure\Core\Security\AccessChecker;
+use App\Infrastructure\Core\Security\Actor;
+use App\Infrastructure\Core\Security\CurrentUser;
+use App\Infrastructure\Core\Security\PermissionChecker;
+// Domain Layer
+use App\Infrastructure\Core\Security\RbacAuthorizer;
 
 // Vendor Layer
-use Yiisoft\Definitions\Reference;
 
 // @var array $params
 
@@ -24,7 +21,7 @@ return [
             'allowGodMode' => $params['app/config']['allow_god_mode'] ?? false,
         ],
     ],
-    Actor::class => static fn (CurrentUser $currentUser) => $currentUser->getActor(),
+    Actor::class         => static fn (CurrentUser $currentUser) => $currentUser->getActor(),
     AccessChecker::class => static function (CurrentUser $currentUser) {
         $accessMap = require \dirname(__DIR__) . '/access.php';
 
