@@ -80,7 +80,7 @@ class SkeletonInstaller
         echo "🌐 API Shared classes copied to src/Api/Shared/\n";
         echo "📁 Directories created: Presenter, ExceptionResponderFactory.php, ResponseFactory.php\n";
         echo "⚙️  Config files copied to config/\n";
-        echo "📁 Files copied: common/middleware.php, common/di/access-di.php, common/di/audit.php, common/di/db-mongodb.php, common/di/db-pgsql.php, common/di/json.php, common/di/jwt.php, common/di/middleware.php, common/di/monitoring.php, common/di/security.php, web/di/application.php\n";
+        echo "📁 Files copied: common/middleware.php, all shared config/common/di/*.php, web/di/application.php, web/di/psr17.php\n";
         echo "💬 Message files copied to resources/messages/\n";
         echo "📁 Files copied: en/error.php, en/success.php, en/validation.php, id/error.php, id/success.php, id/validation.php\n";
         echo "🌐 API files copied to src/Api/\n";
@@ -411,19 +411,29 @@ class SkeletonInstaller
         $configFiles = [
             'common/middleware.php',
             'common/di/access-di.php',
+            'common/di/application.php',
             'common/di/audit.php',
-            'common/di/db-pgsql.php',
             'common/di/db-mongodb.php',
+            'common/di/db-mysql.php',
+            'common/di/db-pgsql.php',
+            'common/di/db-redis.php',
+            'common/di/error-handler.php',
+            'common/di/hydrator.php',
+            'common/di/infrastructure-di.php',
             'common/di/json.php',
             'common/di/jwt.php',
+            'common/di/logger.php',
             'common/di/middleware.php',
             'common/di/monitoring.php',
             'common/di/optimistic-lock.php',
             'common/di/repository-di.php',
-            'common/di/translator-di.php',
+            'common/di/router.php',
             'common/di/service-di.php',
             'common/di/security.php',
-            'web/di/application.php'
+            'common/di/translator-di.php',
+            'common/di/validator.php',
+            'web/di/application.php',
+            'web/di/psr17.php'
         ];
         
         foreach ($configFiles as $file) {

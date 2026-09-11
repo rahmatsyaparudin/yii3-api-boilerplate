@@ -1,0 +1,61 @@
+# Application Environment
+APP_ENV=dev
+APP_DEBUG=1
+
+app.config.code=appAPI
+app.config.name="My Project"
+app.config.version="1.0"
+app.config.language=en
+app.config.allow_god_mode=true
+app.time.timezone=Asia/Jakarta
+
+app.pagination.defaultPageSize=10
+app.pagination.maxPageSize=100
+
+app.rateLimit.maxRequests=100
+app.rateLimit.windowSize=60
+
+app.hsts.maxAge=31536000
+app.hsts.includeSubDomains=true
+app.hsts.preload=false
+
+app.cors.allowedOrigins=["http://example.com:3000"]
+app.cors.maxAge=86400
+app.cors.allowCredentials=true
+app.cors.allowedMethods=["GET","POST","PUT","PATCH","DELETE","OPTIONS"]
+app.cors.allowedHeaders=["Content-Type","Authorization","X-Requested-With","Accept","Origin"]
+app.cors.exposedHeaders=["X-Pagination-Total-Count","X-Pagination-Page-Count"]
+
+app.trusted_hosts.allowedHosts=["127.0.0.1","::1","localhost"]
+
+# Optimistic Lock Configuration
+app.optimistic_lock.enabled=true
+app.optimistic_lock.disabled.values=["example","example_1"]
+
+# SSO Configuration (External Keycloak)
+app.jwt.secret=secret-key-harus-panjang-256-bit
+app.jwt.algorithm=HS256
+app.jwt.issuer=https://sso.example.com
+app.jwt.audience=https://sso.example.com
+app.jwt.publicPaths=["/","/auth/login","/auth/refresh"]
+
+# Database: pgsql | mysql | mariadb
+db.default.driver=pgsql
+db.default.host=localhost
+db.default.port=5432
+db.default.name=dev_yii3
+db.default.user=postgres
+db.default.password=postgres
+db.default.charset=utf8mb4
+
+db.mongodb.enabled=true
+db.mongodb.dsn=localhost:27017
+db.mongodb.name=db_example
+db.mongodb.connectTimeoutMS=500
+db.mongodb.socketTimeoutMS=500
+db.mongodb.readPreference=nearest
+
+redis.default.host=127.0.0.1
+redis.default.port=6379
+redis.default.db=0
+redis.default.password=null
