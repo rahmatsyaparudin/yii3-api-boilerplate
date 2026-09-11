@@ -9,6 +9,8 @@ use App\Application\AnotherExample\Command\CreateAnotherExampleCommand;
 use App\Application\AnotherExample\Command\UpdateAnotherExampleCommand;
 use App\Application\AnotherExample\Dto\AnotherExampleResponse;
 use App\Application\Shared\Core\Factory\DetailInfoFactory;
+// Infrastructure Layer
+use App\Infrastructure\Core\Database\Redis\RedisService;
 // Domain Layer
 use App\Domain\AnotherExample\Entity\AnotherExample;
 use App\Domain\AnotherExample\Repository\AnotherExampleRepositoryInterface;
@@ -33,7 +35,8 @@ final class AnotherExampleApplicationService
         private DetailInfoFactory $detailInfoFactory,
         private AnotherExampleDetailInfoFactory $anotherExampleDetailInfoFactory,
         private AnotherExampleRepositoryInterface $repository,
-        private AnotherExampleDomainService $domainService
+        private AnotherExampleDomainService $domainService,
+        private RedisService $redis,
     ) {
     }
 
@@ -100,6 +103,47 @@ final class AnotherExampleApplicationService
             entity: $this->repository->insert(
                 entity: $data
             )
+        );
+    }
+
+    /**
+     * Example: insert to SQL then sync the result to Redis.
+     *
+     * Use this as a reference for write-through caching. The main create()
+     * method is not modified; this is a separate opt-in function.
+     */
+    public function createWithRedisCache(CreateAnotherExampleCommand $command): AnotherExampleResponse
+    {
+        $detailInfoPayload = $this->anotherExampleDetailInfoFactory
+            ->buildFromPrimitives(
+                exampleId: $command->exampleId
+            )
+            ->toArray();
+
+        $detailInfo = $this->detailInfoFactory
+            ->create(
+                detailInfo: $detailInfoPayload
+            )
+            ->build();
+
+        $data = AnotherExample::create(
+            name: $command->name,
+            status: ResourceStatus::from($command->status),
+            detailInfo: $detailInfo,
+            exampleId: $command->exampleId,
+        );
+
+        $inserted = $this->repository->insert(
+            entity: $data
+        );
+
+        $this->redis->getClient()->set(
+            "anotherexample:{$inserted->getId()}",
+            json_encode($inserted->toArray())
+        );
+
+        return AnotherExampleResponse::fromEntity(
+            entity: $inserted
         );
     }
 
