@@ -399,7 +399,16 @@ final readonly class RawParams
         $unknown = \array_diff(\array_keys($this->params), $allowedKeys);
 
         if ($unknown !== []) {
-            throw new BadRequestException(translate: Message::create(key: 'request.unknown_parameters', domain: 'validation', params: ['unknown_keys' => \implode(', ', $unknown), 'allowed_keys' => \implode(', ', $allowedKeys)]));
+            throw new BadRequestException(
+                translate: Message::create(
+                    domain: 'validation', 
+                    key: 'request.unknown_parameters', 
+                    params: [
+                        'unknown_keys' => \implode(', ', $unknown), 
+                        'allowed_keys' => \implode(', ', $allowedKeys)
+                    ]
+                )
+            );
         }
 
         $filtered = \array_intersect_key($this->params, \array_flip($allowedKeys));

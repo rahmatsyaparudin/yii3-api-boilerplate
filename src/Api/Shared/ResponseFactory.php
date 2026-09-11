@@ -86,7 +86,9 @@ final readonly class ResponseFactory
     public function notFound(string $message = 'Not found.'): ResponseInterface
     {
         return $this->fail(
-            translate: Message::create(key: 'http.not_found'),
+            translate: Message::create(
+                key: 'http.not_found',
+            ),
             httpCode: Status::NOT_FOUND
         );
     }
@@ -95,7 +97,9 @@ final readonly class ResponseFactory
     {
         return $this->fail(
             data: $result,
-            translate: Message::create(key: 'validation.failed'),
+            translate: Message::create(
+                key: 'validation.failed'
+            ),
             httpCode: Status::UNPROCESSABLE_ENTITY,
             presenter: new ValidationResultPresenter(),
         );

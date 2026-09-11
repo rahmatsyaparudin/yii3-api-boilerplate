@@ -161,7 +161,16 @@ final class InputSanitizer
     {
         // Prevent deep recursion attacks
         if ($depth > self::MAX_ARRAY_DEPTH) {
-            throw new BadRequestException(translate: Message::create(key: 'input_sanitizer.input_structure_too_deep', domain: 'validation', params: ['depth' => $depth, 'max_depth' => self::MAX_ARRAY_DEPTH]));
+            throw new BadRequestException(
+                translate: Message::create(
+                    domain: 'validation', 
+                    key: 'input_sanitizer.input_structure_too_deep', 
+                    params: [
+                        'depth' => $depth, 
+                        'max_depth' => self::MAX_ARRAY_DEPTH
+                    ]
+                )
+            );
         }
 
         if (\is_string($value)) {
@@ -213,7 +222,16 @@ final class InputSanitizer
     {
         // Length check to prevent DoS
         if (\strlen($value) > self::MAX_STRING_LENGTH) {
-            throw new BadRequestException(translate: Message::create(key: 'input_sanitizer.input_too_long', domain: 'validation', params: ['length' => \strlen($value), 'max_length' => self::MAX_STRING_LENGTH]));
+            throw new BadRequestException(
+                translate: Message::create(
+                    domain: 'validation', 
+                    key: 'input_sanitizer.input_too_long', 
+                    params: [
+                        'length' => \strlen($value), 
+                        'max_length' => self::MAX_STRING_LENGTH
+                    ]
+                )
+            );
         }
 
         // Remove null bytes and control characters
@@ -221,7 +239,15 @@ final class InputSanitizer
 
         // Validate UTF-8 encoding
         if (!\mb_check_encoding($value, 'UTF-8')) {
-            throw new BadRequestException(translate: Message::create(key: 'input_sanitizer.invalid_encoding', domain: 'validation', params: ['encoding' => 'UTF-8']));
+            throw new BadRequestException(
+                translate: Message::create(
+                    domain: 'validation', 
+                    key: 'input_sanitizer.invalid_encoding', 
+                    params: [
+                        'encoding' => 'UTF-8'
+                    ]
+                )
+            );
         }
 
         // Trim whitespace
@@ -282,7 +308,15 @@ final class InputSanitizer
     {
         // Array size check to prevent DoS
         if (\count($value) > self::MAX_ARRAY_SIZE) {
-            throw new BadRequestException(translate: Message::create(key: 'input_sanitizer.array_too_large', domain: 'validation', params: ['max_size' => self::MAX_ARRAY_SIZE]));
+            throw new BadRequestException(
+                translate: Message::create(
+                    domain: 'validation', 
+                    key: 'input_sanitizer.array_too_large', 
+                    params: [
+                        'max_size' => self::MAX_ARRAY_SIZE
+                    ]
+                )
+            );
         }
 
         $processed = [];
@@ -329,7 +363,17 @@ final class InputSanitizer
         if (\is_int($value)) {
             // Check for integer overflow
             if ($value > PHP_INT_MAX || $value < PHP_INT_MIN) {
-                throw new BadRequestException(translate: Message::create(key: 'input_sanitizer.integer_overflow', domain: 'validation', params: ['value' => $value, 'max_value' => PHP_INT_MAX, 'min_value' => PHP_INT_MIN]));
+                throw new BadRequestException(
+                    translate: Message::create(
+                        domain: 'validation', 
+                        key: 'input_sanitizer.integer_overflow', 
+                        params: [
+                            'value' => $value, 
+                            'max_value' => PHP_INT_MAX, 
+                            'min_value' => PHP_INT_MIN
+                        ]
+                    )
+                );
             }
 
             return $value;
@@ -338,7 +382,16 @@ final class InputSanitizer
         if (\is_float($value)) {
             // Check for float overflow
             if (!\is_finite($value)) {
-                throw new BadRequestException(translate: Message::create(key: 'input_sanitizer.float_overflow', domain: 'validation', params: ['max_value' => PHP_FLOAT_MAX, 'min_value' => PHP_FLOAT_MIN]));
+                throw new BadRequestException(
+                    translate: Message::create(
+                        key: 'input_sanitizer.float_overflow', 
+                        domain: 'validation', 
+                        params: [
+                            'max_value' => PHP_FLOAT_MAX, 
+                            'min_value' => PHP_FLOAT_MIN
+                        ]
+                    )
+                );
             }
 
             return $value;
@@ -384,21 +437,43 @@ final class InputSanitizer
     private static function key(mixed $key): string
     {
         if (!\is_string($key) && !\is_int($key)) {
-            throw new BadRequestException(translate: Message::create(key: 'input_sanitizer.invalid_array_key_type', domain: 'validation', params: ['key' => $key]));
+            throw new BadRequestException(
+                translate: Message::create(
+                    domain: 'validation', 
+                    key: 'input_sanitizer.invalid_array_key_type', 
+                    params: [
+                        'key' => $key
+                    ]
+                )
+            );
         }
 
         $key = (string) $key;
 
         // Key length check
         if (\strlen($key) > 255) {
-            throw new BadRequestException(translate: Message::create(key: 'input_sanitizer.invalid_array_key_length', domain: 'validation', params: ['max_length' => 255]));
+            throw new BadRequestException(
+                translate: Message::create(
+                    domain: 'validation', 
+                    key: 'input_sanitizer.invalid_array_key_length', 
+                    params: [
+                        'max_length' => 255
+                    ]
+                )
+            );
         }
 
         // Remove dangerous characters from keys
         $key = \preg_replace('/[^\w\-\.]/', '', $key) ?? '';
 
         if ($key === '') {
-            throw new BadRequestException(translate: Message::create(key: 'input_sanitizer.invalid_array_key', domain: 'validation', params: ['key' => $key]));
+            throw new BadRequestException(
+                translate: Message::create(
+                    domain: 'validation', 
+                    key: 'input_sanitizer.invalid_array_key', 
+                    params: ['key' => $key]
+                )
+            );
         }
 
         return $key;

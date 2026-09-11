@@ -94,7 +94,17 @@ trait Stateful
     private function guardStatusTransition(ResourceStatus $newStatus): void
     {
         if (!$this->status->canTransitionTo($newStatus)) {
-            throw new BadRequestException(translate: Message::create(key: 'status.invalid_transition', domain: 'validation', params: ['resource' => $this->getResource(), 'from' => $this->status->label(), 'to' => $newStatus->label()]));
+            throw new BadRequestException(
+                translate: Message::create(
+                    domain: 'validation', 
+                    key: 'status.invalid_transition', 
+                    params: [
+                        'resource' => $this->getResource(), 
+                        'from' => $this->status->label(), 
+                        'to' => $newStatus->label()
+                    ]
+                )
+            );
         }
     }
 
@@ -110,7 +120,16 @@ trait Stateful
 
         // 2. Cek aturan dasar dari Value Object Status
         if (!$status->isValidForCreation() && !$status->isDeleted()) {
-            throw new BadRequestException(translate: Message::create(key: 'status.invalid_on_creation', domain: 'validation', params: ['resource' => $resource ?? 'Resource', 'status' => $status->name() /* atau $status->value() */]));
+            throw new BadRequestException(
+                translate: Message::create(
+                    domain: 'validation', 
+                    key: 'status.invalid_on_creation', 
+                    params: [
+                        'resource' => $resource ?? 'Resource', 
+                        'status' => $status->name() /* atau $status->value() */
+                    ]
+                )
+            );
         }
     }
 
@@ -125,7 +144,15 @@ trait Stateful
         $targetStatus     = $isChangingStatus ? $newStatus : $currentStatus;
 
         if ($hasFieldChanges && !$currentStatus->canBeUpdated()) {
-            throw new ConflictException(translate: Message::create(key: 'resource.update_not_allowed_by_status', params: ['resource' => $this->getResource(), 'current_status' => $currentStatus->label()]));
+            throw new ConflictException(
+                translate: Message::create(
+                    key: 'resource.update_not_allowed_by_status', 
+                    params: [
+                        'resource' => $this->getResource(), 
+                        'current_status' => $currentStatus->label()
+                    ]
+                )
+            );
         }
 
         if (!$hasFieldChanges && $isChangingStatus && $currentStatus->equals($targetStatus)) {

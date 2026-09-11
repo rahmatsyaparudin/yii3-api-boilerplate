@@ -19,9 +19,9 @@ final readonly class Message
         ?string $domain = null,
     ): self {
         return new self(
+            domain: $domain,
             key: $key,
             params: $params,
-            domain: $domain,
         );
     }
 

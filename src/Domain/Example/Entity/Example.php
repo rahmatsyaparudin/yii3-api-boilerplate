@@ -105,7 +105,16 @@ final class Example
     public function restore(): void
     {
         if (!$this->status->isDeleted()) {
-            throw new BadRequestException(translate: Message::create(key: 'resource.not_deleted', domain: 'validation', params: ['resource' => self::RESOURCE, 'id' => $this->id]));
+            throw new BadRequestException(
+                translate: Message::create(
+                    domain: 'validation', 
+                    key: 'resource.not_deleted', 
+                    params: [
+                        'resource' => self::RESOURCE, 
+                        'id' => $this->id
+                    ]
+                )
+            );
         }
 
         $this->status = ResourceStatus::restored();

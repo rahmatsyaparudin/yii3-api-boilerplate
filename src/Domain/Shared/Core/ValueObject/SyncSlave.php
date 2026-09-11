@@ -267,14 +267,32 @@ final readonly class SyncSlave
     private static function validateSyncSlave(int $value): void
     {
         if ($value !== self::SYNC_DISABLED && $value !== self::SYNC_ENABLED) {
-            throw new BadRequestException(translate: Message::create(domain: 'validation', key: 'sync_slave.invalid_value', params: ['allowed_values' => '0, 1', 'value' => $value]));
+            throw new BadRequestException(
+                translate: Message::create(
+                    domain: 'validation', 
+                    key: 'sync_slave.invalid_value', 
+                    params: [
+                        'allowed_values' => '0, 1', 
+                        'value' => $value
+                    ]
+                )
+            );
         }
     }
 
     private static function validateDirection(int $value): void
     {
         if (!\in_array($value, [self::DIR_NONE, self::DIR_MASTER_TO_SLAVE, self::DIR_SLAVE_TO_MASTER, self::DIR_BIDIRECTIONAL], true)) {
-            throw new BadRequestException(translate: Message::create(domain: 'validation', key: 'sync_slave.invalid_direction', params: ['allowed_values' => '0, 1, 2, 3', 'value' => $value]));
+            throw new BadRequestException(
+                translate: Message::create(
+                    domain: 'validation', 
+                    key: 'sync_slave.invalid_direction', 
+                    params: [
+                        'allowed_values' => '0, 1, 2, 3', 
+                        'value' => $value
+                    ]
+                )
+            );
         }
     }
 }
