@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Infrastructure\Core\Audit;
 
 // Domain Layer
-use App\Domain\Shared\Audit\AuditServiceInterface;
-use App\Domain\Shared\Contract\ActorInterface;
+use App\Domain\Shared\Core\Audit\AuditServiceInterface;
+use App\Domain\Shared\Core\Contract\ActorInterface;
 // Vendor Layer
 use Yiisoft\Db\Connection\ConnectionInterface;
 use Yiisoft\Db\Query\Query;

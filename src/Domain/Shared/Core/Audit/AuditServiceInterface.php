@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Shared\Audit;
+namespace App\Domain\Shared\Core\Audit;
 
 // Domain Layer
-use App\Domain\Shared\Contract\ActorInterface;
+use App\Domain\Shared\Core\Contract\ActorInterface;
 
 interface AuditServiceInterface
 {

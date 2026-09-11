@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Shared\ValueObject;
+namespace App\Domain\Shared\Core\ValueObject;
 
 use App\Shared\Core\Enums\AppConstants;
 use App\Shared\Core\Exception\BadRequestException;

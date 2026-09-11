@@ -7,7 +7,7 @@ namespace App\Infrastructure\Core\Time;
 // Vendor Layer
 
 // PSR Interfaces
-use App\Domain\Shared\Contract\DateTimeProviderInterface;
+use App\Domain\Shared\Core\Contract\DateTimeProviderInterface;
 // Domain Layer
 use Psr\Clock\ClockInterface;
 

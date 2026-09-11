@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Shared\Factory;
+namespace App\Application\Shared\Core\Factory;
 
 // Domain Layer
-use App\Domain\Shared\Contract\DateTimeProviderInterface;
+use App\Domain\Shared\Core\Contract\DateTimeProviderInterface;
 // Shared Layer
-use App\Domain\Shared\ValueObject\DetailInfo;
+use App\Domain\Shared\Core\ValueObject\DetailInfo;
 use App\Infrastructure\Core\Security\CurrentUser;
 use App\Shared\Core\Exception\ServiceException;
 // Infrastructure Layer

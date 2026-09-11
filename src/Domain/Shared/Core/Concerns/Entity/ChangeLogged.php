@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Shared\Concerns\Entity;
+namespace App\Domain\Shared\Core\Concerns\Entity;
 
 // Domain Layer
-use App\Domain\Shared\Contract\DateTimeProviderInterface;
+use App\Domain\Shared\Core\Contract\DateTimeProviderInterface;
 
 trait ChangeLogged
 {

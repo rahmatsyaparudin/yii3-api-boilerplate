@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 // Infrastructure Layer
-use App\Domain\Shared\Security\AuthorizerInterface;
+use App\Domain\Shared\Core\Security\AuthorizerInterface;
 use App\Infrastructure\Core\Security\AccessChecker;
 use App\Infrastructure\Core\Security\Actor;
 use App\Infrastructure\Core\Security\CurrentUser;

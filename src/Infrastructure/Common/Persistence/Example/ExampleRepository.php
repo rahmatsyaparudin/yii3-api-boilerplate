@@ -7,10 +7,10 @@ namespace App\Infrastructure\Common\Persistence\Example;
 // Domain Layer
 use App\Domain\Example\Entity\Example;
 use App\Domain\Example\Repository\ExampleRepositoryInterface;
-use App\Domain\Shared\ValueObject\DetailInfo;
-use App\Domain\Shared\ValueObject\LockVersion;
-use App\Domain\Shared\ValueObject\ResourceStatus;
-use App\Domain\Shared\ValueObject\SyncMdb;
+use App\Domain\Shared\Core\ValueObject\DetailInfo;
+use App\Domain\Shared\Core\ValueObject\LockVersion;
+use App\Domain\Shared\Core\ValueObject\ResourceStatus;
+use App\Domain\Shared\Core\ValueObject\SyncMdb;
 // Infrastructure Layer
 use App\Infrastructure\Core\Concerns\HasCoreFeatures;
 use App\Infrastructure\Core\Concerns\HasMongoDBSync;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Seeder;
 
 // Domain Layer
-use App\Application\Shared\Factory\DetailInfoFactory;
+use App\Application\Shared\Core\Factory\DetailInfoFactory;
 use App\Domain\AnotherExample\Entity\AnotherExample;
 // PSR Interfaces
 use App\Domain\AnotherExample\Repository\AnotherExampleRepositoryInterface;

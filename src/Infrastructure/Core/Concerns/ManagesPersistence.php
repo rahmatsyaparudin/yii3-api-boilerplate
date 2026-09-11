@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Core\Concerns;
 
-use App\Domain\Shared\ValueObject\DetailInfo;
-use App\Domain\Shared\ValueObject\LockVersion;
+use App\Domain\Shared\Core\ValueObject\DetailInfo;
+use App\Domain\Shared\Core\ValueObject\LockVersion;
 use App\Shared\Core\Exception\NotFoundException;
 use App\Shared\Core\Exception\OptimisticLockException;
 use App\Shared\Core\ValueObject\LockVersionConfig;

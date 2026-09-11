@@ -557,7 +557,7 @@ Entities use the `OptimisticLock` trait for automatic version management:
 
 ```php
 // In your Entity class
-use App\Domain\Shared\Concerns\Entity\OptimisticLock;
+use App\Domain\Shared\Core\Concerns\Entity\OptimisticLock;
 
 final class Example extends Entity
 {
@@ -772,7 +772,7 @@ Audit logging is **opt-in** — the `audit_logs` table is only created when you 
 `AuditServiceInterface` is already bound to `DatabaseAuditService` in `config/common/di/audit.php`. Inject it where you need logging:
 
 ```php
-use App\Domain\Shared\Audit\AuditServiceInterface;
+use App\Domain\Shared\Core\Audit\AuditServiceInterface;
 
 final class ExampleApplicationService
 {

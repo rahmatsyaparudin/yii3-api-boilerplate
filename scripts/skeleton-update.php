@@ -201,11 +201,12 @@ class SkeletonInstaller
         
         // Create all required subdirectories
         $domainSharedDirs = [
-            'Audit',
-            'Concerns',
-            'Contract',
-            'Security',
-            'ValueObject',
+            'Core/Audit',
+            'Core/Concerns',
+            'Core/Contract',
+            'Core/Security',
+            'Core/ValueObject',
+            'Common',
         ];
         
         foreach ($domainSharedDirs as $dir) {
@@ -243,7 +244,8 @@ class SkeletonInstaller
         
         // Create all required subdirectories
         $applicationSharedDirs = [
-            'Factory'
+            'Core/Factory',
+            'Common',
         ];
         
         foreach ($applicationSharedDirs as $dir) {
