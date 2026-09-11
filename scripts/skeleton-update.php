@@ -70,7 +70,7 @@ class SkeletonInstaller
         
         echo "✅ Shared classes installation completed!\n";
         echo "\n🎯 Shared classes copied to src/Shared/\n";
-        echo "📁 Directories created: Core/{Dto, Enums, ErrorHandler, Exception, Middleware, Query, Request, Security, Utility, Context, ValueObject}, Common\n";
+        echo "📁 Directories created: Core/{Dto, Enums, ErrorHandler, Exception, Middleware, Query, Request, Security, Utility, Validation, ValueObject}, Common/Context\n";
         echo "🏗️  Infrastructure classes copied to src/Infrastructure/\n";
         echo "📁 Directories created: Core/{Audit, Clock, Concerns, Database, Monitoring, RateLimit, Security, Seeder, Time}, Common/Persistence\n";
         echo "🧠 Domain Shared classes copied to src/Domain/Shared/\n";
@@ -88,6 +88,8 @@ class SkeletonInstaller
         echo "🔧 Autoload file copied to src/\n";
         echo "📁 Files copied: autoload.php\n";
         echo "📁 Empty directories created: src/Migration, src/Seed\n";
+        echo "🖥️  Console commands copied to src/Console/\n";
+        echo "📁 Files copied: HelloCommand.php, MigrateModuleCommand.php, SeederCommand.php\n";
         echo "🔧 Quality Assurance script copied to project root\n";
         echo "📁 Files copied: quality\n";
         echo "📦 Composer packages updated in composer.json\n";
@@ -185,9 +187,9 @@ class SkeletonInstaller
             'Core/Security',
             'Core/Utility',
             'Core/Validation',
-            'Core/Context',
             'Core/ValueObject',
             'Common',
+            'Common/Context',
         ];
         
         foreach ($sharedDirs as $dir) {
@@ -593,8 +595,8 @@ class SkeletonInstaller
             }
         }
         
-        // Copy Seeder infrastructure files
-        $this->copySeederInfrastructure();
+        // Copy skeleton-owned console commands
+        $this->copyConsoleCommands();
         
         // Create .gitkeep files to preserve empty directories in git
         $this->createGitKeepFile($this->projectRoot . '/src/Migration/.gitkeep');
@@ -751,16 +753,18 @@ class SkeletonInstaller
         }
     }
     
-    private function copySeederInfrastructure(): void
+    private function copyConsoleCommands(): void
     {
-        echo "🌱 Copying Seeder infrastructure files...\n";
+        echo "🖥️  Copying console commands...\n";
         
-        // Define seeder files to copy
-        $seederFiles = [
-            'src/Console/SeederCommand.php' => 'src/Console/SeederCommand.php'
+        // Define skeleton-owned console commands to copy
+        $commandFiles = [
+            'src/Console/HelloCommand.php' => 'src/Console/HelloCommand.php',
+            'src/Console/MigrateModuleCommand.php' => 'src/Console/MigrateModuleCommand.php',
+            'src/Console/SeederCommand.php' => 'src/Console/SeederCommand.php',
         ];
         
-        foreach ($seederFiles as $source => $target) {
+        foreach ($commandFiles as $source => $target) {
             $sourcePath = $this->vendorPath . '/' . $source;
             $targetPath = $this->projectRoot . '/' . $target;
             

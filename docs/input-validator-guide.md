@@ -23,7 +23,7 @@ namespace App\Api\V1\Example\Validation;
 use App\Domain\Example\Entity\Example;
 
 // Shared Layer
-use App\Shared\Core\Context\ValidationContext;
+use App\Shared\Common\Context\ValidationContext;
 use App\Shared\Core\Validation\AbstractValidator;
 use App\Shared\Core\Validation\Rules\HasNoDependencies;
 use App\Shared\Core\Validation\Rules\UniqueValue;

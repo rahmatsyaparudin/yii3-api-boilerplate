@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Api\V1\Example\Validation;
 
 // Shared Layer
-use App\Shared\Core\Context\ValidationContext;
+use App\Shared\Common\Context\ValidationContext;
 use App\Shared\Core\Enums\RecordStatus;
 use App\Shared\Core\Validation\AbstractValidator;
 use App\Shared\Core\Validation\Rules\HasNoDependencies;

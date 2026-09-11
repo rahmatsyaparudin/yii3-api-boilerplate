@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Shared\Core\Context;
+namespace App\Shared\Common\Context;
 
 use App\Shared\Core\Validation\ValidationContextInterface;
 
