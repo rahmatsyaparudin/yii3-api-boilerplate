@@ -2,7 +2,7 @@
 
 ## 📋 Overview
 
-Enumerations (Enums) provide a way to define a set of named constants that represent a fixed set of values. In this Yii3 API application, enums are used to define status values, constants, and other fixed data sets that are used across different layers.
+Enumerations (Enums) provide a way to define a set of named constants that represent a fixed set of values. In this Yii3 API application, enums are used to define record status values, synchronization state, and shared field-name/pattern constants that are used across different layers.
 
 ---
 
@@ -12,9 +12,15 @@ Enumerations (Enums) provide a way to define a set of named constants that repre
 
 ```
 src/Shared/Core/Enums/
-├── AppConstants.php    # Application-wide constants
+├── AppConstants.php    # Application-wide constants (field names, patterns, filters)
 └── RecordStatus.php     # Record status enumeration
+
+src/Domain/Shared/Core/Enum/
+├── SyncStatus.php       # sync_flag status: SYNCED (db null) / NOT_SYNCED (db 1)
+└── SyncDirection.php    # sync direction: NONE / MASTER_TO_ORIGIN / ORIGIN_TO_MASTER / BIDIRECTIONAL
 ```
+
+> Lihat `docs/sync-flag-guide.md` untuk detail lengkap modul sinkronisasi (`origin_id`/`sync_flag`).
 
 ### Design Principles
 
@@ -44,7 +50,9 @@ src/Shared/Core/Enums/
 
 ### 1. AppConstants
 
-**Purpose**: Application-wide constants and configuration values
+**Purpose**: Centralized application-wide constants — field names for synchronization/optimistic locking, a decimal validation pattern, and a reusable "not deleted" query condition.
+
+**Location**: `src/Shared/Core/Enums/AppConstants.php`
 
 ```php
 <?php
@@ -53,292 +61,54 @@ declare(strict_types=1);
 
 namespace App\Shared\Core\Enums;
 
-/**
- * Application-wide constants
- */
 final class AppConstants
 {
-    // API Configuration
-    public const string API_VERSION = 'v1';
-    public const string API_PREFIX = '/api';
-    public const int API_DEFAULT_PAGE_SIZE = 20;
-    public const int API_MAX_PAGE_SIZE = 100;
-    public const int API_MIN_PAGE_SIZE = 1;
-    
-    // Cache Configuration
-    public const string CACHE_PREFIX = 'yii3_api_';
-    public const int CACHE_DEFAULT_TTL = 3600; // 1 hour
-    public const int CACHE_LONG_TTL = 86400;   // 24 hours
-    public const int CACHE_SHORT_TTL = 300;   // 5 minutes
-    
-    // Security Configuration
-    public const int PASSWORD_MIN_LENGTH = 8;
-    public const int PASSWORD_MAX_LENGTH = 128;
-    public const int TOKEN_EXPIRY_TIME = 3600; // 1 hour
-    public const int REFRESH_TOKEN_EXPIRY = 86400; // 24 hours
-    
-    // File Upload Configuration
-    public const int MAX_FILE_SIZE = 10485760; // 10MB
-    public const array ALLOWED_FILE_TYPES = ['jpg', 'jpeg', 'png', 'gif', 'pdf'];
-    public const string UPLOAD_PATH = 'uploads/';
-    
-    // Rate Limiting
-    public const int RATE_LIMIT_REQUESTS = 100;
-    public const int RATE_LIMIT_WINDOW = 3600; // 1 hour
-    public const int RATE_LIMIT_BURST = 10;
-    
-    // Pagination
-    public const int DEFAULT_PAGE_SIZE = 20;
-    public const int MAX_PAGE_SIZE = 100;
-    public const int MIN_PAGE_SIZE = 1;
-    
-    // Date Formats
-    public const string DATE_FORMAT = 'Y-m-d';
-    public const string DATETIME_FORMAT = 'Y-m-d H:i:s';
-    public const string TIME_FORMAT = 'H:i:s';
-    public const string ISO_DATETIME_FORMAT = 'c';
-    
-    // Validation Rules
-    public const int MAX_STRING_LENGTH = 255;
-    public const int MAX_TEXT_LENGTH = 65535;
-    public const int MAX_URL_LENGTH = 2048;
-    
-    // Database Configuration
-    public const string DB_CONNECTION_TIMEOUT = '30';
-    public const int DB_MAX_CONNECTIONS = 100;
-    public const int DB_QUERY_TIMEOUT = 30;
-    
-    // Logging Configuration
-    public const string LOG_CHANNEL = 'api';
-    public const string LOG_LEVEL = 'info';
-    public const int LOG_MAX_FILES = 30;
-    
-    // Email Configuration
-    public const string EMAIL_FROM_ADDRESS = 'noreply@example.com';
-    public const string EMAIL_FROM_NAME = 'Yii3 API';
-    public const int EMAIL_QUEUE_LIMIT = 100;
-    
-    // Session Configuration
-    public const int SESSION_TIMEOUT = 3600; // 1 hour
-    public const string SESSION_COOKIE_NAME = 'yii3_session';
-    public const bool SESSION_SECURE = true;
-    
-    // API Response Configuration
-    public const int RESPONSE_SUCCESS_CODE = 200;
-    public const int RESPONSE_CREATED_CODE = 201;
-    public const int RESPONSE_NO_CONTENT_CODE = 204;
-    public const int RESPONSE_BAD_REQUEST_CODE = 400;
-    public const int RESPONSE_UNAUTHORIZED_CODE = 401;
-    public const int RESPONSE_FORBIDDEN_CODE = 403;
-    public const int RESPONSE_NOT_FOUND_CODE = 404;
-    public const int RESPONSE_CONFLICT_CODE = 409;
-    public const int RESPONSE_UNPROCESSABLE_ENTITY_CODE = 422;
-    public const int RESPONSE_TOO_MANY_REQUESTS_CODE = 429;
-    public const int RESPONSE_INTERNAL_ERROR_CODE = 500;
-    
-    // Feature Flags
-    public const bool FEATURE_REGISTRATION_ENABLED = true;
-    public const bool FEATURE_EMAIL_VERIFICATION_REQUIRED = true;
-    public const bool FEATURE_PASSWORD_RESET_ENABLED = true;
-    public const bool FEATURE_SOCIAL_LOGIN_ENABLED = false;
-    
-    // Business Rules
-    public const int MAX_LOGIN_ATTEMPTS = 5;
-    public const int LOGIN_LOCKOUT_DURATION = 900; // 15 minutes
-    public const int PASSWORD_EXPIRY_DAYS = 90;
-    public const int INACTIVE_ACCOUNT_DAYS = 365;
-    
-    // External Services
-    public const string EXTERNAL_API_TIMEOUT = '30';
-    public const int EXTERNAL_API_RETRIES = 3;
-    public const int EXTERNAL_API_RETRY_DELAY = 1000; // milliseconds
-    
-    // Monitoring and Analytics
-    public const string METRICS_PREFIX = 'yii3_api_';
-    public const int METRICS_SAMPLE_RATE = 100; // percentage
-    public const bool PERFORMANCE_MONITORING_ENABLED = true;
-    
-    // Development Configuration
-    public const bool DEBUG_MODE_ENABLED = false;
-    public const bool PROFILING_ENABLED = false;
-    public const bool QUERY_LOGGING_ENABLED = false;
-    
+    // Synchronization / Locking field names
+    public const OPTIMISTIC_LOCK = 'lock_version'; // optimistic locking version field
+    public const SYNC_MONGODB    = 'sync_mdb';     // MongoDB sync identifier
+    public const SYNC_MASTER     = 'sync_master';  // master sync flag
+    public const SYNC_FLAG       = 'sync_flag';    // sync flag field (null: synced, 1: not synced)
+    public const ORIGIN_ID       = 'origin_id';    // origin instance id
+    public const MASTER_ID       = 'master_id';    // master record id
+
+    // Validation patterns
+    public const DECIMAL_PATTERN = '/^\d+(\.\d{1,2})?$/';
+
     /**
-     * Get all API configuration constants
+     * Query condition for "status is not deleted".
+     * Generates: ['<>', 'status', RecordStatus::DELETED->value]
      */
-    public static function getApiConfig(): array
+    public static function statusNotDeleted(): array
     {
-        return [
-            'version' => self::API_VERSION,
-            'prefix' => self::API_PREFIX,
-            'default_page_size' => self::API_DEFAULT_PAGE_SIZE,
-            'max_page_size' => self::API_MAX_PAGE_SIZE,
-            'min_page_size' => self::API_MIN_PAGE_SIZE,
-        ];
-    }
-    
-    /**
-     * Get all cache configuration constants
-     */
-    public static function getCacheConfig(): array
-    {
-        return [
-            'prefix' => self::CACHE_PREFIX,
-            'default_ttl' => self::CACHE_DEFAULT_TTL,
-            'long_ttl' => self::CACHE_LONG_TTL,
-            'short_ttl' => self::CACHE_SHORT_TTL,
-        ];
-    }
-    
-    /**
-     * Get all security configuration constants
-     */
-    public static function getSecurityConfig(): array
-    {
-        return [
-            'password_min_length' => self::PASSWORD_MIN_LENGTH,
-            'password_max_length' => self::PASSWORD_MAX_LENGTH,
-            'token_expiry_time' => self::TOKEN_EXPIRY_TIME,
-            'refresh_token_expiry' => self::REFRESH_TOKEN_EXPIRY,
-        ];
-    }
-    
-    /**
-     * Get all file upload configuration constants
-     */
-    public static function getFileConfig(): array
-    {
-        return [
-            'max_file_size' => self::MAX_FILE_SIZE,
-            'allowed_file_types' => self::ALLOWED_FILE_TYPES,
-            'upload_path' => self::UPLOAD_PATH,
-        ];
-    }
-    
-    /**
-     * Get all rate limiting configuration constants
-     */
-    public static function getRateLimitConfig(): array
-    {
-        return [
-            'requests' => self::RATE_LIMIT_REQUESTS,
-            'window' => self::RATE_LIMIT_WINDOW,
-            'burst' => self::RATE_LIMIT_BURST,
-        ];
-    }
-    
-    /**
-     * Get all pagination configuration constants
-     */
-    public static function getPaginationConfig(): array
-    {
-        return [
-            'default_page_size' => self::DEFAULT_PAGE_SIZE,
-            'max_page_size' => self::MAX_PAGE_SIZE,
-            'min_page_size' => self::MIN_PAGE_SIZE,
-        ];
-    }
-    
-    /**
-     * Get all date format constants
-     */
-    public static function getDateFormats(): array
-    {
-        return [
-            'date' => self::DATE_FORMAT,
-            'datetime' => self::DATETIME_FORMAT,
-            'time' => self::TIME_FORMAT,
-            'iso_datetime' => self::ISO_DATETIME_FORMAT,
-        ];
-    }
-    
-    /**
-     * Get all validation rule constants
-     */
-    public static function getValidationRules(): array
-    {
-        return [
-            'max_string_length' => self::MAX_STRING_LENGTH,
-            'max_text_length' => self::MAX_TEXT_LENGTH,
-            'max_url_length' => self::MAX_URL_LENGTH,
-        ];
-    }
-    
-    /**
-     * Get all response code constants
-     */
-    public static function getResponseCodes(): array
-    {
-        return [
-            'success' => self::RESPONSE_SUCCESS_CODE,
-            'created' => self::RESPONSE_CREATED_CODE,
-            'no_content' => self::RESPONSE_NO_CONTENT_CODE,
-            'bad_request' => self::RESPONSE_BAD_REQUEST_CODE,
-            'unauthorized' => self::RESPONSE_UNAUTHORIZED_CODE,
-            'forbidden' => self::RESPONSE_FORBIDDEN_CODE,
-            'not_found' => self::RESPONSE_NOT_FOUND_CODE,
-            'conflict' => self::RESPONSE_CONFLICT_CODE,
-            'unprocessable_entity' => self::RESPONSE_UNPROCESSABLE_ENTITY_CODE,
-            'too_many_requests' => self::RESPONSE_TOO_MANY_REQUESTS_CODE,
-            'internal_error' => self::RESPONSE_INTERNAL_ERROR_CODE,
-        ];
-    }
-    
-    /**
-     * Get all feature flag constants
-     */
-    public static function getFeatureFlags(): array
-    {
-        return [
-            'registration_enabled' => self::FEATURE_REGISTRATION_ENABLED,
-            'email_verification_required' => self::FEATURE_EMAIL_VERIFICATION_REQUIRED,
-            'password_reset_enabled' => self::FEATURE_PASSWORD_RESET_ENABLED,
-            'social_login_enabled' => self::FEATURE_SOCIAL_LOGIN_ENABLED,
-        ];
-    }
-    
-    /**
-     * Get all business rule constants
-     */
-    public static function getBusinessRules(): array
-    {
-        return [
-            'max_login_attempts' => self::MAX_LOGIN_ATTEMPTS,
-            'login_lockout_duration' => self::LOGIN_LOCKOUT_DURATION,
-            'password_expiry_days' => self::PASSWORD_EXPIRY_DAYS,
-            'inactive_account_days' => self::INACTIVE_ACCOUNT_DAYS,
-        ];
+        return ['<>', 'status', RecordStatus::DELETED->value];
     }
 }
 ```
 
 **Usage Example**:
 ```php
-// Using constants directly
-$pageSize = AppConstants::API_DEFAULT_PAGE_SIZE;
-$maxFileSize = AppConstants::MAX_FILE_SIZE;
+use App\Shared\Core\Enums\AppConstants;
 
-// Using configuration methods
-$apiConfig = AppConstants::getApiConfig();
-$cacheConfig = AppConstants::getCacheConfig();
+// Optimistic locking — read the version field by its constant name
+$lockVersion = $params->get(AppConstants::OPTIMISTIC_LOCK);
 
-// In validation
-if (strlen($password) < AppConstants::PASSWORD_MIN_LENGTH) {
-    throw new ValidationException('Password too short');
+// Decimal validation pattern
+if (!preg_match(AppConstants::DECIMAL_PATTERN, $amount)) {
+    throw new ValidationException(errors: ['amount' => ['Invalid decimal format']]);
 }
 
-// In API responses
-return $this->responseFactory->success(
-    data: $data,
-    httpCode: AppConstants::RESPONSE_CREATED_CODE
-);
+// Exclude soft-deleted rows in repository queries
+$query->andWhere(AppConstants::statusNotDeleted());
+// Equivalent to: ['<>', 'status', 4]
 ```
 
 ---
 
 ### 2. RecordStatus
 
-**Purpose**: Enumeration for record status values with built-in validation and methods
+**Purpose**: Int-backed enum for record status values. Stored in the `status` column (smallint) and wrapped by the `ResourceStatus` value object in domain entities.
+
+**Location**: `src/Shared/Core/Enums/RecordStatus.php`
 
 ```php
 <?php
@@ -347,380 +117,273 @@ declare(strict_types=1);
 
 namespace App\Shared\Core\Enums;
 
-/**
- * Record status enumeration
- */
-enum RecordStatus: string
+enum RecordStatus: int
 {
-    case ACTIVE = 'active';
-    case INACTIVE = 'inactive';
-    case DELETED = 'deleted';
-    case ARCHIVED = 'archived';
-    case PENDING = 'pending';
-    case SUSPENDED = 'suspended';
-    case DRAFT = 'draft';
-    case PUBLISHED = 'published';
-    case EXPIRED = 'expired';
-    case BLOCKED = 'blocked';
-    
+    case INACTIVE    = 0;
+    case ACTIVE      = 1;
+    case DRAFT       = 2;
+    case COMPLETED   = 3;
+    case DELETED     = 4;
+    case MAINTENANCE = 5;
+    case APPROVED    = 6;
+    case REJECTED    = 7;
+
     /**
-     * Get all active statuses (not deleted or blocked)
+     * Immutable statuses that cannot be changed once set.
      */
-    public static function getActiveStatuses(): array
-    {
-        return [
-            self::ACTIVE->value,
-            self::INACTIVE->value,
-            self::PENDING->value,
-            self::SUSPENDED->value,
+    public const IMMUTABLE_STATUSES = [
+        self::ACTIVE->value,
+        self::COMPLETED->value,
+        self::DELETED->value,
+    ];
+
+    /**
+     * Allowed status transitions.
+     * Key: current status value. Value: allowed target status values.
+     */
+    public const STATUS_TRANSITION_MAP = [
+        self::DRAFT->value => [
             self::DRAFT->value,
-            self::PUBLISHED->value,
-            self::EXPIRED->value,
-        ];
-    }
-    
-    /**
-     * Get all visible statuses (can be shown in UI)
-     */
-    public static function getVisibleStatuses(): array
-    {
-        return [
+            self::INACTIVE->value,
             self::ACTIVE->value,
+            self::DELETED->value,
+            self::MAINTENANCE->value,
+        ],
+        self::ACTIVE->value => [
+            self::COMPLETED->value,
+            self::APPROVED->value,
+            self::REJECTED->value,
+        ],
+        self::INACTIVE->value => [
             self::INACTIVE->value,
-            self::PENDING->value,
+            self::ACTIVE->value,
             self::DRAFT->value,
-            self::PUBLISHED->value,
-            self::EXPIRED->value,
-        ];
-    }
-    
-    /**
-     * Get all inactive statuses
-     */
-    public static function getInactiveStatuses(): array
-    {
-        return [
+            self::DELETED->value,
+        ],
+        self::MAINTENANCE->value => [
+            self::MAINTENANCE->value,
             self::INACTIVE->value,
+            self::ACTIVE->value,
+            self::DRAFT->value,
             self::DELETED->value,
-            self::ARCHIVED->value,
-            self::SUSPENDED->value,
-            self::BLOCKED->value,
-            self::EXPIRED->value,
-        ];
-    }
-    
+        ],
+        self::APPROVED->value => [
+            self::APPROVED->value,
+            self::COMPLETED->value,
+            self::REJECTED->value,
+        ],
+        self::DELETED->value => [
+            self::INACTIVE->value,
+        ],
+    ];
+
     /**
-     * Get all system statuses (not user-facing)
+     * Human-readable label: 'Inactive', 'Active', 'Draft', 'Completed',
+     * 'Deleted', 'Maintenance', 'Approved', 'Rejected'
      */
-    public static function getSystemStatuses(): array
+    public function label(): string
     {
-        return [
-            self::DELETED->value,
-            self::ARCHIVED->value,
-            self::BLOCKED->value,
-        ];
-    }
-    
-    /**
-     * Check if status is active
-     */
-    public function isActive(): bool
-    {
-        return $this === self::ACTIVE;
-    }
-    
-    /**
-     * Check if status is inactive
-     */
-    public function isInactive(): bool
-    {
-        return $this === self::INACTIVE;
-    }
-    
-    /**
-     * Check if status is deleted
-     */
-    public function isDeleted(): bool
-    {
-        return $this === self::DELETED;
-    }
-    
-    /**
-     * Check if status is archived
-     */
-    public function isArchived(): bool
-    {
-        return $this === self::ARCHIVED;
-    }
-    
-    /**
-     * Check if status is pending
-     */
-    public function isPending(): bool
-    {
-        return $this === self::PENDING;
-    }
-    
-    /**
-     * Check if status is suspended
-     */
-    public function isSuspended(): bool
-    {
-        return $this === self::SUSPENDED;
-    }
-    
-    /**
-     * Check if status is draft
-     */
-    public function isDraft(): bool
-    {
-        return $this === self::DRAFT;
-    }
-    
-    /**
-     * Check if status is published
-     */
-    public function isPublished(): bool
-    {
-        return $this === self::PUBLISHED;
-    }
-    
-    /**
-     * Check if status is expired
-     */
-    public function isExpired(): bool
-    {
-        return $this === self::EXPIRED;
-    }
-    
-    /**
-     * Check if status is blocked
-     */
-    public function isBlocked(): bool
-    {
-        return $this === self::BLOCKED;
-    }
-    
-    /**
-     * Check if status allows modification
-     */
-    public function allowsModification(): bool
-    {
-        return match($this) {
-            self::ACTIVE,
-            self::INACTIVE,
-            self::PENDING,
-            self::DRAFT => true,
-            self::DELETED,
-            self::ARCHIVED,
-            self::SUSPENDED,
-            self::BLOCKED,
-            self::PUBLISHED,
-            self::EXPIRED => false,
+        return match ($this) {
+            self::INACTIVE    => 'Inactive',
+            self::ACTIVE      => 'Active',
+            self::DRAFT       => 'Draft',
+            self::COMPLETED   => 'Completed',
+            self::DELETED     => 'Deleted',
+            self::MAINTENANCE => 'Maintenance',
+            self::APPROVED    => 'Approved',
+            self::REJECTED    => 'Rejected',
         };
     }
-    
-    /**
-     * Check if status is visible in UI
-     */
-    public function isVisible(): bool
+
+    /** Only the ACTIVE value — for filtering active-only records. */
+    public static function activeOnlyStates(): array
     {
-        return !in_array($this->value, self::getSystemStatuses(), true);
+        return [self::ACTIVE->value];
     }
-    
-    /**
-     * Check if status can be transitioned to another status
-     */
-    public function canTransitionTo(self $newStatus): bool
+
+    /** Only the DRAFT value — for filtering draft records. */
+    public static function draftOnlyStates(): array
     {
-        return match([$this, $newStatus]) {
-            [self::DRAFT, self::PUBLISHED] => true,
-            [self::PUBLISHED, self::DRAFT] => true,
-            [self::ACTIVE, self::INACTIVE] => true,
-            [self::INACTIVE, self::ACTIVE] => true,
-            [self::ACTIVE, self::SUSPENDED] => true,
-            [self::SUSPENDED, self::ACTIVE] => true,
-            [self::ACTIVE, self::DELETED] => true,
-            [self::INACTIVE, self::DELETED] => true,
-            [self::SUSPENDED, self::DELETED] => true,
-            [self::PENDING, self::ACTIVE] => true,
-            [self::PENDING, self::INACTIVE] => true,
-            [self::PENDING, self::DELETED] => true,
-            [self::PUBLISHED, self::ARCHIVED] => true,
-            [self::ARCHIVED, self::PUBLISHED] => true,
-            default => false,
-        };
+        return [self::DRAFT->value];
     }
-    
-    /**
-     * Get allowed transitions from current status
-     */
-    public function getAllowedTransitions(): array
+
+    /** Map of status value => label (e.g. for dropdown options). */
+    public static function list(): array
     {
-        return match($this) {
-            self::DRAFT => [self::PUBLISHED, self::DELETED],
-            self::PUBLISHED => [self::DRAFT, self::ARCHIVED],
-            self::ACTIVE => [self::INACTIVE, self::SUSPENDED, self::DELETED],
-            self::INACTIVE => [self::ACTIVE, self::DELETED],
-            self::PENDING => [self::ACTIVE, self::INACTIVE, self::DELETED],
-            self::SUSPENDED => [self::ACTIVE, self::DELETED],
-            self::ARCHIVED => [self::PUBLISHED],
-            default => [],
-        };
-    }
-    
-    /**
-     * Get status label for display
-     */
-    public function getLabel(): string
-    {
-        return match($this) {
-            self::ACTIVE => 'Active',
-            self::INACTIVE => 'Inactive',
-            self::DELETED => 'Deleted',
-            self::ARCHIVED => 'Archived',
-            self::PENDING => 'Pending',
-            self::SUSPENDED => 'Suspended',
-            self::DRAFT => 'Draft',
-            self::PUBLISHED => 'Published',
-            self::EXPIRED => 'Expired',
-            self::BLOCKED => 'Blocked',
-        };
-    }
-    
-    /**
-     * Get status description
-     */
-    public function getDescription(): string
-    {
-        return match($this) {
-            self::ACTIVE => 'The record is active and fully functional',
-            self::INACTIVE => 'The record is inactive but can be reactivated',
-            self::DELETED => 'The record has been deleted and cannot be recovered',
-            self::ARCHIVED => 'The record is archived and read-only',
-            self::PENDING => 'The record is pending approval or activation',
-            self::SUSPENDED => 'The record is temporarily suspended',
-            self::DRAFT => 'The record is a draft and not yet published',
-            self::PUBLISHED => 'The record is published and publicly visible',
-            self::EXPIRED => 'The record has expired and is no longer valid',
-            self::BLOCKED => 'The record is blocked and cannot be accessed',
-        };
-    }
-    
-    /**
-     * Get status color for UI
-     */
-    public function getColor(): string
-    {
-        return match($this) {
-            self::ACTIVE => 'green',
-            self::INACTIVE => 'gray',
-            self::DELETED => 'red',
-            self::ARCHIVED => 'purple',
-            self::PENDING => 'yellow',
-            self::SUSPENDED => 'orange',
-            self::DRAFT => 'blue',
-            self::PUBLISHED => 'green',
-            self::EXPIRED => 'red',
-            self::BLOCKED => 'red',
-        };
-    }
-    
-    /**
-     * Get status icon for UI
-     */
-    public function getIcon(): string
-    {
-        return match($this) {
-            self::ACTIVE => '✓',
-            self::INACTIVE => '○',
-            self::DELETED => '✗',
-            self::ARCHIVED => '📦',
-            self::PENDING => '⏳',
-            self::SUSPENDED => '⚠',
-            self::DRAFT => '📝',
-            self::PUBLISHED => '🌐',
-            self::EXPIRED => '⏰',
-            self::BLOCKED => '🚫',
-        };
-    }
-    
-    /**
-     * Create from string value
-     */
-    public static function fromString(string $value): self
-    {
-        return self::from($value);
-    }
-    
-    /**
-     * Check if string value is valid
-     */
-    public static function isValid(string $value): bool
-    {
-        return in_array($value, array_column(self::cases(), 'value'), true);
-    }
-    
-    /**
-     * Get all cases as array
-     */
-    public static function toArray(): array
-    {
-        return array_map(
-            fn(self $case) => [
-                'value' => $case->value,
-                'label' => $case->getLabel(),
-                'description' => $case->getDescription(),
-                'color' => $case->getColor(),
-                'icon' => $case->getIcon(),
-            ],
-            self::cases()
+        return \array_reduce(
+            self::cases(),
+            static function (array $carry, self $status) {
+                $carry[$status->value] = $status->label();
+
+                return $carry;
+            },
+            []
         );
+    }
+
+    /** All status values except DELETED — safe for public search/list endpoints. */
+    public static function searchableStates(): array
+    {
+        $states = [];
+        foreach (self::cases() as $status) {
+            if ($status !== self::DELETED) {
+                $states[] = $status->value;
+            }
+        }
+
+        return $states;
     }
 }
 ```
 
 **Usage Example**:
 ```php
-// Creating status
+use App\Shared\Core\Enums\RecordStatus;
+
+// Creating status (int-backed)
 $status = RecordStatus::ACTIVE;
-$status = RecordStatus::fromString('active');
+$status = RecordStatus::from(1);        // RecordStatus::ACTIVE
+$status = RecordStatus::tryFrom(2);     // RecordStatus::DRAFT (null if invalid)
 
-// Checking status
-if ($status->isActive()) {
-    echo "Record is active";
+// Status information
+$label = $status->label();              // "Active"
+
+// Status groups for queries and validation rules
+RecordStatus::activeOnlyStates();       // [1]
+RecordStatus::draftOnlyStates();        // [2]
+RecordStatus::searchableStates();       // [0, 1, 2, 3, 5, 6, 7] — no DELETED
+RecordStatus::list();                   // [0 => 'Inactive', 1 => 'Active', ...]
+
+// In Yiisoft Validator rules (see ExampleInputValidator)
+new In(RecordStatus::draftOnlyStates())    // CREATE: only draft allowed
+new In(RecordStatus::searchableStates())   // UPDATE: any non-deleted status
+
+// Transition validation
+$allowed = RecordStatus::STATUS_TRANSITION_MAP[$current->value] ?? [];
+if (!in_array($newStatus->value, $allowed, true)) {
+    throw new BadRequestException(translate: Message::create(key: 'status.invalid_transition'));
 }
 
-if ($status->allowsModification()) {
-    // Allow modification
+// Immutability check
+$isFinal = in_array($status->value, RecordStatus::IMMUTABLE_STATUSES, true);
+```
+
+> **Note**: Domain entities do not expose `RecordStatus` directly. They wrap it in
+> `App\Domain\Shared\Core\ValueObject\ResourceStatus`, which adds business behaviour
+> (`canTransitionTo()`, `canBeDeleted()`, `isLocked()`, `isActive()`, `isDeleted()`,
+> `restored()`, etc.) on top of the enum. Use `ResourceStatus` inside the domain layer
+> and `RecordStatus` for DB values, validation rules, and filter lists.
+
+---
+
+### 3. SyncStatus
+
+**Purpose**: Pure (non-backed) enum representing the `sync_flag` column state for master–origin synchronization. DB representation: `null` = synced, `1` = not synced (default `1`).
+
+**Location**: `src/Domain/Shared/Core/Enum/SyncStatus.php`
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domain\Shared\Core\Enum;
+
+enum SyncStatus
+{
+    case SYNCED;
+    case NOT_SYNCED;
+
+    /** Value stored in the sync_flag column: SYNCED => null, NOT_SYNCED => 1. */
+    public function dbValue(): ?int
+    {
+        return match ($this) {
+            self::SYNCED     => null,
+            self::NOT_SYNCED => 1,
+        };
+    }
+
+    /** Build SyncStatus from the raw sync_flag value. Throws BadRequestException otherwise. */
+    public static function fromDbValue(?int $value): self
+    {
+        return match ($value) {
+            null    => self::SYNCED,
+            1       => self::NOT_SYNCED,
+            default => throw new BadRequestException(/* ... */),
+        };
+    }
+
+    public function label(): string     // 'Synced' / 'Not Synced'
+    public function isSynced(): bool    // $this === self::SYNCED
+    public function isPending(): bool   // $this === self::NOT_SYNCED
+}
+```
+
+**Usage Example**:
+```php
+use App\Domain\Shared\Core\Enum\SyncStatus;
+
+// From a DB row
+$status = SyncStatus::fromDbValue($row['sync_flag']);
+
+if ($status->isPending()) {
+    // record still needs to be synchronized
 }
 
-// Status transitions
-if ($status->canTransitionTo(RecordStatus::INACTIVE)) {
-    $newStatus = RecordStatus::INACTIVE;
+// Writing to DB
+$syncFlag = SyncStatus::NOT_SYNCED->dbValue(); // 1
+$syncFlag = SyncStatus::SYNCED->dbValue();     // null
+```
+
+---
+
+### 4. SyncDirection
+
+**Purpose**: Int-backed enum describing the direction of record synchronization between master and origin instances.
+
+**Location**: `src/Domain/Shared/Core/Enum/SyncDirection.php`
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domain\Shared\Core\Enum;
+
+enum SyncDirection: int
+{
+    case NONE             = 0;
+    case MASTER_TO_ORIGIN = 1;
+    case ORIGIN_TO_MASTER = 2;
+    case BIDIRECTIONAL    = 3;
+
+    /** Build from raw value. Throws BadRequestException for values outside 0–3. */
+    public static function fromValue(int $value): self
+    {
+        return self::tryFrom($value) ?? throw new BadRequestException(/* ... */);
+    }
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::NONE             => 'None',
+            self::MASTER_TO_ORIGIN => 'Master to Origin',
+            self::ORIGIN_TO_MASTER => 'Origin to Master',
+            self::BIDIRECTIONAL    => 'Bidirectional',
+        };
+    }
 }
+```
 
-// Getting status information
-$label = $status->getLabel();        // "Active"
-$description = $status->getDescription(); // "The record is active..."
-$color = $status->getColor();       // "green"
-$icon = $status->getIcon();         // "✓"
+**Usage Example**:
+```php
+use App\Domain\Shared\Core\Enum\SyncDirection;
 
-// In database queries
-$activeRecords = $repository->findByStatus(RecordStatus::ACTIVE);
-$visibleRecords = $repository->findByStatuses(RecordStatus::getVisibleStatuses());
+$direction = SyncDirection::fromValue((int) $row['sync_direction']);
 
-// In validation
-if (!RecordStatus::isValid($inputStatus)) {
-    throw new ValidationException('Invalid status');
+if ($direction === SyncDirection::ORIGIN_TO_MASTER) {
+    // push this record's changes up to the master
 }
-
-// In API responses
-return [
-    'status' => $record->getStatus()->value,
-    'status_label' => $record->getStatus()->getLabel(),
-    'status_color' => $record->getStatus()->getColor(),
-];
 ```
 
 ---
@@ -729,33 +392,29 @@ return [
 
 ### 1. **Entity Usage**
 ```php
+use App\Domain\Shared\Core\ValueObject\ResourceStatus;
+use App\Shared\Core\Enums\RecordStatus;
+
 final class Example
 {
-    public function __construct(
-        public readonly int $id,
-        public readonly string $name,
-        private RecordStatus $status = RecordStatus::ACTIVE
+    private function __construct(
+        private readonly ?int $id,
+        private string $name,
+        private ResourceStatus $status, // VO wrapping RecordStatus
     ) {}
-    
-    public function getStatus(): RecordStatus
+
+    public static function create(string $name, ResourceStatus $status, /* ... */): self
     {
-        return $this->status;
+        // guardInitialStatus() restricts which statuses are valid at creation
+        return new self(id: null, name: $name, status: $status /* ... */);
     }
-    
-    public function canBeDeleted(): bool
-    {
-        return $this->status->allowsModification();
-    }
-    
-    public function changeStatus(RecordStatus $newStatus): void
+
+    public function changeStatus(ResourceStatus $newStatus): void
     {
         if (!$this->status->canTransitionTo($newStatus)) {
-            throw new InvalidStatusTransitionException(
-                current: $this->status,
-                new: $newStatus
-            );
+            throw new BadRequestException(translate: Message::create(key: 'status.invalid_transition'));
         }
-        
+
         $this->status = $newStatus;
     }
 }
@@ -763,111 +422,75 @@ final class Example
 
 ### 2. **Repository Usage**
 ```php
+use App\Shared\Core\Enums\RecordStatus;
+
 final class ExampleRepository
 {
-    public function findByStatus(RecordStatus $status): array
+    // HasCoreFeatures trait provides scopeWhereNotDeleted():
+    // ['<>', 'status', RecordStatus::DELETED->value]
+    public function findById(int $id): ?Example
     {
-        return $this->db->createQueryBuilder()
-            ->select('*')
-            ->from('example')
-            ->where('status', $status->value)
-            ->fetchAll();
+        $row = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where(['id' => $id])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->one();
+
+        return $row ? Example::reconstitute(/* ... */) : null;
     }
-    
+
+    // Filter by a group of status values
     public function findByStatuses(array $statuses): array
     {
-        return $this->db->createQueryBuilder()
-            ->select('*')
-            ->from('example')
+        return (new Query($this->db))
+            ->from(self::TABLE_NAME)
             ->where(['status' => $statuses])
-            ->fetchAll();
+            ->all();
     }
-    
-    public function findActive(): array
+
+    public function findPublic(): array
     {
-        return $this->findByStatuses(RecordStatus::getActiveStatuses());
-    }
-    
-    public function findVisible(): array
-    {
-        return $this->findByStatuses(RecordStatus::getVisibleStatuses());
+        return $this->findByStatuses(RecordStatus::searchableStates());
     }
 }
 ```
 
-### 3. **Service Usage**
+### 3. **Validation Usage**
 ```php
-final class ExampleApplicationService
+// src/Api/V1/Example/Validation/ExampleInputValidator.php
+protected function rules(string $context): array
 {
-    public function activate(int $id): void
-    {
-        $example = $this->repository->findById($id);
-        
-        if ($example === null) {
-            throw new NotFoundException('Example', 'id', $id);
-        }
-        
-        if ($example->getStatus()->isActive()) {
-            return; // Already active
-        }
-        
-        $example->changeStatus(RecordStatus::ACTIVE);
-        $this->repository->save($example);
-    }
-    
-    public function delete(int $id): void
-    {
-        $example = $this->repository->findById($id);
-        
-        if ($example === null) {
-            throw new NotFoundException('Example', 'id', $id);
-        }
-        
-        if (!$example->canBeDeleted()) {
-            throw new CannotDeleteException('Example cannot be deleted in current status');
-        }
-        
-        $example->changeStatus(RecordStatus::DELETED);
-        $this->repository->save($example);
-    }
-}
-```
-
-### 4. **Controller Usage**
-```php
-final class ExampleController
-{
-    public function actionIndex(): array
-    {
-        $criteria = SearchCriteria::fromRequest($this->request->getQueryParams());
-        
-        // Filter by status if provided
-        $statusParam = $this->request->getQueryParam('status');
-        if ($statusParam && RecordStatus::isValid($statusParam)) {
-            $criteria = $criteria->withFilter('status', $statusParam);
-        }
-        
-        $results = $this->service->list($criteria);
-        
-        // Add status information to results
-        $data = array_map(
-            fn($item) => [
-                ...$item,
-                'status_info' => [
-                    'label' => RecordStatus::fromString($item['status'])->getLabel(),
-                    'color' => RecordStatus::fromString($item['status'])->getColor(),
-                    'icon' => RecordStatus::fromString($item['status'])->getIcon(),
-                ]
+    return match ($context) {
+        ValidationContext::CREATE => [
+            'status' => [
+                new Required(),
+                new Integer(),
+                new In(RecordStatus::draftOnlyStates()), // new records start as DRAFT
             ],
-            $results->data
-        );
-        
-        return [
-            ...$results->toArray(),
-            'data' => $data
-        ];
-    }
+        ],
+        ValidationContext::UPDATE => [
+            'status' => [
+                new Integer(skipOnEmpty: true),
+                new In(RecordStatus::searchableStates()), // any non-deleted status
+            ],
+        ],
+        default => [],
+    };
 }
+```
+
+### 4. **Action Usage**
+```php
+// src/Api/V1/Example/Action/ExampleCreateAction.php
+$params = $payload->getRawParams()
+    ->onlyAllowed(allowedKeys: self::ALLOWED_KEYS)
+    ->with('status', RecordStatus::DRAFT->value) // force DRAFT on create
+    ->sanitize();
+
+$this->inputValidator->validate(
+    data: $params,
+    context: ValidationContext::CREATE,
+);
 ```
 
 ---
@@ -876,49 +499,48 @@ final class ExampleController
 
 ### 1. **Type Safety**
 ```php
-// ✅ Use enum types
+// ✅ Use the enum / value object types
 public function __construct(
-    private RecordStatus $status
+    private ResourceStatus $status
 ) {}
 
-// ❌ Avoid string types
+// ❌ Avoid raw ints
 public function __construct(
-    private string $status
+    private int $status
 ) {}
 ```
 
 ### 2. **Validation**
 ```php
-// ✅ Validate enum values
-if (!RecordStatus::isValid($input)) {
-    throw new ValidationException('Invalid status');
-}
+// ✅ Validate against enum-provided state lists
+new In(RecordStatus::searchableStates())
 
-// ❌ Avoid manual validation
-if (!in_array($input, ['active', 'inactive'])) {
-    throw new ValidationException('Invalid status');
-}
+// ❌ Avoid hardcoded lists
+new In([0, 1, 2, 3, 5, 6, 7])
 ```
 
 ### 3. **Constants Usage**
 ```php
-// ✅ Use constants for configuration
-$pageSize = AppConstants::API_DEFAULT_PAGE_SIZE;
+// ✅ Use constants for shared field names
+$version = $params->get(AppConstants::OPTIMISTIC_LOCK);
+$query->andWhere(AppConstants::statusNotDeleted());
 
-// ❌ Avoid magic numbers
-$pageSize = 20;
+// ❌ Avoid magic strings
+$version = $params->get('lock_version');
+$query->andWhere(['<>', 'status', 4]);
 ```
 
 ### 4. **Status Transitions**
 ```php
-// ✅ Use built-in transition validation
-if ($currentStatus->canTransitionTo($newStatus)) {
-    // Allow transition
+// ✅ Use the transition map / ResourceStatus
+$allowed = RecordStatus::STATUS_TRANSITION_MAP[$current->value] ?? [];
+if ($status->canTransitionTo($newStatus)) {
+    // allow transition
 }
 
 // ❌ Avoid manual transition logic
-if ($currentStatus === 'active' && $newStatus === 'inactive') {
-    // Allow transition
+if ($current === 1 && $new === 0) {
+    // allow transition
 }
 ```
 
@@ -927,19 +549,18 @@ if ($currentStatus === 'active' && $newStatus === 'inactive') {
 ## 📊 Performance Considerations
 
 ### 1. **Memory Usage**
-- Enums are memory-efficient
+- Enums are memory-efficient (singletons per case)
 - Constants are loaded once
 - Avoid unnecessary object creation
 
 ### 2. **Database Queries**
-- Use enum values in database queries
-- Index status columns for performance
-- Filter by status groups when possible
+- Use enum `->value` in database queries (`status` is a smallint column)
+- Index the `status` column for performance
+- Use `searchableStates()` / `statusNotDeleted()` to filter by status groups
 
 ### 3. **Caching**
-- Cache enum arrays for repeated use
-- Cache configuration values
-- Use static methods for frequently accessed data
+- `RecordStatus::list()` is cheap to compute; cache it only if rendered frequently
+- Store enum values (ints) in the DB, not labels
 
 ---
 

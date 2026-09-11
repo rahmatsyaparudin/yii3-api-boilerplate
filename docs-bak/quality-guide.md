@@ -2,7 +2,7 @@
 
 ## 📋 Overview
 
-The `quality` script is a comprehensive quality assurance tool designed for the Yii3 API project. It provides automated checks for code style, static analysis, testing, and security auditing to ensure high code quality and maintainability.
+The `quality` script (a small Symfony Console app at the project root) is a comprehensive quality assurance tool designed for the Yii3 API project. It provides automated checks for code style, static analysis, testing, and security auditing to ensure high code quality and maintainability.
 
 ## 🚀 Quick Start
 
@@ -19,13 +19,14 @@ php quality quality:check --report        # Generate detailed analysis reports
 
 ### Running Tests
 ```bash
-# Run all tests
+# Run all Codeception suites
 php quality test:run
 
 # Run specific test types
-php quality test:run --unit            # Run only unit tests
-php quality test:run --integration     # Run only integration tests
-php quality test:run --coverage        # Generate coverage report
+php quality test:run --unit                    # Run only the Unit suite
+php quality test:run --integration             # Run the Functional suite
+php quality test:run --coverage                # Generate coverage report
+php quality test:run --filter=testSomething    # Filter tests by name
 ```
 
 ### Available Commands
@@ -46,16 +47,20 @@ vendor/bin/php-cs-fixer check --diff --verbose --allow-risky=yes
 # Static analysis
 vendor/bin/psalm
 
-# Unit tests
-vendor/bin/phpunit --testdox
+# Tests (Codeception; Unit suite is what quality:check runs)
+vendor/bin/codecept run Unit
 
 # Security audit
 composer audit
 ```
 
+On Windows, prefix the `vendor/bin/*` commands with `php` (e.g. `php vendor\bin\psalm`).
+
 ## 🔧 Configuration
 
 ### Available Options
+
+`quality:check` options:
 
 | Option | Short | Description |
 |--------|-------|-------------|
@@ -63,12 +68,21 @@ composer audit
 | `--coverage` | `-c` | Generate test coverage reports |
 | `--report` | `-r` | Generate detailed analysis reports |
 
-### Default Settings
+`test:run` options:
 
-- **Default Page Size**: 50 records
-- **Max Page Size**: 200 records
-- **Default Page**: 1
-- **Default Sort Direction**: `asc`
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--unit` | `-u` | Run only the Unit suite |
+| `--integration` | `-i` | Run only the Functional suite |
+| `--coverage` | `-c` | Generate coverage report |
+| `--filter` | — | Filter tests by name |
+
+### What `quality:check` Runs
+
+1. `vendor/bin/php-cs-fixer check|fix --diff --verbose --allow-risky=yes`
+2. `vendor/bin/psalm`
+3. `vendor/bin/codecept run Unit` (with `APP_ENV=test`; adds `--coverage-html`/`--coverage-text` with `--coverage`, plus `--coverage-xml` with `--report`)
+4. `composer audit`
 
 ## 📊 Quality Checks
 
@@ -86,13 +100,20 @@ composer audit
 **Configuration**: `.php-cs-fixer.php`
 
 ```php
-// Example rules enforced
+// Rule sets enabled in .php-cs-fixer.php
+'@PER-CS2x0' => true,
 '@PSR12' => true,
 '@Symfony' => true,
-'@PhpCsFixer' => true,
-'@Yiisoft' => true,
-'allow_risky' => true,
+'@PHP8x0Migration' => true,
+'@PHP8x0Migration:risky' => true,
+'@PHP8x1Migration' => true,
+'strict_comparison' => true,
+'declare_strict_types' => true,
+'no_unused_imports' => true,
+// ...see .php-cs-fixer.php for the full list
 ```
+
+The finder scans `config/`, `src/`, `tests/` plus `public/index.php`; the cache file is `runtime/cache/.php-cs-fixer.cache`.
 
 ### 2. Static Analysis (Psalm)
 
@@ -108,7 +129,13 @@ composer audit
 **Configuration**: `psalm.xml`
 
 ```xml
-<psalm errorLevel="1" findUnusedBaselineEntry="true">
+<psalm
+  errorLevel="1"
+  errorBaseline="psalm-baseline.xml"
+  findUnusedBaselineEntry="true"
+  findUnusedCode="false"
+  cacheDirectory="/app/runtime/cache/psalm"
+>
   <projectFiles>
     <directory name="src" />
     <file name="public/index.php"/>
@@ -117,9 +144,13 @@ composer audit
 </psalm>
 ```
 
-### 3. Unit Tests (PHPUnit)
+A baseline of known issues is kept in `psalm-baseline.xml`; a number of mixed- type issues are suppressed via `<issueHandlers>` in `psalm.xml`.
+
+### 3. Unit Tests (Codeception)
 
 **Purpose**: Validates application functionality and prevents regressions.
+
+`quality:check` runs `vendor/bin/codecept run Unit` with `APP_ENV=test`. The full test setup is defined in `codeception.yml` (namespace `App\Tests`) with suites under `tests/`: `Unit`, `Functional`, `Api`, `Console`.
 
 **What it tests**:
 - Application logic
@@ -143,49 +174,66 @@ composer audit
 - Security advisories
 - License compliance
 
+### Additional QA Tools
+
+Not part of `quality:check`, but configured in the project (also available as `make` targets when using Docker):
+
+```bash
+# Rector — automated refactorings (rector.php: src/ + tests/, PHP 8.2 sets)
+vendor/bin/rector --dry-run  # preview changes
+vendor/bin/rector            # apply changes
+
+# Infection — mutation testing (infection.json.dist)
+vendor/bin/infection
+
+# Composer Dependency Analyser (composer-dependency-analyser.php)
+vendor/bin/composer-dependency-analyser --config=composer-dependency-analyser.php
+```
+
 ## 📈 Reports and Output
 
 ### Standard Output Format
 
 ```
-🔍 Running Quality Assurance Checks...
+Running Quality Assurance Checks...
 
 1. Checking code style...
-✅ Code style check passed
+Running: php vendor\bin\php-cs-fixer check --diff --verbose --allow-risky=yes
+...
 
 2. Running static analysis...
-✅ Static analysis completed - 0 errors, 0 warnings
+Running: php vendor\bin\psalm
+...
 
 3. Running unit tests...
-✅ All tests passed (15/15)
-✅ Coverage: 85.3%
+Running: php vendor\bin\codecept run Unit
+...
 
 4. Running security audit...
-✅ Security audit passed - no vulnerabilities found
+Running: composer audit
+...
 
 ✅ All quality checks passed!
 ```
+
+(Or `❌ Some quality checks failed!` and a non-zero exit code when a step fails.)
 
 ### Detailed Reports
 
 #### Coverage Report (`--coverage`)
 ```bash
-php quality --coverage
+php quality quality:check --coverage
 ```
 Generates:
-- **HTML Report**: Interactive coverage visualization
-- **Text Summary**: Command-line coverage statistics
-- **Clover XML**: CI/CD integration data
+- **HTML Report**: `tests/coverage/html/` — interactive coverage visualization
+- **Text Summary**: `tests/coverage/coverage.txt` — coverage statistics
 
 #### Analysis Report (`--report`)
 ```bash
-php quality --report
+php quality quality:check --report
 ```
 Generates:
-- **Detailed Psalm analysis**
-- **Complexity metrics**
-- **Technical debt indicators**
-- **Code quality trends**
+- **Clover XML**: `tests/coverage/clover.xml` — CI/CD integration data
 
 ## 🛠️ Error Handling
 
@@ -194,10 +242,10 @@ Generates:
 #### Code Style Errors
 ```bash
 # Auto-fix most style issues
-php quality --fix
+php quality quality:check --fix
 
 # Manual fix for complex issues
-vendor/bin/php-cs-fixer fix --diff --verbose
+vendor/bin/php-cs-fixer fix --diff --verbose --allow-risky=yes
 ```
 
 #### Psalm Errors
@@ -207,16 +255,17 @@ vendor/bin/psalm --clear-cache
 vendor/bin/psalm
 
 # Check specific file
-vendor/bin/psalm src/Infrastructure/Persistence/Example/ExampleRepository.php
+vendor/bin/psalm src/Infrastructure/Common/Persistence/Example/ExampleRepository.php
 ```
 
 #### Test Failures
 ```bash
-# Run specific test
-vendor/bin/phpunit tests/Unit/ExampleTest.php
+# Run a specific suite or test
+vendor/bin/codecept run Unit
+vendor/bin/codecept run Unit --filter=ExampleTest
 
 # Run with coverage
-vendor/bin/phpunit --coverage-html tests/coverage/html
+vendor/bin/codecept run --coverage-html
 ```
 
 #### Security Issues
@@ -260,7 +309,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: shivammathur/setup-php@v2
       - run: composer install
-      - run: php quality --report
+      - run: php quality quality:check --report
       - name: Upload coverage reports
         uses: actions/upload-artifact@v3
         with:
@@ -275,7 +324,7 @@ jobs:
 #### 1. Before Commit
 ```bash
 # Always run quality checks before committing
-php quality
+php quality quality:check
 ```
 
 #### 2. Feature Development
@@ -288,7 +337,7 @@ vendor/bin/php-cs-fixer check
 #### 3. Before Release
 ```bash
 # Full quality suite with reports
-php quality --coverage --report
+php quality quality:check --coverage --report
 ```
 
 ### Code Quality Standards
@@ -349,10 +398,10 @@ public function process(array $data): array<string, mixed>
 </issueHandlers>
 ```
 
-#### 2. Additional PHPUnit Tests
+#### 2. Additional Codeception Tests
 ```php
-// tests/Custom/CustomTest.php
-class CustomTest extends TestCase
+// tests/Unit/CustomTest.php
+final class CustomTest extends \Codeception\Test\Unit
 {
     public function testCustomLogic(): void
     {
@@ -372,22 +421,24 @@ composer require --dev enshrined/security-scanner
 #### `.php-cs-fixer.php`
 ```php
 <?php
-return PhpCsFixer\Config::create()
+$finder = (new PhpCsFixer\Finder())
+    ->in([__DIR__ . '/config', __DIR__ . '/src', __DIR__ . '/tests'])
+    ->append([__DIR__ . '/public/index.php']);
+
+return (new PhpCsFixer\Config())
+    ->setCacheFile(__DIR__ . '/runtime/cache/.php-cs-fixer.cache')
     ->setRules([
+        '@PER-CS2x0' => true,
         '@PSR12' => true,
         '@Symfony' => true,
-        '@Yiisoft' => true,
     ])
-    ->setFinder(PhpCsFixer\Finder::create()
-        ->in('src')
-        ->append(['public/index.php', 'yii'])
-    );
+    ->setFinder($finder);
 ```
 
 #### `psalm.xml`
 ```xml
-<?xml
-<psalm errorLevel="1">
+<?xml version="1.0"?>
+<psalm errorLevel="1" errorBaseline="psalm-baseline.xml" findUnusedBaselineEntry="true">
     <projectFiles>
         <directory name="src"/>
         <file name="public/index.php"/>
@@ -404,21 +455,18 @@ return PhpCsFixer\Config::create()
 
 ### Target Metrics
 
-| Metric | Target | Current | Status |
-|--------|---------|---------|--------|
-| Psalm Errors | 0 | 0 | ✅ |
-| Test Coverage | 80% | 85.3% | ✅ |
-| Security Issues | 0 | 0 | ✅ |
-| Style Issues | 0 | 0 | ✅ |
+| Metric | Target | How to check |
+|--------|---------|--------|
+| Psalm Errors | 0 | `vendor/bin/psalm` |
+| Test Coverage | as high as practical | `php quality quality:check --coverage` |
+| Security Issues | 0 | `composer audit` |
+| Style Issues | 0 | `vendor/bin/php-cs-fixer check` |
 
 ### Monitoring Quality Trends
 
 ```bash
-# Generate quality trends
-php quality --report | grep -E "(errors|warnings|coverage)"
-
 # Track over time
-php quality --report > quality-report-$(date +%Y-%m-%d).txt
+php quality quality:check --report > quality-report-$(date +%Y-%m-%d).txt
 ```
 
 ## 🚨 Troubleshooting
@@ -428,8 +476,7 @@ php quality --report > quality-report-$(date +%Y-%m-%d).txt
 #### Memory Issues
 ```bash
 # Increase PHP memory limit
-export PHP_MEMORY_LIMIT=512M
-php quality
+php -d memory_limit=1G quality quality:check
 ```
 
 #### Performance Issues
@@ -440,8 +487,8 @@ vendor/bin/psalm --threads=4
 
 #### Cache Issues
 ```bash
-# Clear all caches
-rm -rf vendor/bin/.cache/
+# Clear tool caches
+rm -rf runtime/cache/*
 vendor/bin/psalm --clear-cache
 composer install
 ```
@@ -449,12 +496,13 @@ composer install
 ### Getting Help
 
 ```bash
-# Show available options
-php quality --help
+# Show available commands and options
+php quality list
+php quality quality:check --help
 
-# Check version
+# Check versions
 php --version
-composer show yiisoft/yii
+composer show yiisoft/yii-console
 composer show vimeo/psalm
 ```
 
@@ -463,7 +511,8 @@ composer show vimeo/psalm
 ### Documentation
 - [Psalm Documentation](https://psalm.dev/)
 - [PHP CS Fixer](https://cs.symfony.com/)
-- [PHPUnit](https://phpunit.de/)
+- [Codeception](https://codeception.com/) (test runner; PHPUnit underneath)
+- [Rector](https://github.com/rectorphp/rector), [Infection](https://infection.github.io/), [Composer Dependency Analyser](https://github.com/shipmonk-rnd/composer-dependency-analyser)
 - [Composer Audit](https://github.com/composer/composer/blob/main/src/Composer/Command/AuditCommand.php)
 
 ### Yii3 Specific

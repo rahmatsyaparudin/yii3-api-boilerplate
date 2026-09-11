@@ -14,6 +14,21 @@ Data Transfer Objects (DTOs) are simple data structures used to transfer data be
 src/Shared/Core/Dto/
 ├── PaginatedResult.php    # Paginated query results
 └── SearchCriteria.php     # Search and filtering criteria
+
+src/Application/Example/
+├── Command/
+│   ├── CreateExampleCommand.php   # Create use-case input
+│   └── UpdateExampleCommand.php   # Update use-case input
+└── Dto/
+    └── ExampleResponse.php        # Example response DTO
+
+src/Application/AnotherExample/
+├── Command/
+│   ├── CreateAnotherExampleCommand.php
+│   └── UpdateAnotherExampleCommand.php
+└── Dto/
+    ├── AnotherExampleResponse.php     # Response DTO
+    └── AnotherExampleDetailInfo.php   # detail_info payload DTO
 ```
 
 ### Design Principles
@@ -54,115 +69,53 @@ declare(strict_types=1);
 namespace App\Shared\Core\Dto;
 
 /**
- * Data Transfer Object for paginated results
+ * Data Transfer Object for paginated results (trimmed — see source for full docs).
  */
 final readonly class PaginatedResult
 {
     /**
-     * @param array<array<string, mixed>> $data Array of data items
-     * @param int $total Total number of items
-     * @param int $page Current page number
-     * @param int $pageSize Number of items per page
-     * @param int $totalPages Total number of pages
+     * @param array $data   The paginated data items
+     * @param int   $total    Total number of items across all pages
+     * @param int   $page     Current page number (1-based)
+     * @param int   $pageSize Number of items per page
+     * @param array $filter   Applied filters as key-value pairs
+     * @param array $sort     Applied sorting as field-direction pairs
      */
     public function __construct(
-        public readonly array $data,
-        public readonly int $total,
-        public readonly int $page,
-        public readonly int $pageSize,
-        public readonly int $totalPages
+        public array $data,
+        public int $total,
+        public int $page,
+        public int $pageSize,
+        public array $filter = [],
+        public array $sort = []
     ) {
+        if ($this->pageSize <= 0) {
+            $this->pageSize = 10;
+        }
     }
 
     /**
-     * Create from array data
+     * Calculate the total number of pages (returns 1 for empty results).
      */
-    public static function fromArray(
-        array $data,
-        int $total,
-        int $page,
-        int $pageSize
-    ): self {
-        $totalPages = (int) ceil($total / $pageSize);
-
-        return new self(
-            data: $data,
-            total: $total,
-            page: $page,
-            pageSize: $pageSize,
-            totalPages: $totalPages
-        );
-    }
-
-    /**
-     * Create empty result
-     */
-    public static function empty(int $page = 1, int $pageSize = 20): self
+    public function getTotalPages(): int
     {
-        return new self(
-            data: [],
-            total: 0,
-            page: $page,
-            pageSize: $pageSize,
-            totalPages: 0
-        );
+        return $this->total === 0 ? 1 : (int) \ceil($this->total / $this->pageSize);
     }
 
     /**
-     * Check if has data
+     * Metadata for API responses: applied filter, sort and pagination info.
      */
-    public function hasData(): bool
-    {
-        return !empty($this->data);
-    }
-
-    /**
-     * Check if has next page
-     */
-    public function hasNextPage(): bool
-    {
-        return $this->page < $this->totalPages;
-    }
-
-    /**
-     * Check if has previous page
-     */
-    public function hasPreviousPage(): bool
-    {
-        return $this->page > 1;
-    }
-
-    /**
-     * Get next page number
-     */
-    public function getNextPage(): ?int
-    {
-        return $this->hasNextPage() ? $this->page + 1 : null;
-    }
-
-    /**
-     * Get previous page number
-     */
-    public function getPreviousPage(): ?int
-    {
-        return $this->hasPreviousPage() ? $this->page - 1 : null;
-    }
-
-    /**
-     * Convert to array
-     */
-    public function toArray(): array
+    public function getMeta(): array
     {
         return [
-            'data' => $this->data,
-            'total' => $this->total,
-            'page' => $this->page,
-            'pageSize' => $this->pageSize,
-            'totalPages' => $this->totalPages,
-            'hasNextPage' => $this->hasNextPage(),
-            'hasPreviousPage' => $this->hasPreviousPage(),
-            'nextPage' => $this->getNextPage(),
-            'previousPage' => $this->getPreviousPage(),
+            'filter'     => $this->filter,
+            'sort'       => $this->sort,
+            'pagination' => [
+                'total'     => $this->total,
+                'display'   => \count($this->data),
+                'page'      => $this->page,
+                'page_size' => $this->pageSize,
+            ],
         ];
     }
 }
@@ -170,31 +123,30 @@ final readonly class PaginatedResult
 
 **Usage Example**:
 ```php
-// In repository
-public function findAll(SearchCriteria $criteria): PaginatedResult
-{
-    $query = $this->buildQuery($criteria);
-    $total = $this->countTotal($criteria);
-    
-    $data = $this->executeQuery($query)
-        ->offset($criteria->getOffset())
-        ->limit($criteria->getLimit())
-        ->fetchAll();
-    
-    return PaginatedResult::fromArray(
-        $data,
-        $total,
-        $criteria->getPage(),
-        $criteria->getLimit()
-    );
-}
+// In repository — ExampleRepository::list()
+return new PaginatedResult(
+    data: $rows,
+    total: $total,
+    page: $criteria->page,
+    pageSize: $criteria->pageSize,
+    filter: $criteria->filter,
+    sort: [
+        'by'  => $criteria->sortBy,
+        'dir' => $criteria->sortDir,
+    ]
+);
 
-// In controller
-public function actionIndex(SearchCriteria $criteria): array
-{
-    $results = $this->service->list($criteria);
-    return $results->toArray();
-}
+// In action — hand the meta block to ResponseFactory
+$result = $this->applicationService->list(criteria: $criteria);
+
+return $this->responseFactory->success(
+    data: $result->data,
+    translate: Message::create(
+        key: 'resource.list_retrieved',
+        params: ['resource' => $resource]
+    ),
+    meta: $result->getMeta(),
+);
 ```
 
 ---
@@ -211,331 +163,258 @@ declare(strict_types=1);
 namespace App\Shared\Core\Dto;
 
 /**
- * Data Transfer Object for search criteria
+ * Data Transfer Object for search criteria (trimmed — see source for full docs).
  */
 final readonly class SearchCriteria
 {
     /**
-     * @param array<string, mixed> $filters Filter criteria
-     * @param array<string, string> $sort Sorting criteria
-     * @param int $page Page number (1-based)
-     * @param int $limit Items per page
+     * @param array    $filter      Search filters as key-value pairs
+     * @param int      $page        Current page number (1-based)
+     * @param int      $pageSize    Number of items per page (default: 10)
+     * @param string   $sortBy      Field to sort by (default: 'id')
+     * @param string   $sortDir     Sort direction 'asc' or 'desc' (default: 'desc')
+     * @param int|null $offset      Manual offset override (optional)
+     * @param array    $allowedSort Allowed sortable fields with column mapping
      */
     public function __construct(
-        public readonly array $filters = [],
-        public readonly array $sort = [],
-        public readonly int $page = 1,
-        public readonly int $limit = 20
+        public array $filter,
+        public int $page,
+        public int $pageSize = 10,
+        public string $sortBy = 'id',
+        public string $sortDir = 'desc',
+        public ?int $offset = null,
+        private array $allowedSort = ['id' => 'id'],
     ) {
     }
 
     /**
-     * Create from request parameters
+     * Calculate the database offset: (page - 1) * pageSize.
      */
-    public static function fromArray(array $params): self
+    public function calculateOffset(): int
     {
-        $filters = $params['filters'] ?? [];
-        $sort = $params['sort'] ?? [];
-        $page = (int) ($params['page'] ?? 1);
-        $limit = (int) ($params['limit'] ?? 20);
+        return ($this->page - 1) * $this->pageSize;
+    }
 
-        // Validate page number
-        if ($page < 1) {
-            $page = 1;
-        }
+    /**
+     * Order clause for the query builder, e.g. ['name' => SORT_ASC].
+     * Falls back to the first allowed sort column when $sortBy is not allowed.
+     */
+    public function getOrderClause(): array
+    {
+        $column    = $this->allowedSort[$this->sortBy] ?? \array_values($this->allowedSort)[0];
+        $direction = \strtolower($this->sortDir) === 'desc' ? SORT_DESC : SORT_ASC;
 
-        // Validate limit
-        if ($limit < 1 || $limit > 100) {
-            $limit = 20;
-        }
+        return [$column => $direction];
+    }
+}
+```
 
-        return new self(
-            filters: $filters,
-            sort: $sort,
-            page: $page,
-            limit: $limit
+`SearchCriteria` is normally not constructed by hand — actions build it through
+`SearchCriteriaFactory` (`src/Application/Shared/Core/Factory/SearchCriteriaFactory.php`)
+from the `RequestParams` payload parsed by `RequestParamsMiddleware`:
+
+```php
+final class SearchCriteriaFactory
+{
+    public function createFromRequest(
+        RequestParams $params,
+        array $allowedSort,
+        int $defaultPageSize = 15
+    ): SearchCriteria {
+        $pagination = $params->getPagination();
+        $sort       = $params->getSort();
+
+        return new SearchCriteria(
+            filter: $params->getFilter()->toArray(),
+            page: $pagination->page ?? 1,
+            pageSize: $pagination->page_size ?? $defaultPageSize,
+            sortBy: $sort->by ?? \array_key_first($allowedSort),
+            sortDir: $sort->dir ?? 'desc',
+            allowedSort: $allowedSort
         );
-    }
-
-    /**
-     * Create from HTTP request
-     */
-    public static function fromRequest(array $queryParams): self
-    {
-        return self::fromArray($queryParams);
-    }
-
-    /**
-     * Get offset for database query
-     */
-    public function getOffset(): int
-    {
-        return ($this->page - 1) * $this->limit;
-    }
-
-    /**
-     * Add filter
-     */
-    public function withFilter(string $key, mixed $value): self
-    {
-        $filters = $this->filters;
-        $filters[$key] = $value;
-
-        return new self(
-            filters: $filters,
-            sort: $this->sort,
-            page: $this->page,
-            limit: $this->limit
-        );
-    }
-
-    /**
-     * Add sorting
-     */
-    public function withSort(string $field, string $direction): self
-    {
-        $sort = $this->sort;
-        $sort[$field] = $direction;
-
-        return new self(
-            filters: $filters,
-            sort: $sort,
-            page: $this->page,
-            limit: $this->limit
-        );
-    }
-
-    /**
-     * Set page
-     */
-    public function withPage(int $page): self
-    {
-        return new self(
-            filters: $filters,
-            sort: $sort,
-            page: max(1, $page),
-            limit: $this->limit
-        );
-    }
-
-    /**
-     * Set limit
-     */
-    public function withLimit(int $limit): self
-    {
-        return new self(
-            filters: $filters,
-            sort: $sort,
-            page: $this->page,
-            limit: max(1, min($limit, 100))
-        );
-    }
-
-    /**
-     * Check if has filters
-     */
-    public function hasFilters(): bool
-    {
-        return !empty($this->filters);
-    }
-
-    /**
-     * Check if has sorting
-     */
-    public function hasSort(): bool
-    {
-        return !empty($this->sort);
-    }
-
-    /**
-     * Get filter value
-     */
-    public function getFilter(string $key, mixed $default = null): mixed
-    {
-        return $this->filters[$key] ?? $default;
-    }
-
-    /**
-     * Get sort direction
-     */
-    public function getSort(string $field, string $default = 'asc'): string
-    {
-        return $this->sort[$field] ?? $default;
-    }
-
-    /**
-     * Convert to array
-     */
-    public function toArray(): array
-    {
-        return [
-            'filters' => $this->filters,
-            'sort' => $this->sort,
-            'page' => $this->page,
-            'limit' => $this->limit,
-            'offset' => $this->getOffset(),
-        ];
     }
 }
 ```
 
 **Usage Example**:
 ```php
-// In controller
-public function actionIndex(): array
-{
-    $criteria = SearchCriteria::fromRequest($this->request->getQueryParams());
-    
-    // Add filters dynamically
-    if ($this->request->getQueryParam('status')) {
-        $criteria = $criteria->withFilter('status', $this->request->getQueryParam('status'));
-    }
-    
-    // Add sorting
-    $criteria = $criteria->withSort('created_at', 'desc');
-    
-    // Set pagination
-    $criteria = $criteria->withPage(2)->withLimit(50);
-    
-    $results = $this->service->list($criteria);
-    return $results->toArray();
-}
+// In action (see ExampleDataAction)
+/** @var RequestParams $payload */
+$payload = $request->getAttribute('payload');
 
-// In repository
-public function findAll(SearchCriteria $criteria): PaginatedResult
-{
-    $query = $this->createQueryBuilder();
-    
-    // Apply filters
-    foreach ($criteria->filters as $field => $value) {
-        $query->where($field, $value);
-    }
-    
-    // Apply sorting
-    foreach ($criteria->sort as $field => $direction) {
-        $query->orderBy($field, $direction);
-    }
-    
-    // Get total count
-    $total = $query->count();
-    
-    // Get paginated results
-    $data = $query
-        ->offset($criteria->getOffset())
-        ->limit($criteria->limit)
-        ->fetchAll();
-    
-    return PaginatedResult::fromArray(
-        $data,
-        $total,
-        $criteria->page,
-        $criteria->limit
-    );
-}
+$criteria = $this->factory->createFromRequest(
+    params: $payload,
+    allowedSort: ['id' => 'id', 'name' => 'name', 'status' => 'status']
+);
+
+$result = $this->applicationService->list(criteria: $criteria);
+
+// In repository (see ExampleRepository::list)
+$query = (new Query($this->db))
+    ->select(['id', 'name', 'status', 'detail_info', SyncMdb::field(), LockVersion::field()])
+    ->from(self::TABLE_NAME)
+    ->where($this->scopeWhereNotDeleted());
+
+// Whitelisted exact-match filters + 'name' LIKE search
+$this->queryConditionApplier->filterByExactMatch(
+    query: $query,
+    filters: $criteria->filter,
+    allowedColumns: ['id', 'status', SyncMdb::field()]
+);
+
+$total = (clone $query)->count();
+
+$query->orderBy($criteria->getOrderClause())
+    ->limit($criteria->pageSize)
+    ->offset($criteria->calculateOffset());
 ```
 
 ---
 
 ## 🔧 Integration Patterns
 
-### 1. **Controller Usage**
+### 1. **Action Usage**
 ```php
-final class ExampleController
+// src/Api/V1/Example/Action/ExampleDataAction.php (simplified)
+final class ExampleDataAction
 {
+    private const ALLOWED_KEYS = ['id', 'name', 'status'];
+    private const ALLOWED_SORT = ['id' => 'id', 'name' => 'name', 'status' => 'status'];
+
     public function __construct(
-        private ExampleApplicationService $service
+        private SearchCriteriaFactory $factory,
+        private ExampleInputValidator $inputValidator,
+        private ExampleApplicationService $applicationService,
+        private ResponseFactory $responseFactory,
     ) {}
-    
-    public function actionIndex(): array
+
+    public function __invoke(ServerRequestInterface $request): ResponseInterface
     {
-        $criteria = SearchCriteria::fromRequest($this->request->getQueryParams());
-        
-        // Apply business logic filters
-        if ($this->getUser()->hasRole('admin')) {
-            $criteria = $criteria->withFilter('include_deleted', true);
-        }
-        
-        $results = $this->service->list($criteria);
-        return $results->toArray();
+        /** @var RequestParams $payload */
+        $payload = $request->getAttribute('payload');
+
+        $filter = $payload->getFilter()
+            ->onlyAllowed(allowedKeys: self::ALLOWED_KEYS)
+            ->with('status', RecordStatus::DRAFT->value);
+
+        $this->inputValidator->validate(data: $filter, context: ValidationContext::SEARCH);
+
+        $criteria = $this->factory->createFromRequest(
+            params: $payload,
+            allowedSort: self::ALLOWED_SORT
+        );
+
+        $result = $this->applicationService->list(criteria: $criteria);
+
+        return $this->responseFactory->success(
+            data: $result->data,
+            translate: Message::create(key: 'resource.list_retrieved', params: [
+                'resource' => $this->applicationService->getResource(),
+            ]),
+            meta: $result->getMeta(),
+        );
     }
 }
 ```
 
 ### 2. **Service Usage**
 ```php
-final class ExampleApplicationService
+// src/Application/Example/ExampleApplicationService.php
+public function list(SearchCriteria $criteria): PaginatedResult
 {
-    public function __construct(
-        private ExampleRepositoryInterface $repository
-    ) {}
-    
-    public function list(SearchCriteria $criteria): PaginatedResult
-    {
-        // Apply business rules
-        $criteria = $this->applyBusinessRules($criteria);
-        
-        return $this->repository->findAll($criteria);
-    }
-    
-    private function applyBusinessRules(SearchCriteria $criteria): SearchCriteria
-    {
-        // Example: Only show active records for regular users
-        if (!$this->currentUser->isAdmin()) {
-            $criteria = $criteria->withFilter('status', 'active');
-        }
-        
-        return $criteria;
-    }
+    return $this->repository->list(criteria: $criteria);
 }
 ```
 
 ### 3. **Repository Usage**
 ```php
-final class ExampleRepository
+// src/Infrastructure/Common/Persistence/Example/ExampleRepository.php (simplified)
+public function list(SearchCriteria $criteria): PaginatedResult
+{
+    $query = (new Query($this->db))
+        ->select(['id', 'name', 'status', 'detail_info', SyncMdb::field(), LockVersion::field()])
+        ->from(self::TABLE_NAME)
+        ->where($this->scopeWhereNotDeleted());
+
+    $this->queryConditionApplier->filterByExactMatch(
+        query: $query,
+        filters: $criteria->filter,
+        allowedColumns: ['id', 'status', SyncMdb::field()]
+    );
+
+    if (!empty($criteria->filter['name'])) {
+        $this->queryConditionApplier->orLike(
+            query: $query,
+            operator: 'ilike',
+            conditions: ['name' => $criteria->filter['name']]
+        );
+    }
+
+    $total = (clone $query)->count();
+
+    $query->orderBy($criteria->getOrderClause())
+        ->limit($criteria->pageSize)
+        ->offset($criteria->calculateOffset());
+
+    return new PaginatedResult(
+        data: \iterator_to_array($this->streamRows(query: $query, jsonKeys: [])),
+        total: $total,
+        page: $criteria->page,
+        pageSize: $criteria->pageSize,
+        filter: $criteria->filter,
+        sort: ['by' => $criteria->sortBy, 'dir' => $criteria->sortDir]
+    );
+}
+```
+
+### 4. **Application-Layer DTOs (Commands & Responses)**
+
+Commands carry validated input into the application service; response DTOs carry
+entity data back to the API layer:
+
+```php
+// src/Application/Example/Command/CreateExampleCommand.php
+final readonly class CreateExampleCommand
 {
     public function __construct(
-        private ConnectionInterface $db
+        public string $name,
+        public int $status,
+        public ?array $detailInfo,
     ) {}
-    
-    public function findAll(SearchCriteria $criteria): PaginatedResult
+
+    public static function create(
+        string $name,
+        int $status,
+        ?array $detailInfo = null,
+    ): self {
+        return new self(name: $name, status: $status, detailInfo: $detailInfo);
+    }
+}
+
+// src/Application/Example/Dto/ExampleResponse.php
+final readonly class ExampleResponse
+{
+    public function __construct(
+        public int $id,
+        public string $name,
+        public int $status,
+        public array $detail_info,
+        public ?int $sync_mdb,
+        public int $lock_version,
+    ) {}
+
+    public static function fromEntity(Example $entity): self { /* ... */ }
+
+    public function toArray(): array
     {
-        $query = $this->db->createQueryBuilder()
-            ->select('*')
-            ->from('example');
-        
-        // Apply filters
-        foreach ($criteria->filters as $field => $value) {
-            if (is_array($value)) {
-                $query->andWhere([$field => $value]);
-            } else {
-                $query->andWhere([$field => $value]);
-            }
-        }
-        
-        // Apply sorting
-        foreach ($criteria->sort as $field => $direction) {
-            $query->addOrderBy([$field => $direction]);
-        }
-        
-        // Get total count
-        $totalQuery = clone $query;
-        $total = $totalQuery->count();
-        
-        // Get paginated results
-        $data = $query
-            ->offset($criteria->getOffset())
-            ->limit($criteria->limit)
-            ->fetchAll();
-        
-        return PaginatedResult::fromArray(
-            $data,
-            $total,
-            $criteria->page,
-            $criteria->limit
-        );
+        return \get_object_vars($this);
     }
 }
 ```
+
+`AnotherExample` adds `example_id`, `origin_id` and `sync_flag` to its command/response
+DTOs (see `CreateAnotherExampleCommand`, `AnotherExampleResponse`,
+`AnotherExampleDetailInfo`).
 
 ---
 

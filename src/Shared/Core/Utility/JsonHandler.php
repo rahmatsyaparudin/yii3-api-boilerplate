@@ -58,10 +58,12 @@ final class JsonHandler
     /**
      * Encode data menjadi string JSON.
      */
-    public function encode(mixed $value): string
+    public function encode(mixed $value, int $flags = 0): string
     {
         try {
-            return \json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            $encoded = \json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | $flags);
+
+            return $encoded === false ? '[]' : $encoded;
         } catch (\JsonException) {
             return '[]';
         }

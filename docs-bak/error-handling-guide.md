@@ -12,824 +12,262 @@ Error handling utilities provide centralized error processing, response formatti
 
 ```
 src/Shared/Core/ErrorHandler/
-└── ErrorHandlerResponse.php    # Error response formatting
+└── ErrorHandlerResponse.php       # ThrowableRendererInterface → JSON ErrorData
+
+src/Api/Shared/
+├── ExceptionResponderFactory.php  # Builds Yiisoft ExceptionResponder middleware
+├── NotFoundMiddleware.php         # Terminal 404 responder for unmatched routes
+├── ResponseFactory.php            # success() / fail() / notFound() / failValidation()
+└── Presenter/
+    ├── AsIsPresenter.php
+    ├── CollectionPresenter.php
+    ├── FailPresenter.php
+    ├── OffsetPaginatorPresenter.php
+    ├── PresenterInterface.php
+    ├── SuccessPresenter.php
+    ├── SuccessWithMetaPresenter.php
+    └── ValidationResultPresenter.php
+
+src/Infrastructure/Core/Monitoring/
+└── ErrorMonitoringMiddleware.php  # Captures errors/exceptions for monitoring
 ```
 
 ### Design Principles
 
-#### **1. **Consistency**
-- Standardized error response format
-- Consistent HTTP status codes
-- Uniform error message structure
+#### **1. Consistency**
+- Standardized error response format: `{code, success: false, message, errors}`
+- Consistent HTTP status codes driven by `HttpException::getHttpStatusCode()`
+- Uniform error message structure via localized `Message` value objects
 
-#### **2. **Centralization**
-- Single point for error processing
-- Centralized error logging
-- Unified error response generation
+#### **2. Centralization**
+- `Yiisoft\ErrorHandler\Middleware\ErrorCatcher` catches uncaught throwables
+- `Yiisoft\ErrorHandler\Middleware\ExceptionResponder` (built by `ExceptionResponderFactory`) maps exceptions to responses
+- `ErrorHandlerResponse` renders the final JSON error body
 
-#### **3. **Security**
-- Safe error information exposure
-- Prevent information leakage
-- Proper error sanitization
+#### **3. Security**
+- Stack traces (`trace` key) only when `APP_ENV=dev` **and** `APP_DEBUG=1`
+- Business exceptions from `App\Shared\Core\Exception` never leak internals
+- Sensitive detail stays out of responses; monitoring middleware controls what's logged
 
-#### **4. **Debuggability**
-- Detailed error information in development
-- Stack traces for debugging
-- Contextual error data
+#### **4. Debuggability**
+- `renderVerbose()` / dev mode adds `trace` with type, message, code, file, line, and up to 10 stack frames
+- `ErrorMonitoringMiddleware` can capture exceptions per `app/monitoring.error_monitoring` params
 
 ---
 
 ## 📁 Error Handling Components
 
-### ErrorHandlerResponse
+### 1. ErrorHandlerResponse
 
-**Purpose**: Error response formatting and generation
+**Location**: `src/Shared/Core/ErrorHandler/ErrorHandlerResponse.php`
+
+**Purpose**: Renders any `Throwable` into a standardized JSON error body. It implements `Yiisoft\ErrorHandler\ThrowableRendererInterface` and is used by the framework's `ErrorCatcher` middleware.
 
 ```php
-<?php
+final readonly class ErrorHandlerResponse implements ThrowableRendererInterface
+{
+    public function render(\Throwable $t, ?ServerRequestInterface $request = null): ErrorData;
+    public function renderVerbose(\Throwable $t, ?ServerRequestInterface $request = null): ErrorData;
+}
+```
 
-declare(strict_types=1);
+**Response format** (`formatErrorResponse()`):
+```json
+{
+    "code": 500,
+    "success": false,
+    "message": "Something went wrong",
+    "errors": []
+}
+```
 
-namespace App\Shared\Core\ErrorHandler;
+- `errors` is populated only for `ValidationException` (from `$e->getErrors()`)
+- `renderVerbose()` adds a `trace` object: `{type, message, code, file, line, trace: [...10 frames]}`
 
-use App\Shared\Core\Exception\HttpException;
-use App\Shared\Core\ValueObject\Message;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Yiisoft\Http\Status;
-use Yiisoft\Translator\TranslatorInterface;
+**Usage Example**:
+```php
+$renderer = new ErrorHandlerResponse();
+$errorData = $renderer->render($exception, $request);
+// $errorData->getBody()    → JSON string
+// $errorData->getHeaders() → ['Content-Type' => 'application/json']
+```
 
-/**
- * Error Handler Response
- */
-final class ErrorHandlerResponse
+### 2. ExceptionResponderFactory
+
+**Location**: `src/Api/Shared/ExceptionResponderFactory.php`
+
+**Purpose**: Builds the `Yiisoft\ErrorHandler\Middleware\ExceptionResponder` middleware with per-exception-type handlers. Registered in the middleware stack in `config/web/di/application.php`.
+
+```php
+final readonly class ExceptionResponderFactory
 {
     public function __construct(
+        private ResponseFactoryInterface $psrResponseFactory,
+        private ResponseFactory $apiResponseFactory,
         private TranslatorInterface $translator,
-        private bool $debug = false
+        private Injector $injector,
     ) {}
 
-    /**
-     * Create error response from exception
-     */
-    public function createFromException(
-        \Throwable $exception,
-        ServerRequestInterface $request
-    ): ResponseInterface {
-        $errorData = $this->extractErrorData($exception, $request);
-        
-        $response = new Response();
-        $response->getBody()->write(json_encode([
-            'error' => $errorData
-        ]));
-        
-        return $response
-            ->withStatus($errorData['status'])
-            ->withHeader('Content-Type', 'application/json');
-    }
-
-    /**
-     * Create error response from HttpException
-     */
-    public function createFromHttpException(
-        HttpException $exception,
-        ServerRequestInterface $request
-    ): ResponseInterface {
-        $errorData = $this->extractHttpErrorData($exception, $request);
-        
-        $response = new Response();
-        $response->getBody()->write(json_encode([
-            'error' => $errorData
-        ]));
-        
-        return $response
-            ->withStatus($exception->getStatusCode())
-            ->withHeader('Content-Type', 'application/json');
-    }
-
-    /**
-     * Create validation error response
-     */
-    public function createValidationResponse(
-        array $errors,
-        ServerRequestInterface $request
-    ): ResponseInterface {
-        $errorData = [
-            'type' => 'validation_error',
-            'message' => 'Validation failed',
-            'status' => Status::UNPROCESSABLE_ENTITY,
-            'errors' => $this->formatValidationErrors($errors),
-            'timestamp' => date('c'),
-            'path' => $request->getUri()->getPath(),
-        ];
-
-        if ($this->debug) {
-            $errorData['debug'] = [
-                'request_id' => $this->getRequestId($request),
-                'request_data' => $this->getRequestData($request),
-            ];
-        }
-
-        $response = new Response();
-        $response->getBody()->write(json_encode([
-            'error' => $errorData
-        ]));
-        
-        return $response
-            ->withStatus(Status::UNPROCESSABLE_ENTITY)
-            ->withHeader('Content-Type', 'application/json');
-    }
-
-    /**
-     * Create not found response
-     */
-    public function createNotFoundResponse(
-        string $resource = '',
-        ServerRequestInterface $request
-    ): ResponseInterface {
-        $message = $resource 
-            ? "Resource '{$resource}' not found"
-            : 'Resource not found';
-
-        $errorData = [
-            'type' => 'not_found',
-            'message' => $message,
-            'status' => Status::NOT_FOUND,
-            'timestamp' => date('c'),
-            'path' => $request->getUri()->getPath(),
-        ];
-
-        if ($this->debug) {
-            $errorData['debug'] = [
-                'request_id' => $this->getRequestId($request),
-                'resource' => $resource,
-            ];
-        }
-
-        $response = new Response();
-        $response->getBody()->write(json_encode([
-            'error' => $errorData
-        ]));
-        
-        return $response
-            ->withStatus(Status::NOT_FOUND)
-            ->withHeader('Content-Type', 'application/json');
-    }
-
-    /**
-     * Create unauthorized response
-     */
-    public function createUnauthorizedResponse(
-        string $message = 'Authentication required',
-        ServerRequestInterface $request
-    ): ResponseInterface {
-        $errorData = [
-            'type' => 'unauthorized',
-            'message' => $message,
-            'status' => Status::UNAUTHORIZED,
-            'timestamp' => date('c'),
-            'path' => $request->getUri()->getPath(),
-        ];
-
-        if ($this->debug) {
-            $errorData['debug'] = [
-                'request_id' => $this->getRequestId($request),
-                'auth_headers' => $this->getAuthHeaders($request),
-            ];
-        }
-
-        $response = new Response();
-        $response->getBody()->write(json_encode([
-            'error' => $errorData
-        ]));
-        
-        return $response
-            ->withStatus(Status::UNAUTHORIZED)
-            ->withHeader('Content-Type', 'application/json');
-    }
-
-    /**
-     * Create forbidden response
-     */
-    public function createForbiddenResponse(
-        string $message = 'Access denied',
-        ServerRequestInterface $request
-    ): ResponseInterface {
-        $errorData = [
-            'type' => 'forbidden',
-            'message' => $message,
-            'status' => Status::FORBIDDEN,
-            'timestamp' => date('c'),
-            'path' => $request->getUri()->getPath(),
-        ];
-
-        if ($this->debug) {
-            $errorData['debug'] = [
-                'request_id' => $this->getRequestId($request),
-                'user_info' => $this->getUserInfo($request),
-            ];
-        }
-
-        $response = new Response();
-        $response->getBody()->write(json_encode([
-            'error' => $errorData
-        ]));
-        
-        return $response
-            ->withStatus(Status::FORBIDDEN)
-            ->withHeader('Content-Type', 'application/json');
-    }
-
-    /**
-     * Create rate limit response
-     */
-    public function createRateLimitResponse(
-        int $retryAfter = 60,
-        ServerRequestInterface $request
-    ): ResponseInterface {
-        $errorData = [
-            'type' => 'rate_limit_exceeded',
-            'message' => 'Too many requests',
-            'status' => Status::TOO_MANY_REQUESTS,
-            'timestamp' => date('c'),
-            'path' => $request->getUri()->getPath(),
-            'retry_after' => $retryAfter,
-        ];
-
-        if ($this->debug) {
-            $errorData['debug'] = [
-                'request_id' => $this->getRequestId($request),
-                'rate_limit_info' => $this->getRateLimitInfo($request),
-            ];
-        }
-
-        $response = new Response();
-        $response->getBody()->write(json_encode([
-            'error' => $errorData
-        ]));
-        
-        return $response
-            ->withStatus(Status::TOO_MANY_REQUESTS)
-            ->withHeader('Content-Type', 'application/json')
-            ->withHeader('Retry-After', (string) $retryAfter);
-    }
-
-    /**
-     * Create server error response
-     */
-    public function createServerErrorResponse(
-        \Throwable $exception,
-        ServerRequestInterface $request
-    ): ResponseInterface {
-        $errorData = [
-            'type' => 'internal_server_error',
-            'message' => 'Internal server error',
-            'status' => Status::INTERNAL_SERVER_ERROR,
-            'timestamp' => date('c'),
-            'path' => $request->getUri()->getPath(),
-        ];
-
-        if ($this->debug) {
-            $errorData['debug'] = [
-                'request_id' => $this->getRequestId($request),
-                'exception' => $this->formatException($exception),
-                'stack_trace' => $exception->getTraceAsString(),
-            ];
-        }
-
-        $response = new Response();
-        $response->getBody()->write(json_encode([
-            'error' => $errorData
-        ]));
-        
-        return $response
-            ->withStatus(Status::INTERNAL_SERVER_ERROR)
-            ->withHeader('Content-Type', 'application/json');
-    }
-
-    /**
-     * Extract error data from exception
-     */
-    private function extractErrorData(
-        \Throwable $exception,
-        ServerRequestInterface $request
-    ): array {
-        $errorData = [
-            'type' => $this->getErrorType($exception),
-            'message' => $this->getErrorMessage($exception),
-            'status' => $this->getErrorStatus($exception),
-            'timestamp' => date('c'),
-            'path' => $request->getUri()->getPath(),
-        ];
-
-        if ($this->debug) {
-            $errorData['debug'] = [
-                'request_id' => $this->getRequestId($request),
-                'exception' => $this->formatException($exception),
-                'stack_trace' => $exception->getTraceAsString(),
-                'request_data' => $this->getRequestData($request),
-            ];
-        }
-
-        return $errorData;
-    }
-
-    /**
-     * Extract HTTP error data
-     */
-    private function extractHttpErrorData(
-        HttpException $exception,
-        ServerRequestInterface $request
-    ): array {
-        $errorData = [
-            'type' => $exception->getType(),
-            'message' => $this->getHttpErrorMessage($exception),
-            'status' => $exception->getStatusCode(),
-            'timestamp' => date('c'),
-            'path' => $request->getUri()->getPath(),
-        ];
-
-        if ($this->debug) {
-            $errorData['debug'] = [
-                'request_id' => $this->getRequestId($request),
-                'details' => $exception->getDetails(),
-            ];
-        }
-
-        return $errorData;
-    }
-
-    /**
-     * Get error type
-     */
-    private function getErrorType(\Throwable $exception): string
+    public function create(): ExceptionResponder
     {
-        if ($exception instanceof HttpException) {
-            return $exception->getType();
-        }
-
-        return (new \ReflectionClass($exception))->getShortName();
-    }
-
-    /**
-     * Get error message
-     */
-    private function getErrorMessage(\Throwable $exception): string
-    {
-        if ($exception instanceof HttpException) {
-            return $this->getHttpErrorMessage($exception);
-        }
-
-        // In production, don't expose detailed error messages
-        if (!$this->debug) {
-            return 'Internal server error';
-        }
-
-        return $exception->getMessage();
-    }
-
-    /**
-     * Get HTTP error message
-     */
-    private function getHttpErrorMessage(HttpException $exception): string
-    {
-        $translateMessage = $exception->getTranslateMessage();
-        
-        if ($translateMessage) {
-            return $this->translator->translate(
-                $translateMessage->getKey(),
-                $translateMessage->getParams(),
-                $translateMessage->getDomain() ?? 'error'
-            );
-        }
-
-        return $exception->getMessage();
-    }
-
-    /**
-     * Get error status
-     */
-    private function getErrorStatus(\Throwable $exception): int
-    {
-        if ($exception instanceof HttpException) {
-            return $exception->getStatusCode();
-        }
-
-        return Status::INTERNAL_SERVER_ERROR;
-    }
-
-    /**
-     * Format validation errors
-     */
-    private function formatValidationErrors(array $errors): array
-    {
-        $formatted = [];
-        
-        foreach ($errors as $field => $message) {
-            $formatted[$field] = [
-                'message' => $message,
-                'code' => 'validation_error',
-            ];
-        }
-        
-        return $formatted;
-    }
-
-    /**
-     * Format exception for debug
-     */
-    private function formatException(\Throwable $exception): array
-    {
-        return [
-            'class' => get_class($exception),
-            'message' => $exception->getMessage(),
-            'code' => $exception->getCode(),
-            'file' => $exception->getFile(),
-            'line' => $exception->getLine(),
-            'trace' => $this->formatStackTrace($exception->getTrace()),
-        ];
-    }
-
-    /**
-     * Format stack trace
-     */
-    private function formatStackTrace(array $trace): array
-    {
-        return array_map(function ($frame) {
-            return [
-                'function' => $frame['function'] ?? 'unknown',
-                'class' => $frame['class'] ?? null,
-                'file' => $frame['file'] ?? null,
-                'line' => $frame['line'] ?? null,
-                'type' => $frame['type'] ?? null,
-            ];
-        }, array_slice($trace, 0, 10)); // Limit to 10 frames
-    }
-
-    /**
-     * Get request ID
-     */
-    private function getRequestId(ServerRequestInterface $request): string
-    {
-        return $request->getAttribute('request_id') ?? uniqid('req_');
-    }
-
-    /**
-     * Get request data
-     */
-    private function getRequestData(ServerRequestInterface $request): array
-    {
-        return [
-            'method' => $request->getMethod(),
-            'uri' => (string) $request->getUri(),
-            'headers' => $this->sanitizeHeaders($request->getHeaders()),
-            'query_params' => $request->getQueryParams(),
-            'body_params' => $this->sanitizeBodyParams($request->getParsedBody()),
-        ];
-    }
-
-    /**
-     * Get auth headers
-     */
-    private function getAuthHeaders(ServerRequestInterface $request): array
-    {
-        $headers = $request->getHeaders();
-        
-        return [
-            'authorization' => $headers['authorization'][0] ?? null,
-            'x-api-key' => $headers['x-api-key'][0] ?? null,
-            'cookie' => $headers['cookie'][0] ?? null,
-        ];
-    }
-
-    /**
-     * Get user info
-     */
-    private function getUserInfo(ServerRequestInterface $request): ?array
-    {
-        $user = $request->getAttribute('user');
-        
-        if ($user === null) {
-            return null;
-        }
-        
-        return [
-            'id' => method_exists($user, 'getId') ? $user->getId() : null,
-            'email' => method_exists($user, 'getEmail') ? $user->getEmail() : null,
-            'roles' => method_exists($user, 'getRoles') ? $user->getRoles() : [],
-        ];
-    }
-
-    /**
-     * Get rate limit info
-     */
-    private function getRateLimitInfo(ServerRequestInterface $request): array
-    {
-        return [
-            'identifier' => $this->getRateLimitIdentifier($request),
-            'endpoint' => $this->getRateLimitEndpoint($request),
-        ];
-    }
-
-    /**
-     * Get rate limit identifier
-     */
-    private function getRateLimitIdentifier(ServerRequestInterface $request): string
-    {
-        $user = $request->getAttribute('user');
-        
-        if ($user && method_exists($user, 'getId')) {
-            return 'user:' . $user->getId();
-        }
-        
-        return 'ip:' . ($request->getServerParams()['REMOTE_ADDR'] ?? 'unknown');
-    }
-
-    /**
-     * Get rate limit endpoint
-     */
-    private function getRateLimitEndpoint(ServerRequestInterface $request): string
-    {
-        $path = $request->getUri()->getPath();
-        
-        if (str_starts_with($path, '/api/auth')) {
-            return 'auth';
-        }
-        
-        if (str_starts_with($path, '/api/upload')) {
-            return 'upload';
-        }
-        
-        return 'default';
-    }
-
-    /**
-     * Sanitize headers for debug output
-     */
-    private function sanitizeHeaders(array $headers): array
-    {
-        $sanitized = [];
-        
-        foreach ($headers as $name => $values) {
-            // Remove sensitive headers
-            if (in_array(strtolower($name), ['authorization', 'cookie', 'x-api-key'], true)) {
-                $sanitized[$name] = ['***'];
-            } else {
-                $sanitized[$name] = $values;
-            }
-        }
-        
-        return $sanitized;
-    }
-
-    /**
-     * Sanitize body params for debug output
-     */
-    private function sanitizeBodyParams(mixed $params): mixed
-    {
-        if (!is_array($params)) {
-            return $params;
-        }
-        
-        $sanitized = [];
-        
-        foreach ($params as $key => $value) {
-            // Remove sensitive fields
-            if (in_array(strtolower($key), ['password', 'token', 'secret', 'key'], true)) {
-                $sanitized[$key] = '***';
-            } else {
-                $sanitized[$key] = $value;
-            }
-        }
-        
-        return $sanitized;
-    }
-
-    /**
-     * Create error response with custom data
-     */
-    public function createCustomErrorResponse(
-        string $type,
-        string $message,
-        int $status,
-        array $customData = [],
-        ServerRequestInterface $request
-    ): ResponseInterface {
-        $errorData = [
-            'type' => $type,
-            'message' => $message,
-            'status' => $status,
-            'timestamp' => date('c'),
-            'path' => $request->getUri()->getPath(),
-        ];
-
-        if (!empty($customData)) {
-            $errorData['data'] = $customData;
-        }
-
-        if ($this->debug) {
-            $errorData['debug'] = [
-                'request_id' => $this->getRequestId($request),
-            ];
-        }
-
-        $response = new Response();
-        $response->getBody()->write(json_encode([
-            'error' => $errorData
-        ]));
-        
-        return $response
-            ->withStatus($status)
-            ->withHeader('Content-Type', 'application/json');
-    }
-
-    /**
-     * Create maintenance response
-     */
-    public function createMaintenanceResponse(
-        string $message = 'System under maintenance',
-        ServerRequestInterface $request
-    ): ResponseInterface {
-        $errorData = [
-            'type' => 'maintenance',
-            'message' => $message,
-            'status' => Status::SERVICE_UNAVAILABLE,
-            'timestamp' => date('c'),
-            'path' => $request->getUri()->getPath(),
-        ];
-
-        if ($this->debug) {
-            $errorData['debug'] = [
-                'request_id' => $this->getRequestId($request),
-            ];
-        }
-
-        $response = new Response();
-        $response->getBody()->write(json_encode([
-            'error' => $errorData
-        ]));
-        
-        return $response
-            ->withStatus(Status::SERVICE_UNAVAILABLE)
-            ->withHeader('Content-Type', 'application/json');
+        return new ExceptionResponder(
+            [
+                InputValidationException::class => $this->inputValidationException(...),
+                NoChangesException::class       => $this->noChangesException(...),
+                \Throwable::class               => $this->throwable(...),
+            ],
+            $this->psrResponseFactory,
+            $this->injector,
+        );
     }
 }
 ```
+
+**Handler mapping**:
+
+| Exception | Result |
+|---|---|
+| `Yiisoft\Input\Http\InputValidationException` | `ResponseFactory::failValidation($result)` → HTTP 422 with field errors |
+| `NoChangesException` | `ResponseFactory::success(data, translate)` → HTTP 200 "no changes" response |
+| `HttpException` (and subclasses) | JSON error with `$e->getCode()` status and translated `getTranslateMessage()` |
+| `Yiisoft\ErrorHandler\Exception\UserException` | HTTP 400 with the exception message |
+| Any other `\Throwable` | HTTP 500 JSON error |
+
+**Throwable response format**:
+```json
+{
+    "code": 404,
+    "success": false,
+    "message": "The requested resource was not found",
+    "errors": []
+}
+```
+
+- For `HttpException`, `message` is translated via `TranslatorInterface::translate($message->getKey(), $message->getParams(), $message->getDomain() ?? 'error')`.
+- For `ValidationException`, `errors` contains the field-level errors.
+- A `trace` key is appended only when `APP_ENV=dev` **and** `APP_DEBUG=1`, and the exception is not a business exception from `App\Shared\Core\Exception` (except `ValidationException`, which may show details in dev).
+
+### 3. ResponseFactory
+
+**Location**: `src/Api/Shared/ResponseFactory.php`
+
+**Purpose**: Produces consistent API responses using the presenter classes. Used by `ExceptionResponderFactory` and by actions directly.
+
+```php
+final readonly class ResponseFactory
+{
+    public function success(
+        array|object|null $data = null,
+        ?array $meta = null,
+        string|Message|null $translate = null,
+        PresenterInterface $presenter = new AsIsPresenter(),
+    ): ResponseInterface;
+
+    public function fail(
+        array|object|null $data = null,
+        PresenterInterface $presenter = new AsIsPresenter(),
+        string|Message|null $translate = null,
+        ?int $httpCode = Status::BAD_REQUEST,
+    ): ResponseInterface;
+
+    public function notFound(string $message = 'Not found.'): ResponseInterface;
+
+    public function failValidation(Result $result): ResponseInterface;
+}
+```
+
+- `success()` — `SuccessPresenter`, or `SuccessWithMetaPresenter` when `$meta` is given; `Message` is translated with domain default `'success'`
+- `fail()` — `FailPresenter` with the given HTTP code; `Message` domain defaults to `'error'`
+- `notFound()` — `fail()` with `Message::create(key: 'http.not_found')` and HTTP 404
+- `failValidation()` — `fail()` with `ValidationResultPresenter`, `Message::create(key: 'validation.failed')`, HTTP 422
+
+### 4. NotFoundMiddleware
+
+**Location**: `src/Api/Shared/NotFoundMiddleware.php`
+
+Terminal middleware placed **after** `Router` in the stack — returns `ResponseFactory::notFound()` for any request that reaches it (i.e., no route matched).
+
+### 5. ErrorMonitoringMiddleware
+
+**Location**: `src/Infrastructure/Core/Monitoring/ErrorMonitoringMiddleware.php`
+
+Captures exceptions and PHP errors for monitoring per the `app/monitoring.error_monitoring` params (`capture_exceptions`, `ignore_exceptions`, `ignore_error_codes` like `[404, 422]`, `max_errors_per_request`, `include_stack_trace`).
 
 ---
 
 ## 🔧 Integration Patterns
 
-### 1. **Error Handler Middleware**
+### 1. **Middleware Stack**
+
+The real pipeline from `config/web/di/application.php` (top runs first):
+
 ```php
-final class ErrorHandlerMiddleware
-{
-    public function __construct(
-        private ErrorHandlerResponse $errorHandler,
-        private LoggerInterface $logger
-    ) {}
-
-    public function process(
-        ServerRequestInterface $request,
-        RequestHandlerInterface $handler
-    ): ResponseInterface {
-        try {
-            return $handler->handle($request);
-        } catch (HttpException $e) {
-            $this->logHttpException($e, $request);
-            return $this->errorHandler->createFromHttpException($e, $request);
-        } catch (\Throwable $e) {
-            $this->logException($e, $request);
-            return $this->errorHandler->createServerErrorResponse($e, $request);
-        }
-    }
-
-    private function logHttpException(HttpException $e, ServerRequestInterface $request): void
-    {
-        $this->logger->warning('HTTP Exception', [
-            'exception' => $e,
-            'request_id' => $request->getAttribute('request_id'),
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod(),
-            'user_id' => $this->getUserId($request),
-        ]);
-    }
-
-    private function logException(\Throwable $e, ServerRequestInterface $request): void
-    {
-        $this->logger->error('Unhandled Exception', [
-            'exception' => $e,
-            'request_id' => $request->getAttribute('request_id'),
-            'path' => $request->getUri()->getPath(),
-            'method' => $request->getMethod(),
-            'user_id' => $this->getUserId($request),
-        ]);
-    }
-
-    private function getUserId(ServerRequestInterface $request): ?int
-    {
-        $user = $request->getAttribute('user');
-        return $user && method_exists($user, 'getId') ? $user->getId() : null;
-    }
-}
+'withMiddlewares()' => [
+    [
+        FormatDataResponseAsJson::class,
+        static fn () => new ContentNegotiator([
+            'application/json' => new JsonDataResponseFormatter(),
+        ]),
+        ErrorCatcher::class,                                          // catches uncaught throwables
+        static fn (ExceptionResponderFactory $factory) => $factory->create(), // typed exception mapping
+        static fn () => new TrustedHostMiddleware(
+            $params['app/trusted_hosts']['allowedHosts'] ?? [],
+        ),
+        CorsMiddleware::class,
+        JwtMiddleware::class,
+        RequestIdMiddleware::class,
+        StructuredLoggingMiddleware::class,
+        MetricsMiddleware::class,
+        RateLimitMiddleware::class,
+        SecureHeadersMiddleware::class,
+        ErrorMonitoringMiddleware::class,
+        RequestBodyParser::class,
+        AccessMiddleware::class,
+        Router::class,
+        NotFoundMiddleware::class,                                    // 404 for unmatched routes
+    ],
+],
 ```
 
-### 2. **Exception Responder Factory**
+### 2. **Throwing Exceptions in Application Code**
+
+Let the middleware format errors — just throw the typed exception:
+
 ```php
-final class ExceptionResponderFactory
-{
-    public function __construct(
-        private ErrorHandlerResponse $errorHandler
-    ) {}
+use App\Shared\Core\Exception\NotFoundException;
+use App\Shared\Core\Exception\ValidationException;
+use App\Shared\Core\ValueObject\Message;
 
-    public function createNotFoundResponse(
-        NotFoundException $exception,
-        ServerRequestInterface $request
-    ): ResponseInterface {
-        return $this->errorHandler->createNotFoundResponse(
-            $exception->getTranslateMessage()?->getParams()['resource'] ?? '',
-            $request
-        );
-    }
+throw new NotFoundException(
+    translate: Message::create(
+        key: 'resource.not_found',
+        params: ['resource' => 'User', 'field' => 'id', 'value' => $id],
+    ),
+);
 
-    public function createValidationResponse(
-        ValidationException $exception,
-        ServerRequestInterface $request
-    ): ResponseInterface {
-        return $this->errorHandler->createValidationResponse(
-            $exception->getErrors(),
-            $request
-        );
-    }
-
-    public function createUnauthorizedResponse(
-        UnauthorizedException $exception,
-        ServerRequestInterface $request
-    ): ResponseInterface {
-        return $this->errorHandler->createUnauthorizedResponse(
-            $exception->getMessage(),
-            $request
-        );
-    }
-
-    public function createForbiddenResponse(
-        ForbiddenException $exception,
-        ServerRequestInterface $request
-    ): ResponseInterface {
-        return $this->errorHandler->createForbiddenResponse(
-            $exception->getMessage(),
-            $request
-        );
-    }
-
-    public function createRateLimitResponse(
-        TooManyRequestsException $exception,
-        ServerRequestInterface $request
-    ): ResponseInterface {
-        $retryAfter = $exception->getRetryAfter() ?? 60;
-        return $this->errorHandler->createRateLimitResponse($retryAfter, $request);
-    }
-
-    public function createErrorResponse(
-        HttpException $exception,
-        ServerRequestInterface $request
-    ): ResponseInterface {
-        return $this->errorHandler->createFromHttpException($exception, $request);
-    }
-}
+throw new ValidationException(
+    errors: ['email' => ['Invalid email format']],
+);
 ```
 
-### 3. **Controller Error Handling**
-```php
-final class ExampleController
-{
-    public function __construct(
-        private ExampleApplicationService $service,
-        private ExceptionResponderFactory $responderFactory
-    ) {}
+### 3. **Returning Errors from Actions**
 
-    public function actionCreate(): ResponseInterface
+Use `ResponseFactory` when you want a controlled error response without throwing:
+
+```php
+final class ExampleAction
+{
+    public function __construct(private ResponseFactory $responseFactory) {}
+
+    public function __invoke(ServerRequestInterface $request): ResponseInterface
     {
-        try {
-            $data = $this->request->getParsedBody();
-            $command = new CreateExampleCommand(
-                name: $data['name'],
-                email: $data['email']
+        if ($badInput) {
+            return $this->responseFactory->fail(
+                translate: Message::create(key: 'request.invalid_parameter', params: ['param' => 'email']),
             );
-            
-            $result = $this->service->create($command);
-            
-            return $this->responseFactory->success($result);
-            
-        } catch (ValidationException $e) {
-            return $this->responderFactory->createValidationResponse($e, $this->request);
-        } catch (NotFoundException $e) {
-            return $this->responderFactory->createNotFoundResponse($e, $this->request);
-        } catch (ConflictException $e) {
-            return $this->responderFactory->createErrorResponse($e, $this->request);
-        } catch (HttpException $e) {
-            return $this->responderFactory->createErrorResponse($e, $this->request);
         }
+
+        return $this->responseFactory->success($result);
     }
 }
 ```
@@ -838,42 +276,27 @@ final class ExampleController
 
 ## 🚀 Best Practices
 
-### 1. **Error Response Format**
+### 1. **Throw, Don't Format**
 ```php
-// ✅ Use standardized error format
-$errorData = [
-    'type' => 'validation_error',
-    'message' => 'Validation failed',
-    'status' => 422,
-    'timestamp' => date('c'),
-    'path' => $request->getUri()->getPath(),
-];
+// ✅ Throw typed exceptions; ExceptionResponder formats them
+throw new ForbiddenException(translate: Message::create(key: 'access.insufficient_permissions'));
 
-// ❌ Inconsistent format
-$errorData = [
-    'error' => 'Validation failed',
-    'code' => 422,
-];
+// ❌ Hand-build JSON error payloads inside actions
+return $response->withStatus(403)->withBody(...);
 ```
 
 ### 2. **Debug Information**
 ```php
-// ✅ Include debug info only in debug mode
-if ($this->debug) {
-    $errorData['debug'] = $debugInfo;
-}
-
-// ❌ Always include debug info
-$errorData['debug'] = $debugInfo;
+// ✅ Details are gated by APP_ENV=dev + APP_DEBUG=1 automatically
+// ❌ Don't add your own "debug" flag or leak traces in production
 ```
 
-### 3. **Security**
+### 3. **Localization**
 ```php
-// ✅ Sanitize sensitive data
-$sanitizedHeaders = $this->sanitizeHeaders($headers);
+// ✅ Use Message value objects so clients get localized messages
+translate: Message::create(key: 'resource.not_found', params: [...])
 
-// ❌ Expose sensitive data
-$errorData['headers'] = $headers;
+// ❌ Hardcode English strings when a message key exists
 ```
 
 ---
@@ -881,31 +304,27 @@ $errorData['headers'] = $headers;
 ## 📊 Performance Considerations
 
 ### 1. **Response Generation**
-- Use efficient JSON encoding
-- Limit debug information size
-- Cache error responses when possible
+- JSON is encoded once with `JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE`
+- `trace` is limited to 10 frames in `ErrorHandlerResponse` and excluded entirely outside dev mode
 
 ### 2. **Memory Usage**
-- Avoid large stack traces in production
-- Limit debug data size
-- Use efficient data structures
+- No stack traces in production responses
+- `ErrorMonitoringMiddleware` caps captured errors via `max_errors_per_request`
 
 ### 3. **Logging Overhead**
-- Log only essential information
-- Use appropriate log levels
-- Avoid expensive operations in error handling
+- `StructuredLoggingMiddleware` and `ErrorMonitoringMiddleware` are configurable via `app/monitoring` params (excluded paths, ignored status codes)
 
 ---
 
 ## 🎯 Summary
 
-Error handling utilities provide centralized, consistent error processing for the Yii3 API application. Key benefits include:
+Error handling in this boilerplate is centralized: `ErrorCatcher` + `ExceptionResponder` middleware convert exceptions into the standard `{code, success, message, errors}` JSON envelope, `ErrorHandlerResponse` renders fallback output, and `ResponseFactory`/presenters give actions a consistent way to return success and failure. Key benefits include:
 
 - **🔄 Consistency**: Standardized error response format
-- **🛡️ Security**: Safe error information exposure
-- **🔍 Debuggability**: Detailed error information in development
-- **📝 Logging**: Centralized error logging
+- **🛡️ Security**: Debug detail only in dev mode, no leakage from business exceptions
+- **🔍 Debuggability**: `trace` data when `APP_ENV=dev` and `APP_DEBUG=1`
+- **📝 Logging**: Monitoring middleware with configurable capture rules
 - **⚡ Performance**: Efficient error response generation
-- **🌐 Localization**: Translatable error messages
+- **🌐 Localization**: Translatable error messages via `Message` + `TranslatorInterface`
 
 By following the patterns and best practices outlined in this guide, you can build robust, maintainable error handling for your Yii3 API application! 🚀

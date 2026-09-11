@@ -1058,6 +1058,7 @@ docker-compose -f docker/prod/compose.yml logs -f
 - **[Architecture Guide](architecture-guide.md)**: Complete architecture overview
 - **[Quality Guide](quality-guide.md)**: Quality assurance procedures
 - **[API Documentation](docs/api/)**: API endpoint documentation
+- **[Sync Flag Guide](docs/sync-flag-guide.md)**: Master–origin record synchronization (`origin_id`/`sync_flag`)
 - **[Development Guide](docs/development/)**: Development setup and guidelines
 
 ### Generating Documentation
