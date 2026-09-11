@@ -3,32 +3,26 @@
 declare(strict_types=1);
 
 /**
- * Redis repository bindings (project-owned).
+ * Redis bindings (project-owned).
  *
- * Map each domain repository interface to its Redis implementation here.
- * This file is merged into config/common/di/db-redis.php, so anything
- * you add ends up in the "di" config group automatically.
+ * Redis is normally used as a side service (cache, queue, session, etc.).
+ * You may also use it as an alternative storage layer for a specific domain
+ * by binding the repository interface here. This file is merged into
+ * config/common/di/db-redis.php and is loaded AFTER common/repository.php,
+ * so any repository binding here will override the SQL default.
  *
  * Examples:
  *
- *   // Simple interface -> implementation binding
- *   UserRepositoryInterface::class => RedisUserRepository::class,
+ *   // Optional: override one repository to use Redis
+ *   // ExampleRepositoryInterface::class => RedisExampleRepository::class,
  *
- *   // Binding with constructor arguments and method injection
- *   ProductRepositoryInterface::class => [
- *       'class'                  => RedisProductRepository::class,
- *       'setLockVersionConfig()' => [Reference::to(LockVersionConfig::class)],
- *       '__construct()'          => [
- *           'prefix' => 'product',
- *       ],
- *   ],
+ *   // Additional Redis service (cache, queue, etc.)
+ *   // MyRedisCache::class => [
+ *   //     'class' => MyRedisCache::class,
+ *   //     '__construct()' => [
+ *   //         'prefix' => 'myapp',
+ *   //     ],
+ *   // ],
  */
 
-// Domain Layer
-use App\Domain\Example\ExampleRepositoryInterface;
-// Infrastructure Layer
-use App\Infrastructure\Core\Database\Redis\RedisExampleRepository;
-
-return [
-    ExampleRepositoryInterface::class => RedisExampleRepository::class,
-];
+return [];
