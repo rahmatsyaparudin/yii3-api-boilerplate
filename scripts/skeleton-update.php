@@ -94,6 +94,10 @@ class SkeletonInstaller
         echo "📁 Files copied: quality\n";
         echo "📦 Composer packages updated in composer.json\n";
         echo "📁 Packages added: firebase/php-jwt, psr/clock, vlucas/phpdotenv, yiisoft/* packages\n";
+
+        $versionFile = $this->projectRoot . '/scripts/skeleton.version';
+        $version = file_exists($versionFile) ? trim((string) file_get_contents($versionFile)) : 'unknown';
+        echo "\n\033[1;92m✨ Skeleton updated successfully to version {$version}\033[0m\n";
     }
 
     private function copyScripts(): void
@@ -122,7 +126,7 @@ class SkeletonInstaller
             return;
         }
 
-        echo "📜 Updating scripts (skeleton {$currentVersion} -> {$vendorVersion})...\n";
+        echo "\033[1;93m📜 Updating skeleton scripts: {$currentVersion} → {$vendorVersion}\033[0m\n";
 
         $targetScriptsPath = $this->projectRoot . '/scripts';
         if (!is_dir($targetScriptsPath)) {
