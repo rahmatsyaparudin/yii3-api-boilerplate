@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Domain\Shared\ValueObject;
 
 // Shared Layer
-use App\Shared\Exception\OptimisticLockException;
-use App\Shared\ValueObject\Message;
-use App\Shared\Enums\AppConstants;
+use App\Shared\Core\Enums\AppConstants;
+use App\Shared\Core\Exception\OptimisticLockException;
+use App\Shared\Core\ValueObject\Message;
 
 /**
- * Lock Version Value Object for Optimistic Locking
- * 
+ * Lock Version Value Object for Optimistic Locking.
+ *
  * Provides type-safe handling of version numbers for optimistic locking
  * with automatic increment functionality and validation.
  */
@@ -32,7 +32,7 @@ final readonly class LockVersion
     }
 
     /**
-     * Create a new lock version (starts at 1)
+     * Create a new lock version (starts at 1).
      */
     public static function create(): self
     {
@@ -40,7 +40,7 @@ final readonly class LockVersion
     }
 
     /**
-     * Create from database value
+     * Create from database value.
      */
     public static function fromInt(int $value): self
     {
@@ -48,7 +48,7 @@ final readonly class LockVersion
     }
 
     /**
-     * Create increment version
+     * Create increment version.
      */
     public function increment(): self
     {
@@ -56,7 +56,7 @@ final readonly class LockVersion
     }
 
     /**
-     * Get current value
+     * Get current value.
      */
     public function value(): int
     {
@@ -64,7 +64,7 @@ final readonly class LockVersion
     }
 
     /**
-     * Check if this is initial version (1)
+     * Check if this is initial version (1).
      */
     public function isInitial(): bool
     {
@@ -72,7 +72,7 @@ final readonly class LockVersion
     }
 
     /**
-     * Compare with another lock version
+     * Compare with another lock version.
      */
     public function equals(self $other): bool
     {
@@ -80,7 +80,7 @@ final readonly class LockVersion
     }
 
     /**
-     * Check if this version is greater than another
+     * Check if this version is greater than another.
      */
     public function isGreaterThan(self $other): bool
     {
@@ -88,7 +88,7 @@ final readonly class LockVersion
     }
 
     /**
-     * Get as integer for database storage
+     * Get as integer for database storage.
      */
     public function toInt(): int
     {
@@ -96,7 +96,7 @@ final readonly class LockVersion
     }
 
     /**
-     * Get as string for display
+     * Get as string for display.
      */
     public function toString(): string
     {
@@ -104,22 +104,17 @@ final readonly class LockVersion
     }
 
     /**
-     * Validate lock version value
+     * Validate lock version value.
      */
     private function validate(int $value): void
     {
         if ($value < 0) {
-            throw new OptimisticLockException(
-                translate: Message::create(
-                    key: 'lock_version.invalid_negative',
-                    params: ['value' => $value]
-                )
-            );
+            throw new OptimisticLockException(translate: Message::create(key: 'lock_version.invalid_negative', params: ['value' => $value]));
         }
     }
 
     /**
-     * Create from database nullable value
+     * Create from database nullable value.
      */
     public static function fromNullable(?int $value): self
     {

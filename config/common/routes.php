@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 // Domain Layer
 use App\Api;
-
 // Api Layer
-use App\Api\V1\Example\Action as ExampleV1;
 use App\Api\V1\AnotherExample\Action as AnotherExampleV1;
-
+use App\Api\V1\Example\Action as ExampleV1;
 // Shared Layer
-use App\Shared\Middleware\RequestParamsMiddleware;
-
+use App\Shared\Core\Middleware\RequestParamsMiddleware;
 // Vendor Layer
 use Yiisoft\Router\Group;
 use Yiisoft\Router\Route;
@@ -82,7 +79,5 @@ return [
                 ->action(AnotherExampleV1\AnotherExampleRestoreAction::class)
                 ->name('v1/another-example/restore')
                 ->defaults(['permission' => 'another-example.restore']),
-
         ),
 ];
-

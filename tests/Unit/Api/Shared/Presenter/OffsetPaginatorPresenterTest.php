@@ -39,9 +39,9 @@ final class OffsetPaginatorPresenterTest extends Unit
                     ['id' => 3, 'name' => 'Item 3'],
                     ['id' => 4, 'name' => 'Item 4'],
                 ],
-                'pageSize' => 2,
+                'pageSize'    => 2,
                 'currentPage' => 2,
-                'totalPages' => 3,
+                'totalPages'  => 3,
             ],
             $result->getData(),
         );
@@ -68,10 +68,10 @@ final class OffsetPaginatorPresenterTest extends Unit
 
         $this->assertSame(
             [
-                'items' => ['Item 1', 'Item 2'],
-                'pageSize' => 10,
+                'items'       => ['Item 1', 'Item 2'],
+                'pageSize'    => 10,
                 'currentPage' => 1,
-                'totalPages' => 1,
+                'totalPages'  => 1,
             ],
             $result->getData(),
         );

@@ -65,7 +65,7 @@ final class ModuleGenerator
             'src/Api/V1/Example' => "src/Api/V1/{$this->moduleName}",
             'src/Application/Example' => "src/Application/{$this->moduleName}",
             'src/Domain/Example' => "src/Domain/{$this->moduleName}",
-            'src/Infrastructure/Persistence/Example' => "src/Infrastructure/Persistence/{$this->moduleName}",
+            'src/Infrastructure/Common/Persistence/Example' => "src/Infrastructure/Common/Persistence/{$this->moduleName}",
         ];
         
         // Copy each directory
@@ -136,16 +136,16 @@ final class ModuleGenerator
         
         // Add Infrastructure use statement after Example line
         $content = str_replace(
-            "use App\\Infrastructure\\Persistence\\Example\\ExampleRepository;",
-            "use App\\Infrastructure\\Persistence\\Example\\ExampleRepository;\nuse App\\Infrastructure\\Persistence\\{$this->moduleName}\\{$this->moduleName}Repository;",
+            "use App\\Infrastructure\\Common\\Persistence\\Example\\ExampleRepository;",
+            "use App\\Infrastructure\\Common\\Persistence\\Example\\ExampleRepository;\nuse App\\Infrastructure\\Common\\Persistence\\{$this->moduleName}\\{$this->moduleName}Repository;",
             $content
         );
         
         // Add LockVersionConfig use statement after CurrentUser line (only if not exists)
-        if (!str_contains($content, "use App\\Shared\\ValueObject\\LockVersionConfig;")) {
+        if (!str_contains($content, "use App\\Shared\\Core\\ValueObject\\LockVersionConfig;")) {
             $content = str_replace(
-                "use App\\Infrastructure\\Security\\CurrentUser;",
-                "use App\\Infrastructure\\Security\\CurrentUser;\nuse App\\Shared\\ValueObject\\LockVersionConfig;",
+                "use App\\Infrastructure\\Core\\Security\\CurrentUser;",
+                "use App\\Infrastructure\\Core\\Security\\CurrentUser;\nuse App\\Shared\\Core\\ValueObject\\LockVersionConfig;",
                 $content
             );
         }
@@ -478,20 +478,20 @@ final class ModuleGenerator
      */
     private function generateMigration(array &$createdFiles): void
     {
-        $sourceMigration = 'src/Migration/M20240101000000CreateExampleTable.php';
-        
+        $sourceMigration = 'src/Migration/Example/M20240101000000CreateExampleTable.php';
+
         if (!file_exists($sourceMigration)) {
             echo "❌ Migration template not found: {$sourceMigration}\n";
             return;
         }
-        
+
         // Check if migration for this module already exists
         $existingMigration = $this->findExistingMigration();
         if ($existingMigration) {
             echo "📄 Migration already exists: {$existingMigration}\n";
             return;
         }
-        
+
         // Generate timestamp for new migration
         $timestamp = date('YmdHis');
         $targetMigration = "src/Migration/M{$timestamp}Create{$this->moduleName}Table.php";
@@ -500,7 +500,10 @@ final class ModuleGenerator
         
         // Replace class name with timestamp FIRST (before replacePlaceholders)
         $content = str_replace("M20240101000000CreateExampleTable", "M{$timestamp}Create{$this->moduleName}Table", $content);
-        
+
+        // Generated migrations stay in the root App\Migration namespace
+        $content = str_replace("namespace App\\Migration\\Example;", "namespace App\\Migration;", $content);
+
         // Then replace other placeholders
         $content = $this->replacePlaceholders($content);
         
@@ -517,24 +520,14 @@ final class ModuleGenerator
      */
     private function findExistingMigration(): ?string
     {
-        $migrationDir = 'src/Migration';
-        if (!is_dir($migrationDir)) {
-            return null;
-        }
-        
-        $files = scandir($migrationDir);
-        foreach ($files as $file) {
-            if ($file === '.' || $file === '..') {
-                continue;
-            }
-            
-            // Check if file matches pattern M*Create{ModuleName}Table.php
-            if (preg_match("/^M.*Create{$this->moduleName}Table\.php$/", $file)) {
-                return $migrationDir . '/' . $file;
-            }
-        }
-        
-        return null;
+        // Check both root src/Migration and module subdirectories (e.g. src/Migration/Example)
+        $pattern = "M*Create{$this->moduleName}Table.php";
+        $files = array_merge(
+            glob("src/Migration/{$pattern}") ?: [],
+            glob("src/Migration/*/{$pattern}") ?: [],
+        );
+
+        return $files[0] ?? null;
     }
 
     /**

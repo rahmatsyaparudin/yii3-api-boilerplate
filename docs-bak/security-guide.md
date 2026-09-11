@@ -11,7 +11,7 @@ Security utilities provide essential security functions for the Yii3 API applica
 ### Directory Structure
 
 ```
-src/Shared/Security/
+src/Shared/Core/Security/
 └── InputSanitizer.php    # Input sanitization and validation
 ```
 
@@ -50,9 +50,9 @@ src/Shared/Security/
 
 declare(strict_types=1);
 
-namespace App\Shared\Security;
+namespace App\Shared\Core\Security;
 
-use App\Shared\Exception\BadRequestException;
+use App\Shared\Core\Exception\BadRequestException;
 use Yiisoft\Translator\TranslatorInterface;
 
 /**

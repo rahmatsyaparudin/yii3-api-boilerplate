@@ -12,7 +12,8 @@ final readonly class UpdateExampleCommand
         public ?int $status,
         public ?array $detailInfo,
         public ?int $lockVersion,
-    ) {}
+    ) {
+    }
 
     public static function create(
         int $id,

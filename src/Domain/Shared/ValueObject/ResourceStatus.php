@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Domain\Shared\ValueObject;
 
 // Shared Layer
-use App\Shared\Enums\RecordStatus;
+use App\Shared\Core\Enums\RecordStatus;
 
 /**
  * Status value object for domain entities.
- * 
+ *
  * This value object encapsulates status behavior and business rules.
  * It provides a rich domain model for status management instead of
  * working with primitive integers.
@@ -69,12 +69,13 @@ final readonly class ResourceStatus
     public static function from(int|string $value): self
     {
         $enum = RecordStatus::from($value);
+
         return new self($enum);
     }
 
     public static function tryFrom(int|string|null $value): ?self
     {
-        if ($value === null || (is_string($value) && trim($value) === "")) {
+        if ($value === null || (\is_string($value) && \trim($value) === '')) {
             return null;
         }
 
@@ -83,7 +84,7 @@ final readonly class ResourceStatus
 
     public function canBeUpdated(): bool
     {
-        return !in_array($this->value(), RecordStatus::IMMUTABLE_STATUSES, true);
+        return !\in_array($this->value(), RecordStatus::IMMUTABLE_STATUSES, true);
     }
 
     public function canBeDeleted(): bool
@@ -98,17 +99,17 @@ final readonly class ResourceStatus
 
     public function canTransitionTo(self $newStatus): bool
     {
-        return in_array($newStatus->value(), RecordStatus::STATUS_TRANSITION_MAP[$this->value()] ?? [], true);
+        return \in_array($newStatus->value(), RecordStatus::STATUS_TRANSITION_MAP[$this->value()] ?? [], true);
     }
 
     public function isLocked(): bool
     {
         return match ($this->enum) {
-            RecordStatus::ACTIVE, 
-            RecordStatus::COMPLETED, 
-            RecordStatus::DELETED, 
+            RecordStatus::ACTIVE,
+            RecordStatus::COMPLETED,
+            RecordStatus::DELETED,
             RecordStatus::REJECTED => true,
-            default => false,
+            default                => false,
         };
     }
 
@@ -166,6 +167,7 @@ final readonly class ResourceStatus
     public static function getLabel(int|string $value): string
     {
         $status = self::from($value);
+
         return $status->label();
     }
 
@@ -173,7 +175,7 @@ final readonly class ResourceStatus
     {
         return [
             'value' => $this->value(),
-            'name' => $this->name(),
+            'name'  => $this->name(),
             'label' => $this->label(),
         ];
     }

@@ -11,7 +11,7 @@ Data Transfer Objects (DTOs) are simple data structures used to transfer data be
 ### Directory Structure
 
 ```
-src/Shared/Dto/
+src/Shared/Core/Dto/
 ├── PaginatedResult.php    # Paginated query results
 └── SearchCriteria.php     # Search and filtering criteria
 ```
@@ -51,7 +51,7 @@ src/Shared/Dto/
 
 declare(strict_types=1);
 
-namespace App\Shared\Dto;
+namespace App\Shared\Core\Dto;
 
 /**
  * Data Transfer Object for paginated results
@@ -208,7 +208,7 @@ public function actionIndex(SearchCriteria $criteria): array
 
 declare(strict_types=1);
 
-namespace App\Shared\Dto;
+namespace App\Shared\Core\Dto;
 
 /**
  * Data Transfer Object for search criteria

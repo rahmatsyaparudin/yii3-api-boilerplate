@@ -5,25 +5,20 @@ declare(strict_types=1);
 namespace App\Api\V1\Example\Action;
 
 // Application Layer
-use App\Application\Example\ExampleApplicationService;
-
-// API Layer
 use App\Api\Shared\ResponseFactory;
+// API Layer
 use App\Api\V1\Example\Validation\ExampleInputValidator;
 use App\Application\Example\Command\CreateExampleCommand;
-
+use App\Application\Example\ExampleApplicationService;
 // Shared Layer
-use App\Shared\Enums\RecordStatus;
-use App\Shared\Request\RawParams;
-use App\Shared\Context\ValidationContext;
-use App\Shared\ValueObject\Message;
-use App\Shared\Security\InputSanitizer;
-
+use App\Shared\Core\Context\ValidationContext;
+use App\Shared\Core\Enums\RecordStatus;
+use App\Shared\Core\ValueObject\Message;
 // PSR Interfaces
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-final class ExampleCreateAction 
+final class ExampleCreateAction
 {
     private const ALLOWED_KEYS = ['name', 'status', 'sync_mdb'];
 
@@ -36,7 +31,7 @@ final class ExampleCreateAction
 
     public function __invoke(ServerRequestInterface $request): ResponseInterface
     {
-        /** @var \App\Shared\Request\RequestParams $payload */
+        /** @var \App\Shared\Core\Request\RequestParams $payload */
         $payload = $request->getAttribute('payload');
 
         $params = $payload->getRawParams()
@@ -64,7 +59,7 @@ final class ExampleCreateAction
             translate: Message::create(
                 key: 'resource.created',
                 params: [
-                    'resource' => $resource
+                    'resource' => $resource,
                 ]
             )
         );

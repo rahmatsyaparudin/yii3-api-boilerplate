@@ -3,26 +3,23 @@
 declare(strict_types=1);
 
 // Vendor Layer
-use MongoDB\Client;
-
+use App\Infrastructure\Core\Database\MongoDB\MongoDBService;
 // Infrastructure Layer
-use App\Infrastructure\Database\MongoDB\MongoDBService;
-
+use MongoDB\Client;
 // Vendor Layer
 use Yiisoft\Definitions\Reference;
 
 /** @var array $params */
-
 $mongodb = $params['mongodb/mongodb'];
 
-$enabled = ($mongodb['enabled'] ?? false) && extension_loaded('mongodb');
+$enabled = ($mongodb['enabled'] ?? false) && \extension_loaded('mongodb');
 
 if ($enabled) {
     return [
         Client::class => [
-            'class' => Client::class,
+            'class'         => Client::class,
             '__construct()' => [
-                'uri' => $mongodb['dsn'],
+                'uri'        => $mongodb['dsn'],
                 'uriOptions' => [
                     'connectTimeoutMS' => $mongodb['connectTimeoutMS'] ?? 5000,
                     'socketTimeoutMS'  => $mongodb['socketTimeoutMS'] ?? 5000,
@@ -39,7 +36,7 @@ if ($enabled) {
         ],
 
         MongoDBService::class => [
-            'class' => MongoDBService::class,
+            'class'         => MongoDBService::class,
             '__construct()' => [
                 'client'  => Reference::to(Client::class),
                 'dbName'  => $mongodb['database'],
@@ -51,7 +48,7 @@ if ($enabled) {
 
 return [
     MongoDBService::class => [
-        'class' => MongoDBService::class,
+        'class'         => MongoDBService::class,
         '__construct()' => [
             'client'  => null,
             'dbName'  => $mongodb['database'] ?? '',

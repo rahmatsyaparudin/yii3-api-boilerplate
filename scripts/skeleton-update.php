@@ -67,7 +67,7 @@ class SkeletonInstaller
         
         echo "✅ Shared classes installation completed!\n";
         echo "\n🎯 Shared classes copied to src/Shared/\n";
-        echo "📁 Directories created: Dto, Enums, ErrorHandler, Exception, Middleware, Query, Request, Security, Utility, Context, ValueObject\n";
+        echo "📁 Directories created: Core/{Dto, Enums, ErrorHandler, Exception, Middleware, Query, Request, Security, Utility, Context, ValueObject}, Common\n";
         echo "🏗️  Infrastructure classes copied to src/Infrastructure/\n";
         echo "📁 Directories created: Audit, Clock, Concerns, Database, Monitoring, RateLimit, Security, Time, Persistence\n";
         echo "🧠 Domain Shared classes copied to src/Domain/Shared/\n";
@@ -104,18 +104,19 @@ class SkeletonInstaller
         
         // Create all required subdirectories
         $sharedDirs = [
-            'Dto',
-            'Enums', 
-            'ErrorHandler',
-            'Exception',
-            'Middleware',
-            'Query',
-            'Request',
-            'Security',
-            'Utility',
-            'Validation',
-            'Context',
-            'ValueObject'
+            'Core/Dto',
+            'Core/Enums',
+            'Core/ErrorHandler',
+            'Core/Exception',
+            'Core/Middleware',
+            'Core/Query',
+            'Core/Request',
+            'Core/Security',
+            'Core/Utility',
+            'Core/Validation',
+            'Core/Context',
+            'Core/ValueObject',
+            'Common',
         ];
         
         foreach ($sharedDirs as $dir) {
@@ -153,16 +154,16 @@ class SkeletonInstaller
         
         // Create all required subdirectories
         $infrastructureDirs = [
-            'Audit',
-            'Clock',
-            'Concerns',
-            'Database',
-            'Monitoring',
-            'RateLimit',
-            'Security',
-            'Time',
-            'Persistence',
-            'Seeder',
+            'Core/Audit',
+            'Core/Clock',
+            'Core/Concerns',
+            'Core/Database',
+            'Core/Monitoring',
+            'Core/RateLimit',
+            'Core/Security',
+            'Core/Time',
+            'Core/Seeder',
+            'Common/Persistence',
         ];
         
         foreach ($infrastructureDirs as $dir) {
@@ -582,6 +583,7 @@ class SkeletonInstaller
             "yiisoft/cache-file" => "^3.2",
             "yiisoft/db" => "^2.0",
             "yiisoft/db-migration" => "^2.0.1",
+            "yiisoft/db-mysql" => "^2.0",
             "yiisoft/db-pgsql" => "^2.0",
             "yiisoft/router" => "^4.0.2",
             "yiisoft/router-fastroute" => "^4.0.3",

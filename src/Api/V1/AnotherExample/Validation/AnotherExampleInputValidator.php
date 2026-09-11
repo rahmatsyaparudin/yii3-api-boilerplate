@@ -5,22 +5,20 @@ declare(strict_types=1);
 namespace App\Api\V1\AnotherExample\Validation;
 
 // Shared Layer
-use App\Shared\Enums\RecordStatus;
-use App\Shared\Validation\AbstractValidator;
-use App\Shared\Context\ValidationContext;
-use App\Shared\Validation\Rules\HasNoDependencies;
-use App\Shared\Validation\Rules\UniqueValue;
-
+use App\Shared\Core\Context\ValidationContext;
+use App\Shared\Core\Enums\RecordStatus;
+use App\Shared\Core\Validation\AbstractValidator;
+use App\Shared\Core\Validation\Rules\UniqueValue;
 // Vendor Layer
-use Yiisoft\Validator\Rule\Required;
-use Yiisoft\Validator\Rule\Integer;
-use Yiisoft\Validator\Rule\StringValue;
-use Yiisoft\Validator\Rule\Length;
 use Yiisoft\Validator\Rule\In;
+use Yiisoft\Validator\Rule\Integer;
+use Yiisoft\Validator\Rule\Length;
+use Yiisoft\Validator\Rule\Required;
 use Yiisoft\Validator\Rule\StopOnError;
+use Yiisoft\Validator\Rule\StringValue;
 
 /**
- * AnotherExample Input Validator
+ * AnotherExample Input Validator.
  */
 final class AnotherExampleInputValidator extends AbstractValidator
 {
@@ -33,15 +31,15 @@ final class AnotherExampleInputValidator extends AbstractValidator
                         new Required(),
                         new StringValue(),
                         new Length(
-                            min: 3, 
+                            min: 3,
                             max: 255,
                         ),
                         new UniqueValue(
-                            table: 'another_example', 
-                            column: 'name', 
+                            table: 'another_example',
+                            column: 'name',
                             ignoreId: null
                         ),
-                    ])
+                    ]),
                 ],
                 'status' => [
                     new Required(),
@@ -56,8 +54,8 @@ final class AnotherExampleInputValidator extends AbstractValidator
                         min: 1,
                     ),
                     new UniqueValue(
-                        table: 'example', 
-                        column: 'id', 
+                        table: 'example',
+                        column: 'id',
                         ignoreId: null
                     ),
                 ],
@@ -75,16 +73,16 @@ final class AnotherExampleInputValidator extends AbstractValidator
                             skipOnEmpty: true,
                         ),
                         new Length(
-                            min: 3, 
+                            min: 3,
                             max: 255,
                             skipOnEmpty: true,
                         ),
                         new UniqueValue(
-                            table: 'another_example', 
-                            column: 'name', 
+                            table: 'another_example',
+                            column: 'name',
                             ignoreId: $this->data['id'] ?? null
                         ),
-                    ])
+                    ]),
                 ],
                 'status' => [
                     new Integer(
@@ -100,14 +98,14 @@ final class AnotherExampleInputValidator extends AbstractValidator
                         min: 1,
                     ),
                     new UniqueValue(
-                        table: 'example', 
-                        column: 'id', 
+                        table: 'example',
+                        column: 'id',
                         ignoreId: null
                     ),
                 ],
                 'lock_version' => [
                     new Required(
-                        when: fn() => $this->shouldValidateOptimisticLock()
+                        when: fn () => $this->shouldValidateOptimisticLock()
                     ),
                     new Integer(
                         min: 1,
@@ -117,7 +115,7 @@ final class AnotherExampleInputValidator extends AbstractValidator
             ],
             ValidationContext::DELETE => [
                 'id' => [
-                    new Required(), 
+                    new Required(),
                     new Integer(
                         min: 1,
                     ),

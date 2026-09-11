@@ -11,7 +11,7 @@ Request processing utilities provide a structured way to handle HTTP request dat
 ### Directory Structure
 
 ```
-src/Shared/Request/
+src/Shared/Core/Request/
 ├── DataParserInterface.php    # Interface for data parsing
 ├── PaginationParams.php       # Pagination parameter handling
 ├── RawParams.php             # Raw request parameter processing
@@ -55,9 +55,9 @@ src/Shared/Request/
 
 declare(strict_types=1);
 
-namespace App\Shared\Request;
+namespace App\Shared\Core\Request;
 
-use App\Shared\Exception\BadRequestException;
+use App\Shared\Core\Exception\BadRequestException;
 use Yiisoft\Translator\TranslatorInterface;
 
 /**
@@ -323,10 +323,10 @@ public function actionIndex(): array
 
 declare(strict_types=1);
 
-namespace App\Shared\Request;
+namespace App\Shared\Core\Request;
 
-use App\Shared\Exception\BadRequestException;
-use App\Shared\Enums\AppConstants;
+use App\Shared\Core\Exception\BadRequestException;
+use App\Shared\Core\Enums\AppConstants;
 use Yiisoft\Translator\TranslatorInterface;
 
 /**
@@ -502,9 +502,9 @@ return [
 
 declare(strict_types=1);
 
-namespace App\Shared\Request;
+namespace App\Shared\Core\Request;
 
-use App\Shared\Exception\BadRequestException;
+use App\Shared\Core\Exception\BadRequestException;
 
 /**
  * Sorting Parameters
@@ -731,9 +731,9 @@ $sort = SortParams::fromString('name:asc,created_at:desc')
 
 declare(strict_types=1);
 
-namespace App\Shared\Request;
+namespace App\Shared\Core\Request;
 
-use App\Shared\Exception\BadRequestException;
+use App\Shared\Core\Exception\BadRequestException;
 use Yiisoft\Translator\TranslatorInterface;
 
 /**
@@ -1017,7 +1017,7 @@ $results = $this->service->search($rawParams->getAll());
 
 declare(strict_types=1);
 
-namespace App\Shared\Request;
+namespace App\Shared\Core\Request;
 
 /**
  * Data Parser Interface

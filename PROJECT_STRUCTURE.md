@@ -120,7 +120,9 @@ src/
 │           ├── 📄 DetailInfoFactory.php - Audit trail factory
 │           └── 📄 SearchCriteriaFactory.php - Search criteria factory
 ├── 📁 Console/ - Console commands
-│   └── 📄 HelloCommand.php - Hello world command
+│   ├── 📄 HelloCommand.php - Hello world command
+│   ├── 📄 MigrateModuleCommand.php - Isolated module migrations (migrate:module)
+│   └── 📄 SeederCommand.php - Data seeding command
 ├── 📁 Domain/ - Domain layer
 │   ├── 📁 Example/ - Example bounded context
 │   │   ├── 📁 Entity/ - Domain entities
@@ -151,96 +153,119 @@ src/
 │           ├── 📄 LockVersion.php - Optimistic locking VO
 │           └── 📄 Status.php - Entity status VO
 ├── 📁 Infrastructure/ - Infrastructure layer
-│   ├── 📁 Audit/ - Audit implementation
-│   │   └── 📄 DatabaseAuditService.php - Database audit service
-│   ├── 📁 Clock/ - Time management
-│   │   └── 📄 SystemClock.php - System clock implementation
-│   ├── 📁 Concerns/ - Infrastructure concerns
-│   │   ├── 📄 Auditable.php - Auditable concern
-│   │   └── 📄 HasCoreFeatures.php - Core features concern
-│   ├── 📁 Database/ - Database implementations
-│   │   ├── 📁 MongoDB/ - MongoDB implementation
-│   │   │   ├── 📄 AbstractMongoDBRepository.php - MongoDB base repository
-│   │   │   └── 📄 MongoDBService.php - MongoDB service
-│   │   └── 📁 Redis/ - Redis implementation
-│   │       ├── 📄 AbstractRedisRepository.php - Redis base repository
-│   │       └── 📄 RedisService.php - Redis service
-│   ├── 📁 Monitoring/ - Monitoring & observability
-│   │   ├── 📄 CustomMonitoringService.php - Custom monitoring
-│   │   ├── 📄 ErrorMonitoringMiddleware.php - Error monitoring middleware
-│   │   ├── 📄 MetricsMiddleware.php - Metrics collection middleware
-│   │   ├── 📄 MonitoringServiceInterface.php - Monitoring contract
-│   │   ├── 📄 RequestIdMiddleware.php - Request ID middleware
-│   │   └── 📄 StructuredLoggingMiddleware.php - Structured logging
-│   ├── 📁 Persistence/ - Data persistence
-│   │   └── 📁 Example/ - Example persistence
-│   │       ├── 📄 ExampleRepository.php - Example repository with optimistic locking
-│   │       └── 📄 MdbExampleSchema.php - MongoDB schema for Example
-│   ├── 📁 RateLimit/ - Rate limiting
-│   │   └── 📄 DatabaseRateLimiter.php - Database rate limiter
-│   ├── 📁 Security/ - Security implementation
-│   │   ├── 📄 AccessChecker.php - Access control checker
-│   │   ├── 📄 Actor.php - Actor implementation
-│   │   ├── 📄 ActorProvider.php - Actor provider
-│   │   ├── 📄 CurrentUser.php - Current user implementation
-│   │   ├── 📄 CurrentUserAwareInterface.php - Current user awareness
-│   │   ├── 📄 HstsMiddleware.php - HSTS middleware
-│   │   ├── 📄 JwtService.php - JWT service
-│   │   ├── 📄 PermissionChecker.php - Permission checker
-│   │   ├── 📄 RbacAuthorizer.php - RBAC authorizer
-│   │   └── 📁 Rule/ - Authorization rules
-│   │       └── 📄 PermissionMapRule.php - Permission mapping rule
-│   └── 📁 Time/ - Time infrastructure
-│       └── 📄 AppDateTimeProvider.php - DateTime provider
+│   ├── 📁 Core/ - Core infrastructure
+│   │   ├── 📁 Audit/ - Audit implementation
+│   │   │   └── 📄 DatabaseAuditService.php - Database audit service
+│   │   ├── 📁 Clock/ - Time management
+│   │   │   └── 📄 SystemClock.php - System clock implementation
+│   │   ├── 📁 Concerns/ - Infrastructure concerns
+│   │   │   ├── 📄 Auditable.php - Auditable concern
+│   │   │   └── 📄 HasCoreFeatures.php - Core features concern
+│   │   ├── 📁 Database/ - Database implementations
+│   │   │   ├── 📁 MongoDB/ - MongoDB implementation
+│   │   │   │   ├── 📄 AbstractMongoDBRepository.php - MongoDB base repository
+│   │   │   │   └── 📄 MongoDBService.php - MongoDB service
+│   │   │   └── 📁 Redis/ - Redis implementation
+│   │   │       ├── 📄 AbstractRedisRepository.php - Redis base repository
+│   │   │       └── 📄 RedisService.php - Redis service
+│   │   ├── 📁 Monitoring/ - Monitoring & observability
+│   │   │   ├── 📄 CustomMonitoringService.php - Custom monitoring
+│   │   │   ├── 📄 ErrorMonitoringMiddleware.php - Error monitoring middleware
+│   │   │   ├── 📄 MetricsMiddleware.php - Metrics collection middleware
+│   │   │   ├── 📄 MonitoringServiceInterface.php - Monitoring contract
+│   │   │   ├── 📄 RequestIdMiddleware.php - Request ID middleware
+│   │   │   └── 📄 StructuredLoggingMiddleware.php - Structured logging
+│   │   ├── 📁 RateLimit/ - Rate limiting
+│   │   │   └── 📄 DatabaseRateLimiter.php - Database rate limiter
+│   │   ├── 📁 Security/ - Security implementation
+│   │   │   ├── 📄 AccessChecker.php - Access control checker
+│   │   │   ├── 📄 Actor.php - Actor implementation
+│   │   │   ├── 📄 ActorProvider.php - Actor provider
+│   │   │   ├── 📄 CurrentUser.php - Current user implementation
+│   │   │   ├── 📄 CurrentUserAwareInterface.php - Current user awareness
+│   │   │   ├── 📄 HstsMiddleware.php - HSTS middleware
+│   │   │   ├── 📄 JwtService.php - JWT service
+│   │   │   ├── 📄 PermissionChecker.php - Permission checker
+│   │   │   ├── 📄 RbacAuthorizer.php - RBAC authorizer
+│   │   │   └── 📁 Rule/ - Authorization rules
+│   │   │       └── 📄 PermissionMapRule.php - Permission mapping rule
+│   │   ├── 📁 Seeder/ - Seeder infrastructure
+│   │   │   ├── 📄 AbstractSeederData.php - Seeder base class
+│   │   │   └── 📄 SeederProviderInterface.php - Seeder provider contract
+│   │   └── 📁 Time/ - Time infrastructure
+│   │       └── 📄 AppDateTimeProvider.php - DateTime provider
+│   └── 📁 Common/ - Common infrastructure
+│       └── 📁 Persistence/ - Data persistence
+│           └── 📁 Example/ - Example persistence
+│               ├── 📄 ExampleRepository.php - Example repository with optimistic locking
+│               └── 📄 MdbExampleSchema.php - MongoDB schema for Example
+├── 📁 Migration/ - Database migrations (root files are applied by migrate:up)
+│   ├── 📁 Auditable/ - Isolated: audit_logs + rate_limits (migrate:module auditable)
+│   │   ├── 📄 M20240101000000CreateAuditLogsTable.php - Audit logs table
+│   │   └── 📄 M20240101000001CreateRateLimitsTable.php - Rate limits table
+│   └── 📁 Example/ - Isolated: Example module tables (migrate:module example)
+│       ├── 📄 M20240101000000CreateExampleTable.php - Example table
+│       └── 📄 M20260910104729CreateAnotherExampleTable.php - AnotherExample table
 └── 📁 Shared/ - Shared components
     ├── 📄 ApplicationParams.php - Application parameters
-    ├── 📁 Dto/ - Shared DTOs
-    │   ├── 📄 PaginatedResult.php - Paginated result DTO
-    │   └── 📄 SearchCriteria.php - Search criteria DTO
-    ├── 📁 Enums/ - Shared enums
-    │   ├── 📄 AppConstants.php - Application constants
-    │   └── 📄 RecordStatus.php - Record status enum
-    ├── 📁 ErrorHandler/ - Error handling
-    │   └── 📄 ErrorHandlerResponse.php - Error response formatter
-    ├── 📁 Exception/ - Exception hierarchy
-    │   ├── 📄 BadRequestException.php - 400 Bad Request
-    │   ├── 📄 BusinessRuleException.php - Business rule violation
-    │   ├── 📄 ConflictException.php - 409 Conflict
-    │   ├── 📄 ForbiddenException.php - 403 Forbidden
-    │   ├── 📄 HttpException.php - Base HTTP exception
-    │   ├── 📄 NoChangesException.php - No changes exception
-    │   ├── 📄 NotFoundException.php - 404 Not Found
-    │   ├── 📄 OptimisticLockException.php - Optimistic locking conflict
-    │   ├── 📄 ServiceException.php - Service exception
-    │   ├── 📄 TooManyRequestsException.php - 429 Too Many Requests
-    │   ├── 📄 UnauthorizedException.php - 401 Unauthorized
-    │   └── 📄 ValidationException.php - Validation error
-    ├── 📁 Middleware/ - Shared middleware
-    │   ├── 📄 AccessMiddleware.php - Access control middleware
-    │   ├── 📄 CorsMiddleware.php - CORS middleware
-    │   ├── 📄 JwtMiddleware.php - JWT authentication middleware
-    │   ├── 📄 RateLimitMiddleware.php - Rate limiting middleware
-    │   ├── 📄 RequestParamsMiddleware.php - Request parameters middleware
-    │   ├── 📄 SecureHeadersMiddleware.php - Security headers middleware
-    │   └── 📄 TrustedHostMiddleware.php - Trusted host middleware
-    ├── 📁 Query/ - Query utilities
-    │   └── 📄 QueryConditionApplier.php - Query condition builder
-    ├── 📁 Request/ - Request utilities
-    │   ├── 📄 PaginationParams.php - Pagination parameters
-    │   ├── 📄 RawParams.php - Raw request parameters
-    │   ├── 📄 RequestDataParser.php - Request data parser
-    │   ├── 📄 RequestParams.php - Request parameters handler
-    │   └── 📄 SortParams.php - Sort parameters
-    ├── 📁 Security/ - Security utilities
-    │   └── 📄 InputSanitizer.php - Input sanitization
-    ├── 📁 Utility/ - General utilities
-    │   ├── 📄 Arrays.php - Array utilities
-    │   └── 📄 JsonHandler.php - JSON data Handler
-    ├── 📁 Validation/ - Validation utilities
-    │   ├── 📄 AbstractValidator.php - Abstract validator
-    │   └── 📄 ValidationContext.php - Validation context
-    └── 📁 ValueObject/ - Shared value objects
-        └── 📄 Message.php - Translation message VO
+    ├── 📁 Common/ - Common shared helpers
+    └── 📁 Core/ - Core shared components
+        ├── 📁 Context/ - Context objects
+        │   └── 📄 ValidationContext.php - Validation context
+        ├── 📁 Dto/ - Shared DTOs
+        │   ├── 📄 PaginatedResult.php - Paginated result DTO
+        │   └── 📄 SearchCriteria.php - Search criteria DTO
+        ├── 📁 Enums/ - Shared enums
+        │   ├── 📄 AppConstants.php - Application constants
+        │   └── 📄 RecordStatus.php - Record status enum
+        ├── 📁 ErrorHandler/ - Error handling
+        │   └── 📄 ErrorHandlerResponse.php - Error response formatter
+        ├── 📁 Exception/ - Exception hierarchy
+        │   ├── 📄 BadRequestException.php - 400 Bad Request
+        │   ├── 📄 ConflictException.php - 409 Conflict
+        │   ├── 📄 ForbiddenException.php - 403 Forbidden
+        │   ├── 📄 HttpException.php - Base HTTP exception
+        │   ├── 📄 NoChangesException.php - No changes exception
+        │   ├── 📄 NotFoundException.php - 404 Not Found
+        │   ├── 📄 OptimisticLockException.php - Optimistic locking conflict
+        │   ├── 📄 ServiceException.php - Service exception
+        │   ├── 📄 TooManyRequestsException.php - 429 Too Many Requests
+        │   ├── 📄 UnauthorizedException.php - 401 Unauthorized
+        │   └── 📄 ValidationException.php - Validation error
+        ├── 📁 Middleware/ - Shared middleware
+        │   ├── 📄 AccessMiddleware.php - Access control middleware
+        │   ├── 📄 CorsMiddleware.php - CORS middleware
+        │   ├── 📄 JwtMiddleware.php - JWT authentication middleware
+        │   ├── 📄 RateLimitMiddleware.php - Rate limiting middleware (in-memory)
+        │   ├── 📄 RequestParamsMiddleware.php - Request parameters middleware
+        │   ├── 📄 SecureHeadersMiddleware.php - Security headers middleware
+        │   └── 📄 TrustedHostMiddleware.php - Trusted host middleware
+        ├── 📁 Query/ - Query utilities
+        │   └── 📄 QueryConditionApplier.php - Query condition builder
+        ├── 📁 Request/ - Request utilities
+        │   ├── 📄 DataParserInterface.php - Data parser contract
+        │   ├── 📄 PaginationParams.php - Pagination parameters
+        │   ├── 📄 RawParams.php - Raw request parameters
+        │   ├── 📄 RequestDataParser.php - Request data parser
+        │   ├── 📄 RequestParams.php - Request parameters handler
+        │   └── 📄 SortParams.php - Sort parameters
+        ├── 📁 Security/ - Security utilities
+        │   └── 📄 InputSanitizer.php - Input sanitization
+        ├── 📁 Utility/ - General utilities
+        │   ├── 📄 Arrays.php - Array utilities
+        │   ├── 📄 FieldMapper.php - Row field mapping utility
+        │   └── 📄 JsonHandler.php - JSON data Handler
+        ├── 📁 Validation/ - Validation utilities
+        │   ├── 📄 AbstractValidator.php - Abstract validator
+        │   ├── 📄 ValidationContextInterface.php - Validation context contract
+        │   └── 📁 Rules/ - Custom validation rules
+        │       ├── 📄 HasNoDependencies.php - No-dependencies rule
+        │       ├── 📄 HasNoDependenciesHandler.php - Rule handler
+        │       ├── 📄 UniqueValue.php - Unique value rule
+        │       └── 📄 UniqueValueHandler.php - Rule handler
+        └── 📁 ValueObject/ - Shared value objects
+            ├── 📄 LockVersionConfig.php - Optimistic lock config VO
+            └── 📄 Message.php - Translation message VO
 ```
 
 ## **📁 RESOURCES**
@@ -353,7 +378,7 @@ docker/
 
 ### **🎯 Core Boilerplate Templates**
 1. **Entity Pattern**: `src/Domain/Example/Entity/Example.php`
-2. **Repository Pattern**: `src/Infrastructure/Persistence/Example/ExampleRepository.php`
+2. **Repository Pattern**: `src/Infrastructure/Common/Persistence/Example/ExampleRepository.php`
 3. **Application Service**: `src/Application/Example/ExampleApplicationService.php`
 4. **API Actions**: `src/Api/V1/Example/Action/*`
 5. **Validation**: `src/Api/V1/Example/Validation/ExampleInputValidator.php`
@@ -362,9 +387,9 @@ docker/
 ### **🔄 Shared Components**
 1. **Traits**: `src/Domain/Shared/Concerns/Entity/*`
 2. **Value Objects**: `src/Domain/Shared/ValueObject/*`
-3. **Exceptions**: `src/Shared/Exception/*`
-4. **Middleware**: `src/Shared/Middleware/*`
-5. **Validation**: `src/Shared/Validation/*`
+3. **Exceptions**: `src/Shared/Core/Exception/*`
+4. **Middleware**: `src/Shared/Core/Middleware/*`
+5. **Validation**: `src/Shared/Core/Validation/*`
 
 ---
 

@@ -5,16 +5,13 @@ declare(strict_types=1);
 namespace App\Application\Shared\Factory;
 
 // Domain Layer
-use App\Domain\Shared\ValueObject\DetailInfo;
-
-// Shared Layer
 use App\Domain\Shared\Contract\DateTimeProviderInterface;
-use App\Shared\Exception\ServiceException;
-use App\Shared\ValueObject\Message;
-
+// Shared Layer
+use App\Domain\Shared\ValueObject\DetailInfo;
+use App\Infrastructure\Core\Security\CurrentUser;
+use App\Shared\Core\Exception\ServiceException;
 // Infrastructure Layer
-use App\Infrastructure\Security\CurrentUser;
-
+use App\Shared\Core\ValueObject\Message;
 // Vendor Layer
 use Yiisoft\Http\Status;
 
@@ -25,13 +22,14 @@ final class DetailInfoFactory
     public function __construct(
         private DateTimeProviderInterface $dateTime,
         private CurrentUser $currentUser
-    ) {}
+    ) {
+    }
 
     public function create(array $detailInfo = []): self
     {
-        $actor = $this->currentUser->getActor();
+        $actor    = $this->currentUser->getActor();
         $username = $actor?->getUsername() ?? 'system';
-        
+
         $this->current = DetailInfo::createdLog(
             dateTime: $this->dateTime,
             user: $username,
@@ -43,64 +41,64 @@ final class DetailInfoFactory
 
     public function update(DetailInfo $detailInfo, array $payload = []): self
     {
-        $actor = $this->currentUser->getActor();
+        $actor    = $this->currentUser->getActor();
         $username = $actor?->getUsername() ?? 'system';
-        $oldData = $detailInfo->toArray();
-        
+        $oldData  = $detailInfo->toArray();
+
         $changeLog = $oldData['change_log'] ?? [];
-        
+
         unset($oldData['change_log']);
-        $mergedPayload = array_merge($oldData, $payload);
-        
+        $mergedPayload = \array_merge($oldData, $payload);
+
         $this->current = DetailInfo::updatedLog(
             dateTime: $this->dateTime,
             user: $username,
             currentLog: $changeLog,
             payload: $mergedPayload
         );
-        
+
         return $this;
     }
 
     public function delete(DetailInfo $detailInfo, array $payload = []): self
     {
-        $actor = $this->currentUser->getActor();
+        $actor    = $this->currentUser->getActor();
         $username = $actor?->getUsername() ?? 'system';
-        $oldData = $detailInfo->toArray();
-        
+        $oldData  = $detailInfo->toArray();
+
         $changeLog = $oldData['change_log'] ?? [];
-        
+
         unset($oldData['change_log']);
-        $mergedPayload = array_merge($oldData, $payload);
-        
+        $mergedPayload = \array_merge($oldData, $payload);
+
         $this->current = DetailInfo::deletedLog(
             dateTime: $this->dateTime,
             user: $username,
             currentLog: $changeLog,
             payload: $mergedPayload
         );
-        
+
         return $this;
     }
 
     public function restore(DetailInfo $detailInfo, array $payload = []): self
     {
-        $actor = $this->currentUser->getActor();
+        $actor    = $this->currentUser->getActor();
         $username = $actor?->getUsername() ?? 'system';
-        $oldData = $detailInfo->toArray();
-        
+        $oldData  = $detailInfo->toArray();
+
         $changeLog = $oldData['change_log'] ?? [];
-        
+
         unset($oldData['change_log']);
-        $mergedPayload = array_merge($oldData, $payload);
-        
+        $mergedPayload = \array_merge($oldData, $payload);
+
         $this->current = DetailInfo::restoredLog(
             dateTime: $this->dateTime,
             user: $username,
             currentLog: $changeLog,
             payload: $mergedPayload
         );
-        
+
         return $this;
     }
 
@@ -137,11 +135,11 @@ final class DetailInfoFactory
         $this->ensureInstanceExists();
         $this->ensureNotDeleted();
 
-        $actor = $this->currentUser->getActor();
-        $username = $actor?->getUsername() ?? 'system';
-        $data = $this->current?->toArray() ?? [];
+        $actor     = $this->currentUser->getActor();
+        $username  = $actor?->getUsername() ?? 'system';
+        $data      = $this->current?->toArray() ?? [];
         $changeLog = $data['change_log'] ?? [];
-        
+
         $this->current = DetailInfo::approvedLog(
             dateTime: $this->dateTime,
             user: $username,
@@ -156,11 +154,11 @@ final class DetailInfoFactory
     {
         $this->ensureInstanceExists();
 
-        $actor = $this->currentUser->getActor();
-        $username = $actor?->getUsername() ?? 'system';
-        $data = $this->current?->toArray() ?? [];
+        $actor     = $this->currentUser->getActor();
+        $username  = $actor?->getUsername() ?? 'system';
+        $data      = $this->current?->toArray() ?? [];
         $changeLog = $data['change_log'] ?? [];
-        
+
         $this->current = DetailInfo::rejectedLog(
             dateTime: $this->dateTime,
             user: $username,
@@ -173,42 +171,26 @@ final class DetailInfoFactory
 
     public function build(): ?DetailInfo
     {
-        $result = $this->current;
+        $result        = $this->current;
         $this->current = null;
+
         return $result;
     }
 
     private function ensureInstanceExists(): void
     {
         if (!$this->current) {
-            throw new ServiceException(
-                translate: Message::create(
-                    key: "factory.detail_info.uninitialized_state",
-                    params: [
-                        'methods' => 'create() or update()'
-                    ]
-                ),
-                code: Status::INTERNAL_SERVER_ERROR
-            );
+            throw new ServiceException(translate: Message::create(key: 'factory.detail_info.uninitialized_state', params: ['methods' => 'create() or update()']), code: Status::INTERNAL_SERVER_ERROR);
         }
     }
 
     private function ensureNotDeleted(): void
     {
-        $data = $this->current?->toArray() ?? [];
+        $data      = $this->current?->toArray() ?? [];
         $isDeleted = !empty($data['change_log']['deleted_at']);
 
         if ($isDeleted) {
-            throw new ServiceException(
-                translate: Message::create(
-                    key: "resource.modification_denied_on_deleted",
-                    params: [
-                        'resource' => 'Resource',
-                        'status' => 'Deleted',
-                    ]
-                ),
-                code: Status::INTERNAL_SERVER_ERROR
-            );
+            throw new ServiceException(translate: Message::create(key: 'resource.modification_denied_on_deleted', params: ['resource' => 'Resource', 'status' => 'Deleted']), code: Status::INTERNAL_SERVER_ERROR);
         }
     }
 }

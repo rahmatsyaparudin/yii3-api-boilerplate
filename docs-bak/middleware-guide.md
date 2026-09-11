@@ -11,7 +11,7 @@ Middleware components provide a way to filter HTTP requests entering your applic
 ### Directory Structure
 
 ```
-src/Shared/Middleware/
+src/Shared/Core/Middleware/
 ├── AccessMiddleware.php         # Access control and permissions
 ├── CorsMiddleware.php           # Cross-Origin Resource Sharing
 ├── JwtMiddleware.php           # JWT authentication
@@ -56,9 +56,9 @@ src/Shared/Middleware/
 
 declare(strict_types=1);
 
-namespace App\Shared\Middleware;
+namespace App\Shared\Core\Middleware;
 
-use App\Shared\Security\AuthorizerInterface;
+use App\Shared\Core\Security\AuthorizerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -176,7 +176,7 @@ AccessMiddleware::class => [
 
 declare(strict_types=1);
 
-namespace App\Shared\Middleware;
+namespace App\Shared\Core\Middleware;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -286,10 +286,10 @@ final class CorsMiddleware implements MiddlewareInterface
 
 declare(strict_types=1);
 
-namespace App\Shared\Middleware;
+namespace App\Shared\Core\Middleware;
 
-use App\Shared\Security\JwtService;
-use App\Shared\Security\ActorProviderInterface;
+use App\Shared\Core\Security\JwtService;
+use App\Shared\Core\Security\ActorProviderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -415,7 +415,7 @@ JwtMiddleware::class => [
 
 declare(strict_types=1);
 
-namespace App\Shared\Middleware;
+namespace App\Shared\Core\Middleware;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -525,7 +525,7 @@ final class RateLimitMiddleware implements MiddlewareInterface
 
 declare(strict_types=1);
 
-namespace App\Shared\Middleware;
+namespace App\Shared\Core\Middleware;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -674,7 +674,7 @@ final class RequestParamsMiddleware implements MiddlewareInterface
 
 declare(strict_types=1);
 
-namespace App\Shared\Middleware;
+namespace App\Shared\Core\Middleware;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -792,7 +792,7 @@ final class SecureHeadersMiddleware implements MiddlewareInterface
 
 declare(strict_types=1);
 
-namespace App\Shared\Middleware;
+namespace App\Shared\Core\Middleware;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;

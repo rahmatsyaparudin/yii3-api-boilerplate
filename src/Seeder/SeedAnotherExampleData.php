@@ -5,23 +5,17 @@ declare(strict_types=1);
 namespace App\Seeder;
 
 // Domain Layer
-use App\Domain\AnotherExample\Entity\AnotherExample;
-use App\Domain\AnotherExample\Repository\AnotherExampleRepositoryInterface;
-
-// PSR Interfaces
-use Psr\Clock\ClockInterface;
-
-// Vendor Layer
-use Yiisoft\Db\Connection\ConnectionInterface;
-
-// Application Layer
 use App\Application\Shared\Factory\DetailInfoFactory;
-use App\Shared\Query\QueryConditionApplier;
-
+use App\Domain\AnotherExample\Entity\AnotherExample;
+// PSR Interfaces
+use App\Domain\AnotherExample\Repository\AnotherExampleRepositoryInterface;
+// Vendor Layer
+use App\Infrastructure\Core\Seeder\AbstractSeederData;
+// Application Layer
+use Psr\Clock\ClockInterface;
 // Infrastructure Layer
-use App\Infrastructure\Seeder\AbstractSeederData;
-use App\Infrastructure\Database\MongoDB\MongoDBService;
 use Yiisoft\Aliases\Aliases;
+use Yiisoft\Db\Connection\ConnectionInterface;
 
 /**
  * Seeds another_example table using Alice fixtures.
@@ -31,7 +25,7 @@ final class SeedAnotherExampleData extends AbstractSeederData
     private AnotherExampleRepositoryInterface $repository;
 
     // Fixture constants
-    protected const YAML_FILE = 'anotherexample.yaml';
+    protected const YAML_FILE    = 'anotherexample.yaml';
     protected const ENTITY_CLASS = AnotherExample::class;
 
     public function __construct(
@@ -55,8 +49,8 @@ final class SeedAnotherExampleData extends AbstractSeederData
             syncMdb: $entity->getSyncMdb(),
             exampleId: $entity->getExampleId(),
         );
-        
+
         // Use repository to insert
-        $this->repository->insert($newEntity);   
+        $this->repository->insert($newEntity);
     }
 }

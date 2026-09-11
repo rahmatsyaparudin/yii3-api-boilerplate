@@ -24,6 +24,7 @@ return [
     'auth.invalid_issuer' => 'Penerbit (issuer) token tidak valid',
     'auth.invalid_audience' => 'Target (audience) token tidak valid',
     'auth.missing_claim' => 'Token tidak memiliki klaim yang diperlukan: {claim}',
+    'auth.invalid_secret' => 'Secret token tidak valid',
 
     // Request Prefix
     'request.invalid_json' => 'Isi permintaan mengandung JSON yang tidak valid',
@@ -53,6 +54,7 @@ return [
 
     // Validation
     'validation.failed' => 'Validasi gagal. Silakan periksa kembali data yang dikirimkan',
+    'validation.invalid_payload' => 'Data {resource} tidak valid',
 
     // Data type
     'type.string' => 'Kolom {field} harus berupa teks (string)',

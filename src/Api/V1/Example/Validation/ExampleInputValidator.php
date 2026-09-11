@@ -5,37 +5,36 @@ declare(strict_types=1);
 namespace App\Api\V1\Example\Validation;
 
 // Shared Layer
-use App\Shared\Enums\RecordStatus;
-use App\Shared\Validation\AbstractValidator;
-use App\Shared\Context\ValidationContext;
-use App\Shared\Validation\Rules\HasNoDependencies;
-use App\Shared\Validation\Rules\UniqueValue;
-
+use App\Shared\Core\Context\ValidationContext;
+use App\Shared\Core\Enums\RecordStatus;
+use App\Shared\Core\Validation\AbstractValidator;
+use App\Shared\Core\Validation\Rules\HasNoDependencies;
+use App\Shared\Core\Validation\Rules\UniqueValue;
 // Vendor Layer
-use Yiisoft\Validator\Rule\Required;
-use Yiisoft\Validator\Rule\Integer;
-use Yiisoft\Validator\Rule\StringValue;
-use Yiisoft\Validator\Rule\Length;
 use Yiisoft\Validator\Rule\In;
+use Yiisoft\Validator\Rule\Integer;
+use Yiisoft\Validator\Rule\Length;
+use Yiisoft\Validator\Rule\Required;
 use Yiisoft\Validator\Rule\StopOnError;
+use Yiisoft\Validator\Rule\StringValue;
 
 /**
- * Example Input Validator
- * 
+ * Example Input Validator.
+ *
  * Menggunakan pattern AbstractValidator dengan ValidationContext
  * untuk validasi input yang berbeda per operation
  */
 final class ExampleInputValidator extends AbstractValidator
 {
     /**
-     * Examples for validation rules
-     * 
+     * Examples for validation rules.
+     *
      * This validator shows examples of advanced validation rules including
      * dependency checking and unique value validation.
-     * 
+     *
      * @see HasNoDependencies
      * @see UniqueValue
-     * 
+     *
      * Usage example for HasNoDependencies:
      * ```php
      * ValidationContext::DELETE => [
@@ -53,7 +52,7 @@ final class ExampleInputValidator extends AbstractValidator
      *     ],
      * ],
      * ```
-     * 
+     *
      * Usage example for UniqueValue:
      * ```php
      * ValidationContext::CREATE => [
@@ -69,7 +68,7 @@ final class ExampleInputValidator extends AbstractValidator
      *         ]),
      *     ],
      * ],
-     * 
+     *
      * Usage example for UniqueValue with exclusion (for updates):
      * ```php
      * ValidationContext::UPDATE => [
@@ -87,8 +86,6 @@ final class ExampleInputValidator extends AbstractValidator
      * ],
      * ```
      */
-    
-
     protected function rules(string $context): array
     {
         return match ($context) {
@@ -98,15 +95,15 @@ final class ExampleInputValidator extends AbstractValidator
                         new Required(),
                         new StringValue(),
                         new Length(
-                            min: 3, 
+                            min: 3,
                             max: 255,
                         ),
                         new UniqueValue(
-                            table: 'example', 
-                            column: 'name', 
+                            table: 'example',
+                            column: 'name',
                             ignoreId: null
-                        )
-                    ])
+                        ),
+                    ]),
                 ],
                 'status' => [
                     new Required(),
@@ -129,16 +126,16 @@ final class ExampleInputValidator extends AbstractValidator
                             skipOnEmpty: true,
                         ),
                         new Length(
-                            min: 3, 
+                            min: 3,
                             max: 255,
                             skipOnEmpty: true,
                         ),
                         new UniqueValue(
-                            table: 'example', 
-                            column: 'name', 
+                            table: 'example',
+                            column: 'name',
                             ignoreId: $this->data['id'] ?? null
-                        )
-                    ])
+                        ),
+                    ]),
                 ],
                 'status' => [
                     new Integer(
@@ -150,7 +147,7 @@ final class ExampleInputValidator extends AbstractValidator
                 ],
                 'lock_version' => [
                     new Required(
-                        when: fn() => $this->shouldValidateOptimisticLock()
+                        when: fn () => $this->shouldValidateOptimisticLock()
                     ),
                     new Integer(
                         min: 1,
@@ -160,7 +157,7 @@ final class ExampleInputValidator extends AbstractValidator
             ],
             ValidationContext::DELETE => [
                 'id' => [
-                    new Required(), 
+                    new Required(),
                     new Integer(
                         min: 1,
                     ),

@@ -11,7 +11,8 @@ final readonly class CreateAnotherExampleCommand
         public int $status,
         public int $exampleId,
         public ?array $detailInfo,
-    ) {}
+    ) {
+    }
 
     public static function create(
         string $name,

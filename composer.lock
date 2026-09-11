@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0e838b06848ece87151fd552aa105fee",
+    "content-hash": "c982075396499bb9863feba0e6b9a64d",
     "packages": [
         {
             "name": "alexkart/curl-builder",
@@ -552,24 +552,24 @@
         },
         {
             "name": "mongodb/mongodb",
-            "version": "2.1.2",
+            "version": "2.4.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/mongodb/mongo-php-library.git",
-                "reference": "0a2472ba9cbb932f7e43a8770aedb2fc30612a67"
+                "url": "https://github.com/mongodb/mongo-php-library",
+                "reference": "b72cc2ecf4a11d3871f78a119a8f3cc7ab6d6c29"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mongodb/mongo-php-library/zipball/0a2472ba9cbb932f7e43a8770aedb2fc30612a67",
-                "reference": "0a2472ba9cbb932f7e43a8770aedb2fc30612a67",
+                "url": "https://api.github.com/repos/mongodb/mongo-php-library/zipball/b72cc2ecf4a11d3871f78a119a8f3cc7ab6d6c29",
+                "reference": "b72cc2ecf4a11d3871f78a119a8f3cc7ab6d6c29",
                 "shasum": ""
             },
             "require": {
                 "composer-runtime-api": "^2.0",
-                "ext-mongodb": "^2.1",
+                "ext-mongodb": "^2.4",
                 "php": "^8.1",
                 "psr/log": "^1.1.4|^2|^3",
-                "symfony/polyfill-php85": "^1.32"
+                "symfony/polyfill-php85": "^1.33"
             },
             "replace": {
                 "mongodb/builder": "*"
@@ -577,9 +577,9 @@
             "require-dev": {
                 "doctrine/coding-standard": "^12.0",
                 "phpunit/phpunit": "^10.5.35",
-                "rector/rector": "^2.1.4",
+                "rector/rector": "^2.3.4",
                 "squizlabs/php_codesniffer": "^3.7",
-                "vimeo/psalm": "6.5.*"
+                "vimeo/psalm": "~6.14.2"
             },
             "type": "library",
             "extra": {
@@ -621,11 +621,7 @@
                 "mongodb",
                 "persistence"
             ],
-            "support": {
-                "issues": "https://github.com/mongodb/mongo-php-library/issues",
-                "source": "https://github.com/mongodb/mongo-php-library/tree/2.1.2"
-            },
-            "time": "2025-10-06T12:12:40+00:00"
+            "time": "2026-08-27T14:43:15+00:00"
         },
         {
             "name": "myclabs/deep-copy",
@@ -4247,6 +4243,91 @@
                 }
             ],
             "time": "2026-08-10T07:08:12+00:00"
+        },
+        {
+            "name": "yiisoft/db-mysql",
+            "version": "2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/yiisoft/db-mysql.git",
+                "reference": "3d1c9388aa01d444a0e8c27a168b5b51efb2c736"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/yiisoft/db-mysql/zipball/3d1c9388aa01d444a0e8c27a168b5b51efb2c736",
+                "reference": "3d1c9388aa01d444a0e8c27a168b5b51efb2c736",
+                "shasum": ""
+            },
+            "require": {
+                "ext-ctype": "*",
+                "ext-pdo": "*",
+                "php": "8.1 - 8.5",
+                "psr/log": "^2.0|^3.0",
+                "yiisoft/db": "^2.0"
+            },
+            "provide": {
+                "yiisoft/db-implementation": "1.0.0"
+            },
+            "require-dev": {
+                "bamarni/composer-bin-plugin": "^1.8.3",
+                "friendsofphp/php-cs-fixer": "^3.89.1",
+                "maglnet/composer-require-checker": "^4.7.1",
+                "phpunit/phpunit": "^10.5.45",
+                "rector/rector": "^2.0.10",
+                "spatie/phpunit-watcher": "^1.24",
+                "vlucas/phpdotenv": "^5.6.1",
+                "yiisoft/aliases": "^2.0",
+                "yiisoft/log-target-file": "^2.0.1",
+                "yiisoft/psr-dummy-provider": "^1.0",
+                "yiisoft/test-support": "^3.0",
+                "yiisoft/var-dumper": "^1.7"
+            },
+            "type": "library",
+            "extra": {
+                "bamarni-bin": {
+                    "bin-links": true,
+                    "forward-command": true,
+                    "target-directory": "tools"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Yiisoft\\Db\\Mysql\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "description": "MySQL/MariaDB driver for Yii Database",
+            "homepage": "https://www.yiiframework.com/",
+            "keywords": [
+                "database",
+                "dbal",
+                "mysql",
+                "query-builder",
+                "sql",
+                "yii"
+            ],
+            "support": {
+                "chat": "https://t.me/yii3en",
+                "forum": "https://www.yiiframework.com/forum/",
+                "irc": "ircs://irc.libera.chat:6697/yii",
+                "issues": "https://github.com/yiisoft/db-mysql/issues?state=open",
+                "source": "https://github.com/yiisoft/db-mysql",
+                "wiki": "https://www.yiiframework.com/wiki/"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/sponsors/yiisoft",
+                    "type": "github"
+                },
+                {
+                    "url": "https://opencollective.com/yiisoft",
+                    "type": "opencollective"
+                }
+            ],
+            "time": "2025-12-05T14:58:24+00:00"
         },
         {
             "name": "yiisoft/db-pgsql",

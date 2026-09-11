@@ -5,27 +5,23 @@ declare(strict_types=1);
 namespace App\Api\V1\Example\Action;
 
 // Application Layer
-use App\Application\Example\ExampleApplicationService;
-use App\Application\Example\Command\UpdateExampleCommand;
-
-// API Layer
 use App\Api\Shared\ResponseFactory;
 use App\Api\V1\Example\Validation\ExampleInputValidator;
-
+// API Layer
+use App\Application\Example\Command\UpdateExampleCommand;
+use App\Application\Example\ExampleApplicationService;
 // Shared Layer
-use App\Shared\Context\ValidationContext;
-use App\Shared\ValueObject\Message;
-
+use App\Shared\Core\Context\ValidationContext;
+use App\Shared\Core\ValueObject\Message;
 // PSR Interfaces
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-
 // Vendor Layer
 use Yiisoft\Http\Status;
 use Yiisoft\Router\CurrentRoute;
 
 /**
- * Example Update API Action
+ * Example Update API Action.
  */
 final class ExampleUpdateAction
 {
@@ -41,11 +37,10 @@ final class ExampleUpdateAction
     public function __invoke(
         ServerRequestInterface $request,
         CurrentRoute $currentRoute,
-    ): ResponseInterface
-    {
-        /** @var \App\Shared\Request\RequestParams|null $payload */
-        $id = $currentRoute->getArgument('id');
-        $payload = $request->getAttribute('payload');
+    ): ResponseInterface {
+        /** @var \App\Shared\Core\Request\RequestParams|null $payload */
+        $id       = $currentRoute->getArgument('id');
+        $payload  = $request->getAttribute('payload');
         $resource = $this->applicationService->getResource();
 
         if ($id === null) {
@@ -53,7 +48,7 @@ final class ExampleUpdateAction
                 translate: Message::create(
                     key: 'route.parameter_missing',
                     params: [
-                        'resource' => $resource,
+                        'resource'  => $resource,
                         'parameter' => 'id',
                     ]
                 ),

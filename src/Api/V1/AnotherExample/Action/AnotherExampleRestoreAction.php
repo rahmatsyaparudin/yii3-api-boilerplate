@@ -5,24 +5,20 @@ declare(strict_types=1);
 namespace App\Api\V1\AnotherExample\Action;
 
 // Application Layer
-use App\Application\AnotherExample\AnotherExampleApplicationService;
-
-// API Layer
 use App\Api\Shared\ResponseFactory;
-
+// API Layer
+use App\Application\AnotherExample\AnotherExampleApplicationService;
 // Shared Layer
-use App\Shared\ValueObject\Message;
-
+use App\Shared\Core\ValueObject\Message;
 // PSR Interfaces
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-
 // Vendor Layer
 use Yiisoft\Router\CurrentRoute;
 
 /**
- * AnotherExample Restore Action
- * 
+ * AnotherExample Restore Action.
+ *
  * Restores a soft-deleted anotherexample back to active status
  */
 final readonly class AnotherExampleRestoreAction
@@ -36,17 +32,16 @@ final readonly class AnotherExampleRestoreAction
     public function __invoke(
         ServerRequestInterface $request,
         CurrentRoute $currentRoute
-    ): ResponseInterface
-    {
-        $id = $currentRoute->getArgument('id');
+    ): ResponseInterface {
+        $id       = $currentRoute->getArgument('id');
         $resource = $this->applicationService->getResource();
-        
+
         if ($id === null) {
             return $this->responseFactory->fail(
                 translate: Message::create(
                     key: 'route.parameter_missing',
                     params: [
-                        'resource' => $resource,
+                        'resource'  => $resource,
                         'parameter' => 'id',
                     ]
                 ),

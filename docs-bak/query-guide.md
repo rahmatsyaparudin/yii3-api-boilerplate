@@ -11,7 +11,7 @@ Query building utilities provide a structured way to build and execute database 
 ### Directory Structure
 
 ```
-src/Shared/Query/
+src/Shared/Core/Query/
 └── QueryConditionApplier.php    # Query condition application utilities
 ```
 
@@ -50,7 +50,7 @@ src/Shared/Query/
 
 declare(strict_types=1);
 
-namespace App\Shared\Query;
+namespace App\Shared\Core\Query;
 
 use Yiisoft\Db\ConnectionInterface;
 use Yiisoft\Db\Query\Query;

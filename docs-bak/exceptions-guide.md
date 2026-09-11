@@ -11,7 +11,7 @@ The exception hierarchy in this Yii3 API application provides a structured way t
 ### Directory Structure
 
 ```
-src/Shared/Exception/
+src/Shared/Core/Exception/
 ├── BadRequestException.php      # 400 Bad Request
 ├── BusinessRuleException.php    # 422 Unprocessable Entity
 ├── ConflictException.php        # 409 Conflict
@@ -62,9 +62,9 @@ src/Shared/Exception/
 
 declare(strict_types=1);
 
-namespace App\Shared\Exception;
+namespace App\Shared\Core\Exception;
 
-use App\Shared\ValueObject\Message;
+use App\Shared\Core\ValueObject\Message;
 use Throwable;
 
 /**
@@ -157,7 +157,7 @@ abstract class HttpException extends \RuntimeException
 
 declare(strict_types=1);
 
-namespace App\Shared\Exception;
+namespace App\Shared\Core\Exception;
 
 use Yiisoft\Http\Status;
 
@@ -248,7 +248,7 @@ throw BadRequestException::invalidFormat('application/json', 'text/plain');
 
 declare(strict_types=1);
 
-namespace App\Shared\Exception;
+namespace App\Shared\Core\Exception;
 
 use Yiisoft\Http\Status;
 
@@ -337,7 +337,7 @@ throw UnauthorizedException::expiredToken();
 
 declare(strict_types=1);
 
-namespace App\Shared\Exception;
+namespace App\Shared\Core\Exception;
 
 use Yiisoft\Http\Status;
 
@@ -422,9 +422,9 @@ throw ForbiddenException::accountSuspended();
 
 declare(strict_types=1);
 
-namespace App\Shared\Exception;
+namespace App\Shared\Core\Exception;
 
-use App\Shared\ValueObject\Message;
+use App\Shared\Core\ValueObject\Message;
 use Yiisoft\Http\Status;
 
 /**
@@ -531,7 +531,7 @@ throw NotFoundException::routeNotFound('/api/v1/users/999');
 
 declare(strict_types=1);
 
-namespace App\Shared\Exception;
+namespace App\Shared\Core\Exception;
 
 use Yiisoft\Http\Status;
 
@@ -616,7 +616,7 @@ throw ConflictException::concurrentModification('Document');
 
 declare(strict_types=1);
 
-namespace App\Shared\Exception;
+namespace App\Shared\Core\Exception;
 
 use Yiisoft\Http\Status;
 
@@ -755,7 +755,7 @@ if (!empty($errors)) {
 
 declare(strict_types=1);
 
-namespace App\Shared\Exception;
+namespace App\Shared\Core\Exception;
 
 use Yiisoft\Http\Status;
 
@@ -865,7 +865,7 @@ throw TooManyRequestsException::withRetryAfter(60, 'Please try again later');
 
 declare(strict_types=1);
 
-namespace App\Shared\Exception;
+namespace App\Shared\Core\Exception;
 
 use Yiisoft\Http\Status;
 
@@ -957,7 +957,7 @@ throw ServiceException::externalServiceFailure('Google API', 'Rate limit exceede
 
 declare(strict_types=1);
 
-namespace App\Shared\Exception;
+namespace App\Shared\Core\Exception;
 
 use Yiisoft\Http\Status;
 
@@ -1048,7 +1048,7 @@ throw BusinessRuleException::policyViolation('Data retention', 'Data cannot be d
 
 declare(strict_types=1);
 
-namespace App\Shared\Exception;
+namespace App\Shared\Core\Exception;
 
 use Yiisoft\Http\Status;
 
@@ -1117,7 +1117,7 @@ throw OptimisticLockException::staleData('Product');
 
 declare(strict_types=1);
 
-namespace App\Shared\Exception;
+namespace App\Shared\Core\Exception;
 
 use Yiisoft\Http\Status;
 

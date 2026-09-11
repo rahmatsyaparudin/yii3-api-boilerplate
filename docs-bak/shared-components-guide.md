@@ -13,17 +13,19 @@ This guide covers the shared components in `src/Shared/`. These components provi
 ```
 src/Shared/
 ├── ApplicationParams.php    # Application parameters management
-├── Dto/                    # Data Transfer Objects
-├── Enums/                  # Shared enumerations
-├── ErrorHandler/           # Error handling utilities
-├── Exception/              # Custom exception classes
-├── Middleware/             # HTTP middleware components
-├── Query/                  # Query building utilities
-├── Request/                # Request handling utilities
-├── Security/               # Security utilities
-├── Utility/                # General utility functions
-├── Validation/             # Validation utilities
-└── ValueObject/            # Value object implementations
+├── Common/                 # Common shared helpers
+└── Core/
+    ├── Dto/                # Data Transfer Objects
+    ├── Enums/              # Shared enumerations
+    ├── ErrorHandler/       # Error handling utilities
+    ├── Exception/          # Custom exception classes
+    ├── Middleware/         # HTTP middleware components
+    ├── Query/              # Query building utilities
+    ├── Request/            # Request handling utilities
+    ├── Security/           # Security utilities
+    ├── Utility/            # General utility functions
+    ├── Validation/         # Validation utilities
+    └── ValueObject/        # Value object implementations
 ```
 
 ### Component Categories

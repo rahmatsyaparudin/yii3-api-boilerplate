@@ -24,6 +24,7 @@ return [
     'auth.invalid_issuer' => 'The token issuer is invalid',
     'auth.invalid_audience' => 'The token audience is invalid',
     'auth.missing_claim' => 'The token is missing a required claim: {claim}',
+    'auth.invalid_secret' => 'The token secret is invalid',
 
     // Request Prefix
     'request.invalid_json' => 'The request body contains invalid JSON',
@@ -53,6 +54,7 @@ return [
 
     // Validation
     'validation.failed' => 'Validation failed. Please review the provided data',
+    'validation.invalid_payload' => 'The {resource} payload is invalid',
 
     // Data type (Prefix 'type.')
     'type.string' => 'The {field} field must be a string',

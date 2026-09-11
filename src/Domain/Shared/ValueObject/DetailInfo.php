@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace App\Domain\Shared\ValueObject;
 
 // Shared Layer
-use App\Shared\Exception\BadRequestException;
 
 // Domain Layer
-use App\Domain\Shared\Contract\DateTimeProviderInterface;
 use App\Domain\Shared\Concerns\Entity\ChangeLogged;
+use App\Domain\Shared\Contract\DateTimeProviderInterface;
 
 /**
- * Generic Detail Info Value Object
- * 
+ * Generic Detail Info Value Object.
+ *
  * Menyimpan data detail dalam format JSON/array
  * Reusable untuk semua domain yang membutuhkan flexible data storage
  */
@@ -21,28 +20,31 @@ final readonly class DetailInfo
 {
     use ChangeLogged;
 
-    public function __construct(public readonly array $data) {}
+    public function __construct(public readonly array $data)
+    {
+    }
 
     public static function createdLog(
         DateTimeProviderInterface $dateTime,
         string $user,
-        array $payload = [] 
+        array $payload = []
     ): self {
         $createdLog = (new self([]))->createdChangeLog($dateTime, $user);
-        return new self(array_merge($payload, $createdLog));
+
+        return new self(\array_merge($payload, $createdLog));
     }
 
     public static function updatedLog(
         DateTimeProviderInterface $dateTime,
         string $user,
         array $currentLog,
-        array $payload = [] 
+        array $payload = []
     ): self {
         $updatedLog = self::updatedChangeLog($currentLog, $dateTime, $user);
-        
+
         unset($payload['change_log']);
-        $mergedData = array_merge($payload, ['change_log' => $updatedLog]);
-        
+        $mergedData = \array_merge($payload, ['change_log' => $updatedLog]);
+
         return new self($mergedData);
     }
 
@@ -50,13 +52,13 @@ final readonly class DetailInfo
         DateTimeProviderInterface $dateTime,
         string $user,
         array $currentLog,
-        array $payload = [] 
+        array $payload = []
     ): self {
         $deletedLog = self::deletedChangeLog($currentLog, $dateTime, $user);
-        
-        unset($payload['change_log']); 
-        $mergedData = array_merge($payload, ['change_log' => $deletedLog]);
-        
+
+        unset($payload['change_log']);
+        $mergedData = \array_merge($payload, ['change_log' => $deletedLog]);
+
         return new self($mergedData);
     }
 
@@ -64,21 +66,21 @@ final readonly class DetailInfo
         DateTimeProviderInterface $dateTime,
         string $user,
         array $currentLog,
-        array $payload = [] 
+        array $payload = []
     ): self {
         $restoredLog = self::restoredChangeLog($currentLog, $dateTime, $user);
-        
+
         unset($payload['change_log']);
-        $mergedData = array_merge($payload, ['change_log' => $restoredLog]);
-        
+        $mergedData = \array_merge($payload, ['change_log' => $restoredLog]);
+
         return new self($mergedData);
     }
 
     public function with(array $additionalLog): self
     {
         $data = $this->toArray();
-        
-        $data['change_log'] = array_merge(
+
+        $data['change_log'] = \array_merge(
             $data['change_log'] ?? [],
             $additionalLog
         );
@@ -90,13 +92,13 @@ final readonly class DetailInfo
         DateTimeProviderInterface $dateTime,
         string $user,
         array $currentLog,
-        array $payload = [] 
+        array $payload = []
     ): self {
         $approvedLog = self::approvedChangeLog($currentLog, $dateTime, $user);
-        
+
         unset($payload['change_log']);
-        $mergedData = array_merge($payload, ['change_log' => $approvedLog]);
-        
+        $mergedData = \array_merge($payload, ['change_log' => $approvedLog]);
+
         return new self($mergedData);
     }
 
@@ -104,18 +106,18 @@ final readonly class DetailInfo
         DateTimeProviderInterface $dateTime,
         string $user,
         array $currentLog,
-        array $payload = [] 
+        array $payload = []
     ): self {
         $rejectedLog = self::rejectedChangeLog($currentLog, $dateTime, $user);
-        
+
         unset($payload['change_log']);
-        $mergedData = array_merge($payload, ['change_log' => $rejectedLog]);
-        
+        $mergedData = \array_merge($payload, ['change_log' => $rejectedLog]);
+
         return new self($mergedData);
     }
 
     /**
-     * Create from array
+     * Create from array.
      */
     public static function fromArray(array $data): self
     {
@@ -123,31 +125,31 @@ final readonly class DetailInfo
     }
 
     /**
-     * Create from JSON string
+     * Create from JSON string.
      */
     public static function fromJson(?string $jsonString): self
     {
         if (empty($jsonString)) {
             return new self([]);
         }
-        
-        $data = json_decode($jsonString, true);
-        
-        if (json_last_error() !== JSON_ERROR_NONE) {
+
+        $data = \json_decode($jsonString, true);
+
+        if (\json_last_error() !== JSON_ERROR_NONE) {
             return new self([]);
         }
-        
+
         return new self($data ?: []);
     }
 
     /**
-     * Get value by key
+     * Get value by key.
      */
     public function get(string $key, mixed $default = null): mixed
     {
         $array = $this->data;
-        foreach (explode('.', $key) as $segment) {
-            if (!is_array($array) || !array_key_exists($segment, $array)) {
+        foreach (\explode('.', $key) as $segment) {
+            if (!\is_array($array) || !\array_key_exists($segment, $array)) {
                 return $default;
             }
             $array = $array[$segment];
@@ -157,15 +159,15 @@ final readonly class DetailInfo
     }
 
     /**
-     * Check if key exists
+     * Check if key exists.
      */
     public function has(string $key): bool
     {
-        return array_key_exists($key, $this->data);
+        return \array_key_exists($key, $this->data);
     }
 
     /**
-     * Get all data as array
+     * Get all data as array.
      */
     public function toArray(): array
     {
@@ -173,10 +175,10 @@ final readonly class DetailInfo
     }
 
     /**
-     * Get all data as JSON string
+     * Get all data as JSON string.
      */
     public function toJson(): string
     {
-        return json_encode($this->data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+        return \json_encode($this->data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
     }
 }

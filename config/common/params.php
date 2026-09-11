@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-// Vendor Layer
-use Yiisoft\Db\Pgsql\Dsn;
-
-$isDev = $_ENV['APP_ENV'] === 'dev';
+$isDev           = $_ENV['APP_ENV'] === 'dev';
+$dbDriver        = $_ENV['db.default.driver'] ?? 'pgsql';
+$dbCharset       = $_ENV['db.default.charset'] ?? 'utf8mb4';
 $allowed_origins = \json_decode($_ENV['app.cors.allowedOrigins'] ?? '[]', true) ?? [];
-$allowedMethods = \json_decode($_ENV['app.cors.allowedMethods'] ?? '[]', true) ?? [];
-$allowedHeaders = \json_decode($_ENV['app.cors.allowedHeaders'] ?? '[]', true) ?? [];
-$exposedHeaders = \json_decode($_ENV['app.cors.exposedHeaders'] ?? '[]', true) ?? [];
-$trustedHosts = \json_decode($_ENV['app.trusted_hosts.allowedHosts'] ?? '[]', true) ?? [];
-$disabledValues = \json_decode($_ENV['app.optimistic_lock.disabled.values'] ?? '[]', true) ?? [];
+$allowedMethods  = \json_decode($_ENV['app.cors.allowedMethods'] ?? '[]', true) ?? [];
+$allowedHeaders  = \json_decode($_ENV['app.cors.allowedHeaders'] ?? '[]', true) ?? [];
+$exposedHeaders  = \json_decode($_ENV['app.cors.exposedHeaders'] ?? '[]', true) ?? [];
+$trustedHosts    = \json_decode($_ENV['app.trusted_hosts.allowedHosts'] ?? '[]', true) ?? [];
+$disabledValues  = \json_decode($_ENV['app.optimistic_lock.disabled.values'] ?? '[]', true) ?? [];
+$publicPaths     = \json_decode($_ENV['app.jwt.publicPaths'] ?? '[]', true) ?? [];
 
 return [
-    'application' => require __DIR__ . '/application.php',
+    'application'     => require __DIR__ . '/application.php',
     'yiisoft/aliases' => [
         'aliases' => require __DIR__ . '/aliases.php',
     ],
@@ -22,20 +22,19 @@ return [
         'locale'         => $_ENV['app.config.language'],
         'fallbackLocale' => $_ENV['app.config.language'],
     ],
-    'yiisoft/db-pgsql' => [
-        'dsn' => new Dsn(
-            $_ENV['db.default.driver'],
-            $_ENV['db.default.host'],
-            $_ENV['db.default.name'],
-            $_ENV['db.default.port']
-        ),
-        'username' => $_ENV['db.default.user'],
+    'yiisoft/db' => [
+        'driver'   => $dbDriver,
+        'host'     => $_ENV['db.default.host'],
+        'port'     => $_ENV['db.default.port'],
+        'name'     => $_ENV['db.default.name'],
+        'user'     => $_ENV['db.default.user'],
         'password' => $_ENV['db.default.password'],
+        'charset'  => $dbCharset,
     ],
     'yiisoft/cache-redis' => [
         'host'     => $_ENV['redis.default.host'] ?? '127.0.0.1',
-        'port'     => (int)($_ENV['redis.default.port'] ?? 6379),
-        'database' => (int)($_ENV['redis.default.db'] ?? 0),
+        'port'     => (int) ($_ENV['redis.default.port'] ?? 6379),
+        'database' => (int) ($_ENV['redis.default.db'] ?? 0),
         'password' => $_ENV['redis.default.password'] ?? null,
     ],
     'yiisoft/db-migration' => [
@@ -43,22 +42,22 @@ return [
         'sourceNamespaces'      => ['App\\Migration'],
     ],
     'mongodb/mongodb' => [
-        'enabled' => filter_var($_ENV['db.mongodb.enabled'] ?? true, FILTER_VALIDATE_BOOLEAN),
-        'dsn' => "mongodb://{$_ENV['db.mongodb.dsn']}",
-        'database' => $_ENV['db.mongodb.name'],
-        'connectTimeoutMS' => (int)($_ENV['db.mongodb.connectTimeoutMS'] ?? 2000),
-        'socketTimeoutMS' => (int)($_ENV['db.mongodb.socketTimeoutMS'] ?? 2000),
-        'readPreference' => $_ENV['db.mongodb.readPreference'] ?? 'primary',
+        'enabled'          => \filter_var($_ENV['db.mongodb.enabled'] ?? true, FILTER_VALIDATE_BOOLEAN),
+        'dsn'              => "mongodb://{$_ENV['db.mongodb.dsn']}",
+        'database'         => $_ENV['db.mongodb.name'],
+        'connectTimeoutMS' => (int) ($_ENV['db.mongodb.connectTimeoutMS'] ?? 2000),
+        'socketTimeoutMS'  => (int) ($_ENV['db.mongodb.socketTimeoutMS'] ?? 2000),
+        'readPreference'   => $_ENV['db.mongodb.readPreference'] ?? 'primary',
     ],
-    'app/config'  => [
-        'code'     => $_ENV['app.config.code'] ?? 'code',
-        'name'     => $_ENV['app.config.name'] ?? 'name',
-        'version'  => $_ENV['app.config.version'] ?? '1.0',
-        'language' => $_ENV['app.config.language'] ?? 'en',
-        'allow_god_mode' => filter_var($_ENV['app.config.allow_god_mode'] ?? true, FILTER_VALIDATE_BOOLEAN),
+    'app/config' => [
+        'code'           => $_ENV['app.config.code'] ?? 'code',
+        'name'           => $_ENV['app.config.name'] ?? 'name',
+        'version'        => $_ENV['app.config.version'] ?? '1.0',
+        'language'       => $_ENV['app.config.language'] ?? 'en',
+        'allow_god_mode' => \filter_var($_ENV['app.config.allow_god_mode'] ?? true, FILTER_VALIDATE_BOOLEAN),
     ],
     'app/optimisticLock' => [
-        'enabled' => filter_var($_ENV['app.optimistic_lock.enabled'] ?? true, FILTER_VALIDATE_BOOLEAN),
+        'enabled'        => \filter_var($_ENV['app.optimistic_lock.enabled'] ?? true, FILTER_VALIDATE_BOOLEAN),
         'disabledValues' => $disabledValues,
     ],
     'app/pagination' => [
@@ -71,25 +70,26 @@ return [
     ],
     'app/hsts' => [
         'maxAge'            => (int) ($_ENV['app.hsts.maxAge'] ?? 31536000),
-        'includeSubDomains' => filter_var($_ENV['app.hsts.includeSubDomains'] ?? true, FILTER_VALIDATE_BOOLEAN),
-        'preload'           => filter_var($_ENV['app.hsts.preload'] ?? false, FILTER_VALIDATE_BOOLEAN),
+        'includeSubDomains' => \filter_var($_ENV['app.hsts.includeSubDomains'] ?? true, FILTER_VALIDATE_BOOLEAN),
+        'preload'           => \filter_var($_ENV['app.hsts.preload'] ?? false, FILTER_VALIDATE_BOOLEAN),
     ],
     'app/time' => [
         'timezone' => $_ENV['app.time.timezone'],
     ],
     'app/cors' => [
         'maxAge'           => (int) $_ENV['app.cors.maxAge'] ?? 86400,
-        'allowCredentials' => filter_var($_ENV['app.cors.allowCredentials'] ?? true, FILTER_VALIDATE_BOOLEAN),
+        'allowCredentials' => \filter_var($_ENV['app.cors.allowCredentials'] ?? true, FILTER_VALIDATE_BOOLEAN),
         'allowedOrigins'   => $isDev ? ['*'] : $allowed_origins,
         'allowedMethods'   => $allowedMethods,
         'allowedHeaders'   => $allowedHeaders,
         'exposedHeaders'   => $exposedHeaders,
     ],
     'app/jwt' => [
-        'secret'    => $_ENV['app.jwt.secret'],
-        'algorithm' => $_ENV['app.jwt.algorithm'] ?? 'HS256',
-        'issuer'    => $_ENV['app.jwt.issuer'] ?? null,
-        'audience'  => $_ENV['app.jwt.audience'] ?? null,
+        'secret'      => $_ENV['app.jwt.secret'],
+        'algorithm'   => $_ENV['app.jwt.algorithm'] ?? 'HS256',
+        'issuer'      => $_ENV['app.jwt.issuer'] ?? null,
+        'audience'    => $_ENV['app.jwt.audience'] ?? null,
+        'publicPaths' => $publicPaths,
     ],
     'app/trusted_hosts' => [
         'allowedHosts' => $trustedHosts,
@@ -146,5 +146,11 @@ return [
             'ignore_exceptions'      => [],
             'ignore_error_codes'     => [404, 422],
         ],
+    ],
+    'app/enter-md' => [
+        'baseUrl'         => $_ENV['app.md.baseUrl'] ?? 'https://api-md.dev-enterkomputer.com/v1',
+        'secret'          => $_ENV['app.md.secret'] ?? '',
+        'algorithm'       => $_ENV['app.md.algorithm'] ?? 'HS256',
+        'serviceUsername' => $_ENV['app.md.serviceUsername'] ?? 'pos-service',
     ],
 ];

@@ -15,6 +15,9 @@ return [
     'required.without' => 'The {resource} field is required when {other} is not present',
     'filled' => 'The {resource} field must have a value',
     'present' => 'The {resource} field must be present',
+    'not_found' => 'The {resource} data was not found',
+    'entity_required' => 'The {resource} entity is required',
+    'name_required' => 'The {resource} name is required',
     
     // String Prefix
     'string.invalid' => 'The {field} field must be a string',
@@ -95,6 +98,9 @@ return [
     'array.between' => 'The {resource} must have between {min} and {max} items',
     'array.distinct' => 'The {resource} field has duplicate values',
     
+    // Permission Prefix
+    'action_not_allowed' => 'You do not have permission to {action} this {resource}',
+
     // Existence Prefix
     'exists.invalid' => 'The selected {resource} does not exist',
     'exists.unique' => 'The {resource} has already been taken',
@@ -118,6 +124,12 @@ return [
     'resource.restored' => '{resource} has been restored successfully',
     'resource.restore_failed' => 'Failed to restore {resource}: {error}',
     'resource.not_deleted' => '{resource} data is not in "Deleted" status',
+
+    // Sync Prefix
+    'sync_mdb.invalid_value' => 'Invalid sync_mdb value "{value}". Allowed values: {allowed_values}',
+    'sync_mdb.invalid_format' => 'Invalid sync_mdb format "{value}". Expected a numeric value or null',
+    'sync_slave.invalid_value' => 'Invalid sync_slave value "{value}". Allowed values: {allowed_values}',
+    'sync_slave.invalid_direction' => 'Invalid sync direction "{value}". Allowed values: {allowed_values}',
 
     // Request Prefix
     'request.unknown_parameters' => 'Unknown parameters: {unknown_keys}. Allowed parameters: {allowed_keys}',
