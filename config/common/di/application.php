@@ -2,7 +2,17 @@
 
 declare(strict_types=1);
 
+// Shared Layer
+use App\Shared\ApplicationParams;
+
+/** @var array $params */
+
 return [
-    'name'    => $_ENV['app.config.name'] ?? 'My Project',
-    'version' => $_ENV['app.config.version'] ?? '1.0',
+    ApplicationParams::class => [
+        'class' => ApplicationParams::class,
+        '__construct()' => [
+            'name'    => $params['application']['name'] ?? 'My Project',
+            'version' => $params['application']['version'] ?? '1.0',
+        ],
+    ],
 ];
