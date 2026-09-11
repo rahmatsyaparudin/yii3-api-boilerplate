@@ -3,7 +3,13 @@
 declare(strict_types=1);
 
 /**
- * Application messages (Indonesian)
+ * Pesan success dalam Bahasa Indonesia.
+ *
+ * FILE INI DIBUAT OLEH SKELETON DAN TIDAK BOLEH DIEDIT, DIHAPUS,
+ * ATAU DITAMBAHKAN KEY BARU. File ini akan ditimpa oleh `composer skeleton-update`.
+ *
+ * Tambahkan pesan error, success, atau validation khusus project di
+ * `resources/messages/id/app.php`.
  */
 return [
     // General Success
