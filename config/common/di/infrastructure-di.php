@@ -10,7 +10,13 @@ use App\Infrastructure\Core\Time\AppDateTimeProvider;
 // PSR Interfaces
 use Psr\Clock\ClockInterface;
 
-return [
+/** @var array $params */
+
+// Core infrastructure bindings. Project-owned bindings are merged
+// from config/common/infrastructure.php and may override these.
+$projectBindings = \dirname(__DIR__) . '/infrastructure.php';
+
+return array_merge([
     ClockInterface::class            => SystemClock::class,
     DateTimeProviderInterface::class => AppDateTimeProvider::class,
-];
+], file_exists($projectBindings) ? require $projectBindings : []);

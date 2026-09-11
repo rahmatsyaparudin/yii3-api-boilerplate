@@ -206,7 +206,8 @@ If you prefer to set up manually:
    cp vendor/rahmatsyaparudin/yii3-api-boilerplate/config/common/access.php config/common/
    cp vendor/rahmatsyaparudin/yii3-api-boilerplate/config/common/params.php config/common/
    cp vendor/rahmatsyaparudin/yii3-api-boilerplate/config/common/routes.php config/common/
-   cp -r vendor/rahmatsyaparudin/yii3-api-boilerplate/config/common/di/infrastructure.php config/common/di/
+   cp vendor/rahmatsyaparudin/yii3-api-boilerplate/config/common/redis.php config/common/
+   cp vendor/rahmatsyaparudin/yii3-api-boilerplate/config/common/infrastructure.php config/common/
    cp -r vendor/rahmatsyaparudin/yii3-api-boilerplate/config/common/di/repository.php config/common/di/
    cp -r vendor/rahmatsyaparudin/yii3-api-boilerplate/config/common/di/service.php config/common/di/
    cp -r vendor/rahmatsyaparudin/yii3-api-boilerplate/config/common/di/translator.php config/common/di/

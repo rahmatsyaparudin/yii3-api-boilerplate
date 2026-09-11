@@ -23,6 +23,8 @@ class SkeletonExamplesCopier
         $itemsToCopy = [
             '.env.example' => '.env.example',
             'public/.htaccess.example' => 'public/.htaccess',
+            'config/common/redis.php' => 'config/common/redis.php',
+            'config/common/infrastructure.php' => 'config/common/infrastructure.php',
 
             // Directories (recursive copy)
             'src/Api/V1/Example' => 'src/Api/V1/Example',
