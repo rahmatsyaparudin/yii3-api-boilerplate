@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Domain\Example\Entity;
 
 // Shared Layer
-use App\Domain\Shared\Concerns\Entity\Descriptive;
-use App\Domain\Shared\Concerns\Entity\Identifiable;
+use App\Domain\Shared\Core\Concerns\Entity\Descriptive;
+use App\Domain\Shared\Core\Concerns\Entity\Identifiable;
 // Domain Layer
-use App\Domain\Shared\Concerns\Entity\Stateful;
-use App\Domain\Shared\ValueObject\DetailInfo;
-use App\Domain\Shared\ValueObject\LockVersion;
-use App\Domain\Shared\ValueObject\ResourceStatus;
-use App\Domain\Shared\ValueObject\SyncMdb;
+use App\Domain\Shared\Core\Concerns\Entity\Stateful;
+use App\Domain\Shared\Core\ValueObject\DetailInfo;
+use App\Domain\Shared\Core\ValueObject\LockVersion;
+use App\Domain\Shared\Core\ValueObject\ResourceStatus;
+use App\Domain\Shared\Core\ValueObject\SyncMdb;
 use App\Shared\Core\Exception\BadRequestException;
 use App\Shared\Core\ValueObject\Message;
 

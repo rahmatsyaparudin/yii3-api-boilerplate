@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Shared\Factory;
+namespace App\Application\Shared\Core\Factory;
 
 use App\Shared\Core\Dto\SearchCriteria;
 use App\Shared\Core\Request\RequestParams;

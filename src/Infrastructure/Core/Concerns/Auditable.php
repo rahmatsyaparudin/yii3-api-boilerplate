@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Core\Concerns;
 
 // Domain Layer
-use App\Domain\Shared\Contract\CurrentUserInterface;
+use App\Domain\Shared\Core\Contract\CurrentUserInterface;
 // Vendor Layer
 use Yiisoft\Db\Expression\Expression;
 use Yiisoft\Db\Query\Query;

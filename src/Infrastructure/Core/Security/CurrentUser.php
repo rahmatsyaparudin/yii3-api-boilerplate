@@ -7,8 +7,8 @@ namespace App\Infrastructure\Core\Security;
 // Infrastructure Layer
 
 // Domain Layer
-use App\Domain\Shared\Contract\ActorInterface;
-use App\Domain\Shared\Contract\CurrentUserInterface;
+use App\Domain\Shared\Core\Contract\ActorInterface;
+use App\Domain\Shared\Core\Contract\CurrentUserInterface;
 
 final class CurrentUser implements CurrentUserInterface
 {

@@ -7,7 +7,7 @@ namespace App\Infrastructure\Core\Security;
 // Infrastructure Layer
 
 // Domain Layer
-use App\Domain\Shared\Security\AuthorizerInterface;
+use App\Domain\Shared\Core\Security\AuthorizerInterface;
 
 final class RbacAuthorizer implements AuthorizerInterface
 {

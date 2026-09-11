@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Shared\Contract;
+namespace App\Domain\Shared\Core\Contract;
 
 // Vendor Layer
 use DateTimeImmutable;

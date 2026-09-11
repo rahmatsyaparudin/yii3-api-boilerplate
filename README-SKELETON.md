@@ -73,17 +73,21 @@ src/Infrastructure/
 ### Domain Shared Classes (`src/Domain/Shared/`)
 ```
 src/Domain/Shared/
-├── Audit/         # Domain audit components
-├── Concerns/      # Domain traits
-├── Contract/      # Domain contracts and interfaces
-├── Security/      # Domain security components
-└── ValueObject/   # Domain value objects
+├── Core/          # Core domain shared components
+│   ├── Audit/         # Domain audit components
+│   ├── Concerns/      # Domain traits
+│   ├── Contract/      # Domain contracts and interfaces
+│   ├── Security/      # Domain security components
+│   └── ValueObject/   # Domain value objects
+└── Common/        # Common domain shared helpers
 ```
 
 ### Application Shared Classes (`src/Application/Shared/`)
 ```
 src/Application/Shared/
-└── Factory/       # Application factory classes
+├── Core/
+│   └── Factory/       # Application factory classes
+└── Common/        # Common application shared helpers
 ```
 
 ### API Files (`src/`)
@@ -219,8 +223,10 @@ If you prefer to set up manually:
     mkdir -p src/Shared/Common
     mkdir -p src/Infrastructure/Core/{Audit,Clock,Concerns,Database,Monitoring,RateLimit,Security,Seeder,Time}
     mkdir -p src/Infrastructure/Common/Persistence
-    mkdir -p src/Domain/Shared/{Audit,Concerns,Contract,Security,ValueObject}
-    mkdir -p src/Application/Shared/Factory
+    mkdir -p src/Domain/Shared/Core/{Audit,Concerns,Contract,Security,ValueObject}
+    mkdir -p src/Domain/Shared/Common
+    mkdir -p src/Application/Shared/Core/Factory
+    mkdir -p src/Application/Shared/Common
     mkdir -p src/Api/Shared/Presenter
     mkdir -p config/common/di
     mkdir -p config/web/di

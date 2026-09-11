@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Shared\Concerns\Entity;
+namespace App\Domain\Shared\Core\Concerns\Entity;
 
 // Domain Layer
-use App\Domain\Shared\ValueObject\LockVersion;
-use App\Domain\Shared\ValueObject\SyncMdb;
+use App\Domain\Shared\Core\ValueObject\LockVersion;
+use App\Domain\Shared\Core\ValueObject\SyncMdb;
 // Shared Layer
 use App\Shared\Core\Exception\BadRequestException;
 use App\Shared\Core\ValueObject\Message;

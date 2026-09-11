@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Shared\ValueObject;
+namespace App\Domain\Shared\Core\ValueObject;
 
 // Shared Layer
 
 // Domain Layer
-use App\Domain\Shared\Concerns\Entity\ChangeLogged;
-use App\Domain\Shared\Contract\DateTimeProviderInterface;
+use App\Domain\Shared\Core\Concerns\Entity\ChangeLogged;
+use App\Domain\Shared\Core\Contract\DateTimeProviderInterface;
 
 /**
  * Generic Detail Info Value Object.

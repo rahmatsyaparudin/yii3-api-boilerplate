@@ -8,13 +8,13 @@ namespace App\Application\Example;
 use App\Application\Example\Command\CreateExampleCommand;
 use App\Application\Example\Command\UpdateExampleCommand;
 use App\Application\Example\Dto\ExampleResponse;
-use App\Application\Shared\Factory\DetailInfoFactory;
+use App\Application\Shared\Core\Factory\DetailInfoFactory;
 // Domain Layer
 use App\Domain\Example\Entity\Example;
 use App\Domain\Example\Repository\ExampleRepositoryInterface;
 use App\Domain\Example\Service\ExampleDomainService;
-use App\Domain\Shared\Security\AuthorizerInterface;
-use App\Domain\Shared\ValueObject\ResourceStatus;
+use App\Domain\Shared\Core\Security\AuthorizerInterface;
+use App\Domain\Shared\Core\ValueObject\ResourceStatus;
 // Shared Layer
 use App\Shared\Core\Dto\PaginatedResult;
 use App\Shared\Core\Dto\SearchCriteria;

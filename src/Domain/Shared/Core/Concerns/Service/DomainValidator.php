@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Shared\Concerns\Service;
+namespace App\Domain\Shared\Core\Concerns\Service;
 
 // Domain Layer
-use App\Domain\Shared\Security\AuthorizerInterface;
+use App\Domain\Shared\Core\Security\AuthorizerInterface;
 // Shared Layer
 use App\Shared\Core\Exception\BadRequestException;
 use App\Shared\Core\Exception\ConflictException;

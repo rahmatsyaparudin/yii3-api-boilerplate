@@ -9,7 +9,7 @@ use App\Api\Shared\ResponseFactory;
 use App\Api\V1\Example\Validation\ExampleInputValidator;
 // API Layer
 use App\Application\Example\ExampleApplicationService;
-use App\Application\Shared\Factory\SearchCriteriaFactory;
+use App\Application\Shared\Core\Factory\SearchCriteriaFactory;
 // Shared Layer
 use App\Shared\Core\Context\ValidationContext;
 use App\Shared\Core\Enums\RecordStatus;

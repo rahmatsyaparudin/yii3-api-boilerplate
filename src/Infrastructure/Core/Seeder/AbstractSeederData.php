@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Infrastructure\Core\Seeder;
 
 // Application Layer
-use App\Application\Shared\Factory\DetailInfoFactory;
+use App\Application\Shared\Core\Factory\DetailInfoFactory;
 // Domain Layer
-use App\Domain\Shared\ValueObject\DetailInfo;
+use App\Domain\Shared\Core\ValueObject\DetailInfo;
 use App\Shared\Core\Exception\BadRequestException;
 // Vendor Layer
 use App\Shared\Core\ValueObject\Message;

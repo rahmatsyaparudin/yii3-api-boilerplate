@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Shared\ValueObject;
+namespace App\Domain\Shared\Core\ValueObject;
 
 // Shared Layer
 use App\Shared\Core\Enums\RecordStatus;

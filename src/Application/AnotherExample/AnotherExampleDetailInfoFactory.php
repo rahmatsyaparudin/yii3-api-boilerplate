@@ -6,7 +6,7 @@ namespace App\Application\AnotherExample;
 
 use App\Application\AnotherExample\Dto\AnotherExampleDetailInfo;
 use App\Domain\Example\Repository\ExampleRepositoryInterface;
-use App\Domain\Shared\ValueObject\ResourceStatus;
+use App\Domain\Shared\Core\ValueObject\ResourceStatus;
 // Application DTO
 use App\Shared\Core\Exception\NotFoundException;
 // Domain Repository

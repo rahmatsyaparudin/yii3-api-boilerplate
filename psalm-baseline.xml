@@ -97,7 +97,7 @@
       <code><![CDATA[verifyLockVersion]]></code>
     </UndefinedInterfaceMethod>
   </file>
-  <file src="src/Domain/Shared/Concerns/Entity/Identifiable.php">
+  <file src="src/Domain/Shared/Core/Concerns/Entity/Identifiable.php">
     <RedundantPropertyInitializationCheck>
       <code><![CDATA[$this->lockVersion]]></code>
       <code><![CDATA[LockVersion::fromInt(LockVersion::DEFAULT_VALUE)]]></code>

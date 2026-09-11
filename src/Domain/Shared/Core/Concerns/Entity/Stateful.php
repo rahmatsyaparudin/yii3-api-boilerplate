@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Shared\Concerns\Entity;
+namespace App\Domain\Shared\Core\Concerns\Entity;
 
 // Domain Layer
-use App\Domain\Shared\ValueObject\ResourceStatus;
+use App\Domain\Shared\Core\ValueObject\ResourceStatus;
 // Shared Layer
 use App\Shared\Core\Exception\BadRequestException;
 use App\Shared\Core\Exception\ConflictException;

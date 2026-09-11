@@ -116,9 +116,11 @@ src/
 │   │   └── 📁 Dto/ - Data transfer objects
 │   │       └── 📄 ExampleResponse.php - Example response DTO
 │   └── 📁 Shared/ - Shared application components
-│       └── 📁 Factory/ - Application factories
-│           ├── 📄 DetailInfoFactory.php - Audit trail factory
-│           └── 📄 SearchCriteriaFactory.php - Search criteria factory
+│       ├── 📁 Core/ - Core shared components
+│       │   └── 📁 Factory/ - Application factories
+│       │       ├── 📄 DetailInfoFactory.php - Audit trail factory
+│       │       └── 📄 SearchCriteriaFactory.php - Search criteria factory
+│       └── 📁 Common/ - Common shared helpers
 ├── 📁 Console/ - Console commands
 │   ├── 📄 HelloCommand.php - Hello world command
 │   ├── 📄 MigrateModuleCommand.php - Isolated module migrations (migrate:module)
@@ -132,26 +134,30 @@ src/
 │   │   └── 📁 Service/ - Domain services
 │   │       └── 📄 ExampleDomainService.php - Example domain service
 │   └── 📁 Shared/ - Shared domain components
-│       ├── 📁 Audit/ - Audit contracts
-│       │   └── 📄 AuditServiceInterface.php - Audit service contract
-│       ├── 📁 Concerns/ - Reusable concerns
-│       │   ├── 📁 Entity/ - Entity concerns
-│       │   │   ├── 📄 ChangeLogged.php - Audit trail trait
-│       │   │   ├── 📄 Descriptive.php - Name/description trait
-│       │   │   ├── 📄 Identifiable.php - ID trait
-│       │   │   └── 📄 Stateful.php - State management trait
-│       │   └── 📁 Service/ - Service concerns
-│       │       └── 📄 DomainValidator.php - Domain validation
-│       ├── 📁 Contract/ - Domain contracts
-│       │   ├── 📄 ActorInterface.php - Actor contract
-│       │   ├── 📄 CurrentUserInterface.php - Current user contract
-│       │   └── 📄 DateTimeProviderInterface.php - DateTime provider contract
-│       ├── 📁 Security/ - Security contracts
-│       │   └── 📄 AuthorizerInterface.php - Authorization contract
-│       └── 📁 ValueObject/ - Value objects
-│           ├── 📄 DetailInfo.php - Audit trail VO
-│           ├── 📄 LockVersion.php - Optimistic locking VO
-│           └── 📄 Status.php - Entity status VO
+│       ├── 📁 Core/ - Core shared components
+│       │   ├── 📁 Audit/ - Audit contracts
+│       │   │   └── 📄 AuditServiceInterface.php - Audit service contract
+│       │   ├── 📁 Concerns/ - Reusable concerns
+│       │   │   ├── 📁 Entity/ - Entity concerns
+│       │   │   │   ├── 📄 ChangeLogged.php - Audit trail trait
+│       │   │   │   ├── 📄 Descriptive.php - Name/description trait
+│       │   │   │   ├── 📄 Identifiable.php - ID trait
+│       │   │   │   └── 📄 Stateful.php - State management trait
+│       │   │   └── 📁 Service/ - Service concerns
+│       │   │       └── 📄 DomainValidator.php - Domain validation
+│       │   ├── 📁 Contract/ - Domain contracts
+│       │   │   ├── 📄 ActorInterface.php - Actor contract
+│       │   │   ├── 📄 CurrentUserInterface.php - Current user contract
+│       │   │   └── 📄 DateTimeProviderInterface.php - DateTime provider contract
+│       │   ├── 📁 Security/ - Security contracts
+│       │   │   └── 📄 AuthorizerInterface.php - Authorization contract
+│       │   └── 📁 ValueObject/ - Value objects
+│       │       ├── 📄 DetailInfo.php - Audit trail VO
+│       │       ├── 📄 LockVersion.php - Optimistic locking VO
+│       │       ├── 📄 ResourceStatus.php - Entity status VO
+│       │       ├── 📄 SyncMdb.php - MongoDB sync flag VO
+│       │       └── 📄 SyncSlave.php - Slave sync direction VO
+│       └── 📁 Common/ - Common shared helpers
 ├── 📁 Infrastructure/ - Infrastructure layer
 │   ├── 📁 Core/ - Core infrastructure
 │   │   ├── 📁 Audit/ - Audit implementation
@@ -385,8 +391,8 @@ docker/
 6. **Commands & DTOs**: `src/Application/Example/Command/*` & `src/Application/Example/Dto/*`
 
 ### **🔄 Shared Components**
-1. **Traits**: `src/Domain/Shared/Concerns/Entity/*`
-2. **Value Objects**: `src/Domain/Shared/ValueObject/*`
+1. **Traits**: `src/Domain/Shared/Core/Concerns/Entity/*`
+2. **Value Objects**: `src/Domain/Shared/Core/ValueObject/*`
 3. **Exceptions**: `src/Shared/Core/Exception/*`
 4. **Middleware**: `src/Shared/Core/Middleware/*`
 5. **Validation**: `src/Shared/Core/Validation/*`

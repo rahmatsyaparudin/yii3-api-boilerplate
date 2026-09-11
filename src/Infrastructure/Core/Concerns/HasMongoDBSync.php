@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Core\Concerns;
 
-use App\Domain\Shared\ValueObject\SyncMdb;
+use App\Domain\Shared\Core\ValueObject\SyncMdb;
 use App\Infrastructure\Core\Database\MongoDB\MongoDBService;
 
 trait HasMongoDBSync

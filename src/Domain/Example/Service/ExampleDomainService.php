@@ -7,7 +7,7 @@ namespace App\Domain\Example\Service;
 // Domain Layer
 use App\Domain\Example\Entity\Example;
 use App\Domain\Example\Repository\ExampleRepositoryInterface;
-use App\Domain\Shared\Concerns\Service\DomainValidator;
+use App\Domain\Shared\Core\Concerns\Service\DomainValidator;
 
 // Shared Layer
 
