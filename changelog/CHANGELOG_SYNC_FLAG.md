@@ -11,18 +11,20 @@ Value object untuk mengelola atribut `origin_id`, `sync_flag`, dan arah sinkroni
 - `origin_id` : integer, id origin tempat record berasal atau dituju. Default `null`.
 - `sync_flag` : smallint, `null` = synced, `1` = not synced. Default `1`.
 
-**Konstanta arah sinkronisasi**
-- `DIR_NONE = 0`
-- `DIR_MASTER_TO_ORIGIN = 1`
-- `DIR_ORIGIN_TO_MASTER = 2`
-- `DIR_BIDIRECTIONAL = 3`
+**Enum arah sinkronisasi** — `App\Domain\Shared\Core\Enum\SyncDirection` (backed int)
+- `NONE = 0`
+- `MASTER_TO_ORIGIN = 1`
+- `ORIGIN_TO_MASTER = 2`
+- `BIDIRECTIONAL = 3`
+- `SyncDirection::fromValue(int $value)` — throw `BadRequestException` bila nilai tidak valid
 
-**Konstanta flag sync**
-- `SYNCED = null`
-- `NOT_SYNCED = 1`
+**Enum status sync** — `App\Domain\Shared\Core\Enum\SyncStatus` (pure enum)
+- `SYNCED` — db value `null`
+- `NOT_SYNCED` — db value `1`
+- `dbValue()` / `fromDbValue(?int $value)` — konversi nilai kolom `sync_flag`; `fromDbValue` throw `BadRequestException` bila nilai tidak valid
 
 **Factory method utama**
-- `SyncFlag::create(?int $originId = null, ?int $syncFlag = SyncFlag::NOT_SYNCED, ?int $direction = null)`
+- `SyncFlag::create(?int $originId = null, SyncStatus $status = SyncStatus::NOT_SYNCED, ?SyncDirection $direction = null)`
 - `SyncFlag::fromArray(array $data)`
 - `SyncFlag::fromEntity(object $entity)`
 - `SyncFlag::masterToOrigin(?int $originId = null)`
@@ -31,7 +33,7 @@ Value object untuk mengelola atribut `origin_id`, `sync_flag`, dan arah sinkroni
 - `SyncFlag::synced()`
 
 **Method baca & predikat**
-- `getOriginId()`, `getSyncFlag()`, `getDirection()`
+- `getOriginId()`, `getSyncStatus()`, `getSyncFlag()` (nilai db `null`/`1`), `getDirection()` (`SyncDirection`)
 - `isPending()`, `isSynced()`
 - `isMasterToOrigin()`, `isOriginToMaster()`, `isBidirectional()`
 - `needsSyncToOrigin()`, `needsSyncToMaster()`
@@ -40,7 +42,7 @@ Value object untuk mengelola atribut `origin_id`, `sync_flag`, dan arah sinkroni
 - `markForSync()` — tandai record harus disync (`sync_flag = 1`)
 - `markSynced()` — tandai record sudah selesai disync (`sync_flag = null`)
 - `withOriginId(?int $originId)` — ganti origin id
-- `withDirection(int $direction)` — ganti arah
+- `withDirection(SyncDirection $direction)` — ganti arah
 
 **Serialisasi**
 - `toArray()` — output `origin_id`, `sync_flag`, `direction`
@@ -54,7 +56,7 @@ Value object untuk mengelola atribut `origin_id`, `sync_flag`, dan arah sinkroni
 Factory layer untuk membuat dan mengolah `SyncFlag` dari berbagai sumber, plus helper payload & log.
 
 **Factory dari input**
-- `create(?int $originId = null, ?int $syncFlag = SyncFlag::NOT_SYNCED, ?int $direction = null)`
+- `create(?int $originId = null, ?int $syncFlag = 1, ?int $direction = null)`
 - `fromRequest(array $data)`
 - `fromRecord(array $row)`
 - `fromEntity(object $entity)`
@@ -87,7 +89,7 @@ Message key untuk validasi `sync_flag` sudah ditambahkan ke message files:
 - `validation.sync_flag.invalid_value`
 - `validation.sync_flag.invalid_direction`
 
-Kedua key dipakai oleh `SyncFlag` ketika menerima nilai `sync_flag` atau `direction` di luar rentang yang diizinkan.
+Kedua key dipakai oleh `SyncStatus::fromDbValue()` dan `SyncDirection::fromValue()` ketika menerima nilai `sync_flag` atau `direction` di luar rentang yang diizinkan.
 
 ## Tujuan Fitur
 

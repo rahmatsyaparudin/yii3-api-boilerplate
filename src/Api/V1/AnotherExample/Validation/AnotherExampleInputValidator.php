@@ -59,6 +59,21 @@ final class AnotherExampleInputValidator extends AbstractValidator
                         ignoreId: null
                     ),
                 ],
+                'origin_id' => [
+                    new Integer(
+                        min: 1,
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'sync_flag' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                    new In(
+                        [1],
+                        skipOnEmpty: true,
+                    ),
+                ],
             ],
             ValidationContext::UPDATE => [
                 'id' => [
@@ -149,6 +164,16 @@ final class AnotherExampleInputValidator extends AbstractValidator
                     ),
                 ],
                 'sync_mdb' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'origin_id' => [
+                    new Integer(
+                        skipOnEmpty: true,
+                    ),
+                ],
+                'sync_flag' => [
                     new Integer(
                         skipOnEmpty: true,
                     ),

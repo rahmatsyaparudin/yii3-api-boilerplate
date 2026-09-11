@@ -6,6 +6,8 @@ namespace App\Application\Shared\Core\Factory;
 
 // Domain Layer
 use App\Domain\Shared\Core\Contract\DateTimeProviderInterface;
+use App\Domain\Shared\Core\Enum\SyncDirection;
+use App\Domain\Shared\Core\Enum\SyncStatus;
 use App\Domain\Shared\Core\ValueObject\SyncFlag;
 
 // Infrastructure Layer
@@ -23,13 +25,15 @@ final class SyncFlagFactory
      */
     public function create(
         ?int $originId = null,
-        ?int $syncFlag = SyncFlag::NOT_SYNCED,
+        ?int $syncFlag = 1,
         ?int $direction = null,
     ): SyncFlag {
         return SyncFlag::create(
             originId: $originId,
-            syncFlag: $syncFlag,
-            direction: $direction,
+            status: SyncStatus::fromDbValue($syncFlag),
+            direction: $direction === null
+                ? null
+                : SyncDirection::fromValue($direction),
         );
     }
 
@@ -112,20 +116,20 @@ final class SyncFlagFactory
         ?int $originId,
         ?int $syncFlag,
         ?int $explicitDirection = null,
-    ): int {
-        if ($syncFlag === SyncFlag::SYNCED) {
-            return SyncFlag::DIR_NONE;
+    ): SyncDirection {
+        if (SyncStatus::fromDbValue($syncFlag) === SyncStatus::SYNCED) {
+            return SyncDirection::NONE;
         }
 
         if ($explicitDirection !== null) {
-            return $explicitDirection;
+            return SyncDirection::fromValue($explicitDirection);
         }
 
         if ($originId === null) {
-            return SyncFlag::DIR_MASTER_TO_ORIGIN;
+            return SyncDirection::MASTER_TO_ORIGIN;
         }
 
-        return SyncFlag::DIR_ORIGIN_TO_MASTER;
+        return SyncDirection::ORIGIN_TO_MASTER;
     }
 
     /**
@@ -160,7 +164,7 @@ final class SyncFlagFactory
             'table' => $table,
             'record_id' => $recordId,
             'origin_id' => $syncFlag->getOriginId(),
-            'direction' => $syncFlag->getDirection(),
+            'direction' => $syncFlag->getDirection()->value,
             'operation' => $operation,
             'payload' => $data,
             'synced_at' => null,
@@ -233,7 +237,7 @@ final class SyncFlagFactory
             'record_id' => $recordId,
             'origin_id' => $syncFlag->getOriginId(),
             'sync_flag' => $syncFlag->getSyncFlag(),
-            'direction' => $syncFlag->getDirection(),
+            'direction' => $syncFlag->getDirection()->value,
             'operation' => $operation,
             'timestamp' => $this->dateTime->database(),
             'by' => $actor->getUsername(),

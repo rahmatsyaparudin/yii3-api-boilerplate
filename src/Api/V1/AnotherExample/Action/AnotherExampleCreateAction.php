@@ -20,7 +20,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class AnotherExampleCreateAction
 {
-    private const ALLOWED_KEYS = ['name', 'status', 'example_id', 'sync_mdb', 'detail_info'];
+    private const ALLOWED_KEYS = ['name', 'status', 'example_id', 'sync_mdb', 'origin_id', 'sync_flag', 'detail_info'];
 
     public function __construct(
         private AnotherExampleInputValidator $inputValidator,
@@ -49,7 +49,9 @@ final class AnotherExampleCreateAction
             name: (string) $params->get('name'),
             status: $params->get('status'),
             exampleId: (int) $params->get('example_id'),
-            detailInfo: $params->get('detail_info')
+            detailInfo: $params->get('detail_info'),
+            originId: $params->get('origin_id'),
+            syncFlag: $params->get('sync_flag'),
         );
 
         $resource = $this->applicationService->getResource();

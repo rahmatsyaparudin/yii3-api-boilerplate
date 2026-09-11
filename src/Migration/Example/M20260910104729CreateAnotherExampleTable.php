@@ -45,6 +45,8 @@ final class M20260910104729CreateAnotherExampleTable implements RevertibleMigrat
                     'updated_by' => null,
                 ],
             ]),
+            'origin_id'    => $cb::integer()->null()->comment('origin instance id where the record comes from or goes to'),
+            'sync_flag'    => $cb::smallint()->null()->defaultValue(1)->comment('null: synced, 1: not synced'),
             'sync_mdb'     => $cb::smallint()->null()->comment('null: sync to MDB, 1: not sync to MDB'),
             'lock_version' => $cb::integer()->notNull()->defaultValue(1)->comment('Optimistic locking version'),
         ]);

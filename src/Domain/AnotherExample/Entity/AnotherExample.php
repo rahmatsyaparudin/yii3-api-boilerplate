@@ -12,6 +12,7 @@ use App\Domain\Shared\Core\Concerns\Entity\Stateful;
 use App\Domain\Shared\Core\ValueObject\DetailInfo;
 use App\Domain\Shared\Core\ValueObject\LockVersion;
 use App\Domain\Shared\Core\ValueObject\ResourceStatus;
+use App\Domain\Shared\Core\ValueObject\SyncFlag;
 use App\Domain\Shared\Core\ValueObject\SyncMdb;
 use App\Shared\Core\Exception\BadRequestException;
 use App\Shared\Core\ValueObject\Message;
@@ -33,6 +34,7 @@ final class AnotherExample
         private ResourceStatus $status,
         private DetailInfo $detailInfo,
         private ?SyncMdb $syncMdb = null,
+        private ?SyncFlag $syncFlag = null,
         ?LockVersion $lockVersion = null,
     ) {
         $this->resource    = self::RESOURCE;
@@ -50,6 +52,7 @@ final class AnotherExample
         DetailInfo $detailInfo,
         int $exampleId,
         ?SyncMdb $syncMdb = null,
+        ?SyncFlag $syncFlag = null,
     ): self {
         self::guardInitialStatus(
             status: $status,
@@ -63,6 +66,7 @@ final class AnotherExample
             status: $status,
             detailInfo: $detailInfo,
             syncMdb: $syncMdb,
+            syncFlag: $syncFlag,
             lockVersion: LockVersion::create()
         );
     }
@@ -83,6 +87,7 @@ final class AnotherExample
         ResourceStatus $status,
         DetailInfo $detailInfo,
         ?SyncMdb $syncMdb = null,
+        ?SyncFlag $syncFlag = null,
         ?LockVersion $lockVersion = null,
     ): self {
         return new self(
@@ -92,6 +97,7 @@ final class AnotherExample
             status: $status,
             detailInfo: $detailInfo,
             syncMdb: $syncMdb,
+            syncFlag: $syncFlag,
             lockVersion: $lockVersion ?? LockVersion::create()
         );
     }
@@ -104,9 +110,38 @@ final class AnotherExample
             'example_id'         => $this->exampleId,
             'status'             => $this->status->value(),
             'detail_info'        => $this->detailInfo->toArray(),
-            SyncMdb::field()     => $this->syncMdb?->value(),
-            LockVersion::field() => $this->lockVersion->value(),
+            SyncMdb::field()              => $this->syncMdb?->value(),
+            SyncFlag::fieldOriginId()     => $this->syncFlag?->getOriginId(),
+            SyncFlag::fieldSyncFlag()     => $this->syncFlag?->getSyncFlag(),
+            LockVersion::field()          => $this->lockVersion->value(),
         ];
+    }
+
+    public function getSyncFlag(): ?SyncFlag
+    {
+        return $this->syncFlag;
+    }
+
+    public function getSyncFlagValue(): ?int
+    {
+        return $this->syncFlag?->getSyncFlag();
+    }
+
+    public function getOriginId(): ?int
+    {
+        return $this->syncFlag?->getOriginId();
+    }
+
+    public function setSyncFlag(SyncFlag $syncFlag): self
+    {
+        $this->syncFlag = $syncFlag;
+
+        return $this;
+    }
+
+    public function updateSyncFlag(?SyncFlag $syncFlag): void
+    {
+        $this->syncFlag = $syncFlag;
     }
 
     public function getExampleId(): int

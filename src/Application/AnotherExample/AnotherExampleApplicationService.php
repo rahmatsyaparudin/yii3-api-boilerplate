@@ -9,6 +9,7 @@ use App\Application\AnotherExample\Command\CreateAnotherExampleCommand;
 use App\Application\AnotherExample\Command\UpdateAnotherExampleCommand;
 use App\Application\AnotherExample\Dto\AnotherExampleResponse;
 use App\Application\Shared\Core\Factory\DetailInfoFactory;
+use App\Application\Shared\Core\Factory\SyncFlagFactory;
 // Infrastructure Layer
 use App\Infrastructure\Core\Database\Redis\RedisService;
 // Domain Layer
@@ -34,6 +35,7 @@ final class AnotherExampleApplicationService
         private AuthorizerInterface $auth,
         private DetailInfoFactory $detailInfoFactory,
         private AnotherExampleDetailInfoFactory $anotherExampleDetailInfoFactory,
+        private SyncFlagFactory $syncFlagFactory,
         private AnotherExampleRepositoryInterface $repository,
         private AnotherExampleDomainService $domainService,
         private RedisService $redis,
@@ -92,11 +94,17 @@ final class AnotherExampleApplicationService
             )
             ->build();
 
+        $syncFlag = $this->syncFlagFactory->create(
+            originId: $command->originId,
+            syncFlag: $command->syncFlag ?? 1,
+        );
+
         $data = AnotherExample::create(
             name: $command->name,
             status: ResourceStatus::from($command->status),
             detailInfo: $detailInfo,
             exampleId: $command->exampleId,
+            syncFlag: $syncFlag,
         );
 
         return AnotherExampleResponse::fromEntity(

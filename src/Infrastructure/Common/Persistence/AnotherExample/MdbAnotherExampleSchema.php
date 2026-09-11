@@ -18,6 +18,8 @@ final class MdbAnotherExampleSchema
             'example_id'   => $entity->getExampleId(),
             'status'       => $entity->getStatus()->value(),
             'detail_info'  => $entity->getDetailInfo()->toArray(),
+            'origin_id'    => $entity->getOriginId(),
+            'sync_flag'    => $entity->getSyncFlagValue(),
             'lock_version' => $entity->getLockVersion()->value(),
             'sync_at'      => new UTCDateTime(),
         ];
