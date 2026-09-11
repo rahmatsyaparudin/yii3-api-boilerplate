@@ -11,7 +11,7 @@ use App\Api\V1\Example\Validation\ExampleInputValidator;
 use App\Application\Example\Command\UpdateExampleCommand;
 use App\Application\Example\ExampleApplicationService;
 // Shared Layer
-use App\Shared\Core\Context\ValidationContext;
+use App\Shared\Common\Context\ValidationContext;
 use App\Shared\Core\ValueObject\Message;
 // PSR Interfaces
 use Psr\Http\Message\ResponseInterface;

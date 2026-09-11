@@ -215,9 +215,9 @@ src/
 └── 📁 Shared/ - Shared components
     ├── 📄 ApplicationParams.php - Application parameters
     ├── 📁 Common/ - Common shared helpers
+    │   └── 📁 Context/ - Context objects
+    │       └── 📄 ValidationContext.php - Validation context
     └── 📁 Core/ - Core shared components
-        ├── 📁 Context/ - Context objects
-        │   └── 📄 ValidationContext.php - Validation context
         ├── 📁 Dto/ - Shared DTOs
         │   ├── 📄 PaginatedResult.php - Paginated result DTO
         │   └── 📄 SearchCriteria.php - Search criteria DTO

@@ -221,7 +221,7 @@ If you prefer to set up manually:
 10. Create required directories:
     ```bash
     mkdir -p src/Shared/Core/{Dto,Enums,ErrorHandler,Exception,Middleware,Query,Repository,Request,Security,Utility,Validation,ValueObject}
-    mkdir -p src/Shared/Common
+    mkdir -p src/Shared/Common/Context
     mkdir -p src/Infrastructure/Core/{Audit,Clock,Concerns,Database,Monitoring,RateLimit,Security,Seeder,Time}
     mkdir -p src/Infrastructure/Common/Persistence
     mkdir -p src/Domain/Shared/Core/{Audit,Concerns,Contract,Security,ValueObject}
