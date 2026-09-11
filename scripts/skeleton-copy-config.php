@@ -34,22 +34,30 @@ class SkeletonConfigCopier
             'resources/messages/en/app.php' => 'resources/messages/en/app.php',
             'resources/messages/id/app.php' => 'resources/messages/id/app.php',
 
-            // Config files
-            'config/common/access.php' => 'config/common/access.php',
-            'config/common/aliases.php' => 'config/common/aliases.php',
-            'config/common/application.php' => 'config/common/application.php',
-            'config/common/params.php' => 'config/common/params.php',
-            'config/common/routes.php' => 'config/common/routes.php',
-            'config/common/repository.php' => 'config/common/repository.php',
-            'config/common/service.php' => 'config/common/service.php',
-            'config/common/translator.php' => 'config/common/translator.php',
-            'config/common/di/application.php' => 'config/common/di/application.php',
-            'config/common/di/infrastructure.php' => 'config/common/di/infrastructure.php',
-            'config/common/di/optimistic-lock.php' => 'config/common/di/optimistic-lock.php',
-            'config/common/di/validator.php' => 'config/common/di/validator.php',
-            'config/console/commands.php' => 'config/console/commands.php',
-            'config/console/params.php' => 'config/console/params.php',
         ];
+
+        // All files in config/common except common/di (di is handled by skeleton-update)
+        $commonDir = $this->vendorPath . '/config/common';
+        if (!is_dir($commonDir)) {
+            $commonDir = $this->projectRoot . '/config/common';
+        }
+
+        if (is_dir($commonDir)) {
+            $iterator = new DirectoryIterator($commonDir);
+            foreach ($iterator as $fileinfo) {
+                if ($fileinfo->isDot()) {
+                    continue;
+                }
+
+                $name = $fileinfo->getFilename();
+                if ($name === 'di') {
+                    continue;
+                }
+
+                $relative = 'config/common/' . $name;
+                $itemsToCopy[$relative] = $relative;
+            }
+        }
         
         $flagFile = $this->projectRoot . '/.skeleton_config_copied';
         
