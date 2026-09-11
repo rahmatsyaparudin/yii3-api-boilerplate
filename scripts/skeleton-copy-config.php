@@ -29,6 +29,7 @@ class SkeletonConfigCopier
         $itemsToCopy = [
             // Files
             '.env.example' => '.env',
+            '.gitignore' => '.gitignore',
 
             // Message files
             'resources/messages/en/app.php' => 'resources/messages/en/app.php',

@@ -16,9 +16,16 @@ final class IndexAction
         ResponseFactory $responseFactory,
         ApplicationParams $applicationParams,
     ): ResponseInterface {
-        return $responseFactory->success([
+        $data = [
             'name'    => $applicationParams->name,
             'version' => $applicationParams->version,
-        ]);
+            'language' => $applicationParams->language,
+        ];
+
+        if ($applicationParams->environment !== null) {
+            $data['environment'] = $applicationParams->environment;
+        }
+
+        return $responseFactory->success($data);
     }
 }

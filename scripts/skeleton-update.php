@@ -216,6 +216,10 @@ class SkeletonInstaller
                 echo "✅ Copied existing Shared classes\n";
             }
         }
+
+        if (file_exists($targetSharedPath . '/ApplicationParams.php')) {
+            echo "✅ ApplicationParams.php copied to src/Shared/\n";
+        }
     }
 
     private function copyInfrastructureClasses(): void
