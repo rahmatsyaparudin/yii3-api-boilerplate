@@ -133,8 +133,8 @@ return [
     // Sync Prefix
     'sync_mdb.invalid_value' => 'Nilai sync_mdb "{value}" tidak valid. Nilai yang diizinkan: {allowed_values}',
     'sync_mdb.invalid_format' => 'Format sync_mdb "{value}" tidak valid. Harus berupa angka atau null',
-    'sync_slave.invalid_value' => 'Nilai sync_slave "{value}" tidak valid. Nilai yang diizinkan: {allowed_values}',
-    'sync_slave.invalid_direction' => 'Arah sinkronisasi "{value}" tidak valid. Nilai yang diizinkan: {allowed_values}',
+    'sync_flag.invalid_value' => 'Nilai sync_flag "{value}" tidak valid. Nilai yang diizinkan: {allowed_values}',
+    'sync_flag.invalid_direction' => 'Arah sinkronisasi "{value}" tidak valid. Nilai yang diizinkan: {allowed_values}',
 
     // Request Prefix
     'request.unknown_parameters' => 'Parameter tidak dikenal: {unknown_keys}. Parameter yang diizinkan: {allowed_keys}',

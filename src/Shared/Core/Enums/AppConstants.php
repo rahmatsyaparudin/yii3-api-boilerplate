@@ -59,16 +59,16 @@ final class AppConstants
     public const SYNC_MASTER = 'sync_master';
 
     /**
-     * Slave database synchronization flag
-     * Used for master-slave synchronization operations.
+     * Synchronization flag field name
+     * Used for master-origin synchronization operations (null: synced, 1: not synced).
      */
-    public const SYNC_SLAVE = 'sync_slave';
+    public const SYNC_FLAG = 'sync_flag';
 
     /**
-     * Slave identifier field name
-     * Used for identifying slave records in distributed systems.
+     * Origin identifier field name
+     * Used for identifying the origin instance of records in distributed systems.
      */
-    public const SLAVE_ID = 'slave_id';
+    public const ORIGIN_ID = 'origin_id';
 
     /**
      * Master identifier field name
