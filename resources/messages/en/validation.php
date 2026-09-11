@@ -133,8 +133,8 @@ return [
     // Sync Prefix
     'sync_mdb.invalid_value' => 'Invalid sync_mdb value "{value}". Allowed values: {allowed_values}',
     'sync_mdb.invalid_format' => 'Invalid sync_mdb format "{value}". Expected a numeric value or null',
-    'sync_slave.invalid_value' => 'Invalid sync_slave value "{value}". Allowed values: {allowed_values}',
-    'sync_slave.invalid_direction' => 'Invalid sync direction "{value}". Allowed values: {allowed_values}',
+    'sync_flag.invalid_value' => 'Invalid sync_flag value "{value}". Allowed values: {allowed_values}',
+    'sync_flag.invalid_direction' => 'Invalid sync direction "{value}". Allowed values: {allowed_values}',
 
     // Request Prefix
     'request.unknown_parameters' => 'Unknown parameters: {unknown_keys}. Allowed parameters: {allowed_keys}',

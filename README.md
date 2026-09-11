@@ -113,6 +113,9 @@ composer skeleton-update
 ```
 
 Copy config files (first time only)
+
+This copies `.env.example` → `.env`, `.gitignore`, message files (`resources/messages/{en,id}/`), and other skeleton configuration files.
+
 ```bash
 composer skeleton-copy-config
 ```
@@ -267,9 +270,11 @@ yii3-api/
 │   └── messages/           # Translation files
 ├── scripts/                # Utility scripts
 │   ├── generate-module.php # Module generator
+│   ├── skeleton-scripts.php # Skeleton script installer
 │   ├── skeleton-update.php # Skeleton installer
 │   ├── skeleton-copy-examples.php # Example files copier
-│   └── skeleton-copy-config.php # Config files copier
+│   ├── skeleton-copy-config.php # Config files copier
+│   └── skeleton.version    # Installed skeleton version marker
 ├── src/                    # Source code
 │   ├── Api/                # API layer
 │   │   ├── V1/             # API version 1
@@ -389,6 +394,19 @@ redis.default.port=6379
 redis.default.db=0
 redis.default.password=null
 ```
+
+> **Note:** `app.config.language` sets the application language (used for translations). When `APP_ENV=dev` (or `development`), `ApplicationParams::$environment` is set to `development` and the root index endpoint (`GET /`) includes it in the response:
+>
+> ```json
+> {
+>   "name": "appAPI",
+>   "version": "1.0",
+>   "language": "en",
+>   "environment": "development"
+> }
+> ```
+>
+> In production (`APP_ENV` other than `dev`/`development`) the `environment` field is omitted.
 
 #### 3. Database Migration
 
@@ -612,6 +630,40 @@ curl -X PUT http://localhost:8080/v1/example/1 \
   -H "Content-Type: application/json" \
   -d '{"name": "Updated Name"}'
 ```
+
+#### 5. Translation Message Files
+
+Message files in `resources/messages/{en,id}/` are split into **skeleton-managed** and **project-owned** files:
+
+| File | Owner | Notes |
+|------|-------|-------|
+| `app.php` | **Project** | Add your custom messages here. Never overwritten by `composer skeleton-update`. |
+| `error.php` | Skeleton | Do not edit or add keys — overwritten by `composer skeleton-update`. |
+| `success.php` | Skeleton | Do not edit or add keys — overwritten by `composer skeleton-update`. |
+| `validation.php` | Skeleton | Do not edit or add keys — overwritten by `composer skeleton-update`. |
+
+Put project-specific error, success, or validation messages in `app.php` for each locale:
+
+```php
+// resources/messages/en/app.php
+return [
+    'success' => 'Success',
+    'validation.custom_rule' => 'The {field} is invalid.',
+];
+```
+
+Messages are referenced in code via `Message::create()`:
+
+```php
+use App\Shared\Core\ValueObject\Message;
+
+throw new BadRequestException(
+    translate: Message::create(
+        domain: 'validation',          // message file: validation.php
+        key: 'resource.not_deleted',
+        params: ['resource' => 'example', 'id' => $id]
+    )
+);
 ```
 
 ---
@@ -818,6 +870,113 @@ $resetAt   = $this->limiter->getResetTime($key, 60);
 ```
 
 To enforce it through middleware, modify `RateLimitMiddleware` to use `DatabaseRateLimiter`, or call the limiter manually in specific actions (e.g., login).
+
+### Current Actor
+
+`CurrentUser::getActor()` always returns an `ActorInterface` — it is never `null`. Unauthenticated/system contexts get the default actor (`id: 0`, `username: 'system'`). Audit logging and `DetailInfoFactory` rely on this, so you can call `$actor->getUsername()` directly without null-safe operators.
+
+---
+
+## 🔄 Data Synchronization
+
+The skeleton ships with value objects and a factory for tracking record synchronization — both to MongoDB and between master/origin instances.
+
+### MongoDB Sync Flag — `SyncMdb`
+
+`App\Domain\Shared\Core\ValueObject\SyncMdb` wraps the `sync_mdb` column (`null` = synced, `1` = pending):
+
+```php
+use App\Domain\Shared\Core\ValueObject\SyncMdb;
+
+$sync = SyncMdb::pending();          // mark record as needing MongoDB sync
+$sync = SyncMdb::synced();           // mark record as synced
+$sync = SyncMdb::fromInt($row['sync_mdb']);
+$sync = SyncMdb::fromString($input); // accepts string input, throws on non-numeric
+
+$sync->isPending();  // true when sync_mdb = 1
+$sync->isSynced();   // true when sync_mdb = null
+$sync->toInt();      // null | 1 — for DB writes
+```
+
+### Master–Origin Sync — `SyncFlag`
+
+`App\Domain\Shared\Core\ValueObject\SyncFlag` manages the `origin_id` / `sync_flag` columns plus a sync direction. `origin_id` is an integer (default `null`); `sync_flag` is a smallint (`null` = synced, `1` = not synced, default `1`):
+
+| Constant | Value | Meaning |
+|----------|-------|---------|
+| `SYNCED` | `null` | Record already synced |
+| `NOT_SYNCED` | `1` | Record needs syncing |
+| `DIR_NONE` | `0` | No direction |
+| `DIR_MASTER_TO_ORIGIN` | `1` | Push from master to origin |
+| `DIR_ORIGIN_TO_MASTER` | `2` | Push from origin to master |
+| `DIR_BIDIRECTIONAL` | `3` | Sync both ways |
+
+```php
+use App\Domain\Shared\Core\ValueObject\SyncFlag;
+
+// Direction is auto-resolved when not given:
+//   sync_flag=null           -> DIR_NONE
+//   sync_flag=1, no origin   -> DIR_MASTER_TO_ORIGIN
+//   sync_flag=1, origin set  -> DIR_ORIGIN_TO_MASTER
+$sync = SyncFlag::create(originId: null, syncFlag: 1);
+
+$sync = SyncFlag::masterToOrigin();        // to all origins
+$sync = SyncFlag::masterToOrigin(5);       // to origin #5
+$sync = SyncFlag::originToMaster(5);       // origin #5 -> master
+$sync = SyncFlag::bidirectional(5);        // both ways
+$sync = SyncFlag::synced();
+
+$sync = SyncFlag::fromArray($row);         // from request/DB array
+$sync = SyncFlag::fromEntity($entity);     // reads getOriginId()/getSyncFlag()/getSyncDirection()
+
+$sync->needsSyncToOrigin();  // pending && master->origin direction
+$sync->needsSyncToMaster();  // pending && origin->master direction
+$sync->markForSync();        // returns new instance with sync_flag=1
+$sync->markSynced();         // returns new instance with sync_flag=null
+$sync->toArray();            // origin_id + sync_flag + direction
+$sync->toDbArray();          // origin_id + sync_flag only
+```
+
+Invalid `sync_flag` values (not `null`/`1`) or directions (not `0`–`3`) throw `BadRequestException` with translated messages (`sync_flag.invalid_value`, `sync_flag.invalid_direction`).
+
+### `SyncFlagFactory`
+
+`App\Application\Shared\Core\Factory\SyncFlagFactory` is the application-layer helper that wraps `SyncFlag` and adds actor/timestamp-aware payload building:
+
+```php
+use App\Application\Shared\Core\Factory\SyncFlagFactory;
+
+final class ExampleApplicationService
+{
+    public function __construct(
+        private SyncFlagFactory $syncFlagFactory,
+    ) {}
+
+    public function create(CreateExampleCommand $command): void
+    {
+        // Build from request data / entity / record
+        $sync = $this->syncFlagFactory->fromRequest($command->data);
+
+        if ($this->syncFlagFactory->shouldPushToOrigin($sync)) {
+            // Queue payload includes table, record_id, origin_id, direction,
+            // operation, payload, created_at and created_by (current actor)
+            $payload = $this->syncFlagFactory->buildMasterToOriginPayload(
+                originId: $sync->getOriginId(),
+                table: 'example',
+                recordId: $id,
+                operation: 'INSERT',
+                data: $command->data,
+            );
+        }
+
+        // Merge sync state into detail_info
+        $detailInfo = $this->syncFlagFactory->mergeIntoDetailInfo($sync, $detailInfo);
+
+        // Audit-style sync log entry (timestamp + current actor)
+        $log = $this->syncFlagFactory->buildSyncLog($sync, 'example', $id, 'INSERT');
+    }
+}
+```
 
 ---
 

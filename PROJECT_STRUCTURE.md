@@ -156,7 +156,7 @@ src/
 │       │       ├── 📄 LockVersion.php - Optimistic locking VO
 │       │       ├── 📄 ResourceStatus.php - Entity status VO
 │       │       ├── 📄 SyncMdb.php - MongoDB sync flag VO
-│       │       └── 📄 SyncSlave.php - Slave sync direction VO
+│       │       └── 📄 SyncFlag.php - Origin sync flag/direction VO
 │       └── 📁 Common/ - Common shared helpers
 ├── 📁 Infrastructure/ - Infrastructure layer
 │   ├── 📁 Core/ - Core infrastructure
