@@ -3,8 +3,13 @@
 declare(strict_types=1);
 
 /**
- * Validation messages (Indonesian)
- * Pesan validasi lengkap untuk berbagai kasus penggunaan
+ * Pesan validasi dalam Bahasa Indonesia.
+ *
+ * FILE INI DIBUAT OLEH SKELETON DAN TIDAK BOLEH DIEDIT, DIHAPUS,
+ * ATAU DITAMBAHKAN KEY BARU. File ini akan ditimpa oleh `composer skeleton-update`.
+ *
+ * Tambahkan pesan error, success, atau validation khusus project di
+ * `resources/messages/id/app.php`.
  */
 return [
     // Required

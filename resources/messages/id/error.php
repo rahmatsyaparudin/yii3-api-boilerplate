@@ -2,6 +2,15 @@
 
 declare(strict_types=1);
 
+/**
+ * Pesan error dalam Bahasa Indonesia.
+ *
+ * FILE INI DIBUAT OLEH SKELETON DAN TIDAK BOLEH DIEDIT, DIHAPUS,
+ * ATAU DITAMBAHKAN KEY BARU. File ini akan ditimpa oleh `composer skeleton-update`.
+ *
+ * Tambahkan pesan error, success, atau validation khusus project di
+ * `resources/messages/id/app.php`.
+ */
 return [
     // HTTP Prefix (Generic API Errors)
     'http.bad_request' => 'Permintaan tidak valid atau formatnya salah',
@@ -91,6 +100,7 @@ return [
     'resource.update_not_allowed_by_status' => 'Perubahan data tidak diizinkan untuk {resource} saat berstatus "{current_status}"',
     'resource.status_already_set' => 'Tidak dapat memperbarui {resource}. Status sudah bernilai "{current_status}"',
     'resource.modification_denied_on_deleted' => 'Tindakan dilarang: Operasi yang diminta tidak dapat dilakukan karena {resource} ditandai sebagai "{status}".',
+    'resource.not_deleted' => 'Cannot restore data with id: {id} because it is not deleted',
 
     // Access & Rate Limit
     'operation.not_allowed' => 'Operasi ini tidak diizinkan',
