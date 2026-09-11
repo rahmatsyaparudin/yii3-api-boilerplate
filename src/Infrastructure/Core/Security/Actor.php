@@ -25,7 +25,7 @@ final class Actor implements ActorInterface
 
     public function getUsername(): string
     {
-        return $this->username ?? 'system';
+        return $this->username;
     }
 
     public function getDept(): string

@@ -28,7 +28,7 @@ final class DetailInfoFactory
     public function create(array $detailInfo = []): self
     {
         $actor    = $this->currentUser->getActor();
-        $username = $actor?->getUsername() ?? 'system';
+        $username = $actor->getUsername();
 
         $this->current = DetailInfo::createdLog(
             dateTime: $this->dateTime,
@@ -42,7 +42,7 @@ final class DetailInfoFactory
     public function update(DetailInfo $detailInfo, array $payload = []): self
     {
         $actor    = $this->currentUser->getActor();
-        $username = $actor?->getUsername() ?? 'system';
+        $username = $actor->getUsername();
         $oldData  = $detailInfo->toArray();
 
         $changeLog = $oldData['change_log'] ?? [];
@@ -63,7 +63,7 @@ final class DetailInfoFactory
     public function delete(DetailInfo $detailInfo, array $payload = []): self
     {
         $actor    = $this->currentUser->getActor();
-        $username = $actor?->getUsername() ?? 'system';
+        $username = $actor->getUsername();
         $oldData  = $detailInfo->toArray();
 
         $changeLog = $oldData['change_log'] ?? [];
@@ -84,7 +84,7 @@ final class DetailInfoFactory
     public function restore(DetailInfo $detailInfo, array $payload = []): self
     {
         $actor    = $this->currentUser->getActor();
-        $username = $actor?->getUsername() ?? 'system';
+        $username = $actor->getUsername();
         $oldData  = $detailInfo->toArray();
 
         $changeLog = $oldData['change_log'] ?? [];
@@ -136,7 +136,7 @@ final class DetailInfoFactory
         $this->ensureNotDeleted();
 
         $actor     = $this->currentUser->getActor();
-        $username  = $actor?->getUsername() ?? 'system';
+        $username  = $actor->getUsername();
         $data      = $this->current?->toArray() ?? [];
         $changeLog = $data['change_log'] ?? [];
 
@@ -155,7 +155,7 @@ final class DetailInfoFactory
         $this->ensureInstanceExists();
 
         $actor     = $this->currentUser->getActor();
-        $username  = $actor?->getUsername() ?? 'system';
+        $username  = $actor->getUsername();
         $data      = $this->current?->toArray() ?? [];
         $changeLog = $data['change_log'] ?? [];
 
