@@ -2,7 +2,7 @@
 
 ## 📋 Overview
 
-This guide covers the shared components in `src/Shared/`. These components provide reusable functionality across the application layers, following Domain-Driven Design (DDD) principles and promoting code reusability.
+This guide covers the shared components in `src/Shared/` (plus shared kernel code in `src/Domain/Shared/` and `src/Infrastructure/Core/`). These components provide reusable functionality across the application layers, following Domain-Driven Design (DDD) principles and promoting code reusability.
 
 ---
 
@@ -12,44 +12,62 @@ This guide covers the shared components in `src/Shared/`. These components provi
 
 ```
 src/Shared/
-├── ApplicationParams.php    # Application parameters management
-├── Common/                 # Common shared helpers
+├── ApplicationParams.php   # readonly app name/version/language/environment DTO
+├── Common/
+│   └── Context/
+│       └── ValidationContext.php   # implements ValidationContextInterface
 └── Core/
-    ├── Dto/                # Data Transfer Objects
-    ├── Enums/              # Shared enumerations
-    ├── ErrorHandler/       # Error handling utilities
-    ├── Exception/          # Custom exception classes
-    ├── Middleware/         # HTTP middleware components
-    ├── Query/              # Query building utilities
-    ├── Request/            # Request handling utilities
-    ├── Security/           # Security utilities
-    ├── Utility/            # General utility functions
-    ├── Validation/         # Validation utilities
-    └── ValueObject/        # Value object implementations
+    ├── Dto/                # SearchCriteria, PaginatedResult
+    ├── Enums/              # AppConstants, RecordStatus
+    ├── ErrorHandler/       # ErrorHandlerResponse (ThrowableRendererInterface)
+    ├── Exception/          # HttpException + final concrete exceptions
+    ├── Middleware/         # PSR-15 middleware (JWT, CORS, rate limit, ...)
+    ├── Query/              # QueryConditionApplier (static helpers)
+    ├── Request/            # RawParams, RequestParams, PaginationParams, SortParams, ...
+    ├── Security/           # InputSanitizer (static)
+    ├── Utility/            # Arrays, FieldMapper, JsonHandler
+    ├── Validation/         # AbstractValidator, ValidationContextInterface, Rules/
+    └── ValueObject/        # Message, LockVersionConfig
+
+src/Domain/Shared/Core/
+├── Audit/                  # AuditServiceInterface
+├── Concerns/
+│   ├── Entity/             # Identifiable, Stateful, Descriptive, ChangeLogged
+│   └── Service/            # DomainValidator (guard* / ensure* helpers)
+├── Contract/               # ActorInterface, CurrentUserInterface, DateTimeProviderInterface
+├── Enum/                   # SyncStatus, SyncDirection
+├── Security/               # AuthorizerInterface
+└── ValueObject/            # DetailInfo, LockVersion, ResourceStatus, SyncFlag, SyncMdb
+
+src/Infrastructure/Core/
+├── Concerns/               # HasCoreFeatures, HasMongoDBSync, ManagesPersistence, Auditable
+└── Security/               # Actor, CurrentUser, JwtService, AccessChecker, ...
 ```
 
 ### Component Categories
 
 #### **1. Data Management**
-- **Dto/**: Data Transfer Objects for API communication
-- **ValueObject/**: Immutable value objects with validation
-- **Query/**: Query building and execution utilities
+- **Dto/**: `SearchCriteria`, `PaginatedResult` for list endpoints
+- **ValueObject/**: Immutable value objects (`Message`, `LockVersion`, `ResourceStatus`, `DetailInfo`, `SyncFlag`, `SyncMdb`, `LockVersionConfig`)
+- **Query/**: `QueryConditionApplier` static condition helpers
 
 #### **2. Request & Response**
-- **Request/**: HTTP request processing and validation
-- **Middleware/**: HTTP middleware for request pipeline
+- **Request/**: `RawParams`, `RequestParams`, `PaginationParams`, `SortParams`, `RequestDataParser`
+- **Middleware/**: PSR-15 middleware for the request pipeline
 
 #### **3. Error Handling**
-- **Exception/**: Custom exception hierarchy
-- **ErrorHandler/**: Centralized error processing
+- **Exception/**: `HttpException` hierarchy
+- **ErrorHandler/**: `ErrorHandlerResponse` JSON renderer
 
 #### **4. Business Logic**
-- **Enums/**: Shared enumerations and constants
-- **Validation/**: Validation rules and utilities
+- **Enums/**: `RecordStatus` enum, `AppConstants` constants
+- **Domain Enum/**: `SyncStatus`, `SyncDirection`
+- **Validation/**: `AbstractValidator`, `ValidationContextInterface`, custom rules (`UniqueValue`, `HasNoDependencies`)
 
 #### **5. Infrastructure**
-- **Security/**: Security utilities and helpers
-- **Utility/**: General utility functions
+- **Security/**: `InputSanitizer` (input scrubbing)
+- **Utility/**: `Arrays`, `FieldMapper`, `JsonHandler`
+- **Concerns/**: entity/repository traits (`HasCoreFeatures`, `ManagesPersistence`, `HasMongoDBSync`, `Auditable`)
 
 ---
 
@@ -98,11 +116,11 @@ Purpose: Application parameters management and configuration.
 ### 1. **Dependency Injection**
 ```php
 // Shared components are designed for DI injection
-final class ExampleService
+final class ExampleApplicationService
 {
     public function __construct(
-        private ValidatorInterface $validator,
-        private ErrorHandlerInterface $errorHandler
+        private AuthorizerInterface $auth,
+        private ExampleRepositoryInterface $repository,
     ) {}
 }
 ```
@@ -110,24 +128,37 @@ final class ExampleService
 ### 2. **Static Utilities**
 ```php
 // Some utilities provide static methods
-$isValid = ValidationHelper::isValidEmail($email);
-$hash = SecurityHelper::hashPassword($password);
+use App\Shared\Core\Query\QueryConditionApplier;
+use App\Shared\Core\Security\InputSanitizer;
+use App\Shared\Core\Utility\Arrays;
+
+$clean    = InputSanitizer::process($input);
+$filtered = Arrays::removeNulls($data);
+QueryConditionApplier::filterByExactMatch($query, $filters, $allowedColumns);
 ```
 
 ### 3. **Value Objects**
 ```php
-// Immutable value objects with validation
-$email = new Email($userInput);
-$status = new RecordStatus(RecordStatus::ACTIVE);
+// Immutable value objects / enums
+use App\Domain\Shared\Core\ValueObject\ResourceStatus;
+use App\Shared\Core\Enums\RecordStatus;
+use App\Shared\Core\ValueObject\Message;
+
+$status  = ResourceStatus::active();           // VO wrapping RecordStatus::ACTIVE
+$message = Message::create(key: 'resource.not_found', params: ['resource' => 'Example']);
+$state   = RecordStatus::ACTIVE;               // backed enum case
 ```
 
 ### 4. **Exception Handling**
 ```php
-// Custom exceptions with proper context
+// Custom exceptions carry a Message value object
+use App\Shared\Core\Exception\NotFoundException;
+
 throw new NotFoundException(
-    resource: 'User',
-    field: 'id',
-    value: $id
+    translate: Message::create(
+        key: 'resource.not_found',
+        params: ['resource' => 'User', 'field' => 'id', 'value' => $id],
+    ),
 );
 ```
 
@@ -148,7 +179,7 @@ throw new NotFoundException(
 - Value objects ensure data integrity
 
 ### 4. **Immutability**
-- Value objects are immutable
+- Value objects and DTOs are `readonly`
 - Prevents accidental state changes
 
 ### 5. **Testability**
@@ -159,19 +190,32 @@ throw new NotFoundException(
 
 ## 📊 Integration Examples
 
-### 1. **Controller Integration**
+### 1. **Action Integration**
 ```php
-final class ExampleController
+final class ExampleDataAction
 {
     public function __construct(
-        private RequestValidator $requestValidator,
-        private ResponseFormatter $responseFormatter
+        private SearchCriteriaFactory $factory,
+        private ExampleApplicationService $applicationService,
+        private ResponseFactory $responseFactory,
     ) {}
-    
-    public function actionCreate(CreateRequest $request): ResponseInterface
+
+    public function __invoke(ServerRequestInterface $request): ResponseInterface
     {
-        $validatedData = $this->requestValidator->validate($request);
-        return $this->responseFormatter->success($validatedData);
+        /** @var RequestParams $payload — set by RequestParamsMiddleware */
+        $payload = $request->getAttribute('payload');
+
+        $criteria = $this->factory->createFromRequest(
+            params: $payload,
+            allowedSort: ['id' => 'id', 'name' => 'name'],
+        );
+
+        $result = $this->applicationService->list(criteria: $criteria);
+
+        return $this->responseFactory->success(
+            data: $result->data,
+            meta: $result->getMeta(),
+        );
     }
 }
 ```
@@ -181,38 +225,42 @@ final class ExampleController
 final class ExampleApplicationService
 {
     public function __construct(
-        private DomainValidator $domainValidator,
-        private ErrorHandler $errorHandler
+        private AuthorizerInterface $auth,
+        private ExampleRepositoryInterface $repository,
+        private ExampleDomainService $domainService,
     ) {}
-    
-    public function create(CreateExampleCommand $command): ExampleResponse
+
+    public function delete(int $id): ExampleResponse
     {
-        if (!$this->domainValidator->isValid($command)) {
-            $this->errorHandler->handleValidationError();
-        }
-        
-        // Business logic here
+        $this->domainService->guardPermission(
+            id: $id,
+            authorizer: $this->auth,
+            permission: 'example.delete',
+            resource: $this->getResource(),
+        );
+        // ...
     }
 }
 ```
 
 ### 3. **Repository Integration**
 ```php
-final class ExampleRepository
+final class ExampleRepository implements ExampleRepositoryInterface, CurrentUserAwareInterface
 {
-    public function __construct(
-        private QueryBuilder $queryBuilder,
-        private DataMapper $dataMapper
-    ) {}
-    
-    public function findById(int $id): ?Example
+    use HasCoreFeatures;
+    use HasMongoDBSync;
+    use ManagesPersistence;
+
+    public function findById(int $id, ?int $status = null): ?Example
     {
-        $query = $this->queryBuilder->select('*')
-            ->from('example')
-            ->where('id', $id);
-            
-        $data = $this->executeQuery($query);
-        return $data ? $this->dataMapper->toEntity($data) : null;
+        $row = (new Query($this->db))
+            ->from(self::TABLE_NAME)
+            ->where(['id' => $id])
+            ->andWhere($this->scopeWhereNotDeleted())
+            ->andWhere($this->scopeByStatus($status))
+            ->one();
+
+        return $row ? Example::reconstitute(/* ... */) : null;
     }
 }
 ```
@@ -225,17 +273,17 @@ final class ExampleRepository
 ```php
 // ✅ Use dependency injection
 public function __construct(
-    private SharedComponentInterface $component
+    private ExampleRepositoryInterface $repository
 ) {}
 
-// ❌ Avoid static instantiation
-$component = new SharedComponent();
+// ❌ Avoid manual instantiation of services
+$repository = new ExampleRepository($db);
 ```
 
 ### 2. **Error Handling**
 ```php
 // ✅ Use custom exceptions
-throw new ResourceNotFoundException('User', 'id', $id);
+throw new NotFoundException(translate: Message::create(key: 'resource.not_found', params: [...]));
 
 // ❌ Avoid generic exceptions
 throw new RuntimeException('User not found');
@@ -243,28 +291,29 @@ throw new RuntimeException('User not found');
 
 ### 3. **Validation**
 ```php
-// ✅ Use value objects
-$email = new Email($input);
+// ✅ Use value objects and validators
+$status = ResourceStatus::from($input);       // throws on invalid value
+$validator->validate($data, ValidationContextInterface::CREATE);
 
-// ❌ Avoid manual validation
+// ❌ Avoid scattered manual checks
 if (!filter_var($input, FILTER_VALIDATE_EMAIL)) {
-    throw new ValidationException('Invalid email');
+    throw new ValidationException();
 }
 ```
 
 ### 4. **Data Transfer**
 ```php
-// ✅ Use DTOs for API communication
-class CreateUserRequest extends AbstractDto
+// ✅ Use typed DTOs / commands for API communication
+final readonly class CreateExampleCommand
 {
     public function __construct(
-        public readonly string $name,
-        public readonly string $email
+        public string $name,
+        public int $status,
     ) {}
 }
 
-// ❌ Avoid associative arrays
-$data = ['name' => $name, 'email' => $email];
+// ❌ Avoid passing raw associative arrays between layers
+$data = ['name' => $name, 'status' => $status];
 ```
 
 ---
@@ -273,8 +322,9 @@ $data = ['name' => $name, 'email' => $email];
 
 - **[Architecture Guide](architecture-guide.md)**: Complete architecture overview
 - **[DI Configuration Guide](di-configuration-guide.md)**: Dependency injection setup
-- **[API Documentation](api-documentation.md)**: API development guidelines
-- **[Testing Guide](testing-guide.md)**: Testing strategies and utilities
+- **[Migration & Seeding Guide](migration-seeding-guide.md)**: Database migrations and seeders
+- **[Quality Guide](quality-guide.md)**: Code quality tooling and standards
+- **[Setup Guide](setup-guide.md)**: Project setup and environment configuration
 
 ---
 

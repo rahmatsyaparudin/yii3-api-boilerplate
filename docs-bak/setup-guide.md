@@ -1,6 +1,6 @@
 # Yii3 API Skeleton Setup Guide
 
-**Yii3 API Skeleton** is a starter project for building RESTful APIs using Yii3 with Domain-Driven Design (DDD) architecture. It provides a ready-to-use structure, helper scripts, and example configurations to accelerate your API development with clean architecture principles.
+**Yii3 API Boilerplate** (`rahmatsyaparudin/yii3-api-boilerplate`) is a starter project for building RESTful APIs using Yii3 with Domain-Driven Design (DDD) architecture. It provides a ready-to-use structure, helper scripts (`scripts/skeleton-*.php`, `generate-module.php`), and example configurations to accelerate your API development with clean architecture principles.
 
 ---
 
@@ -36,17 +36,18 @@ This skeleton follows **Domain-Driven Design (DDD)** principles with clean archi
 
 ### Prerequisites
 
-- **PHP 8.1+** with required extensions
+- **PHP 8.2 - 8.5** with required extensions
 - **Composer** for dependency management
-- **PostgreSQL** database
+- **PostgreSQL** (or **MySQL/MariaDB** via `db.default.driver`)
 - **MongoDB** (optional, for audit trails)
+- **Redis** (optional, cache/side service)
 - **Docker** (optional, for containerized development)
 
 ### 1. Create New Project
 
 ```bash
-# Create new Yii3 project
-composer create-project --prefer-dist yiisoft/app yii3-api
+# Create new project from the boilerplate
+composer create-project rahmatsyaparudin/yii3-api-boilerplate yii3-api
 
 # Navigate to project directory
 cd yii3-api
@@ -54,23 +55,29 @@ cd yii3-api
 
 ### 2. Add Skeleton Repository
 
-Add this to your `composer.json`:
+To consume the boilerplate as an updatable package, add this to your `composer.json`:
 
 ```json
 {
     "repositories": [
         {
             "type": "vcs",
-            "url": "https://github.com/rahmatsyaparudin/yii3-api-skeleton.git"
+            "url": "https://github.com/rahmatsyaparudin/yii3-api-boilerplate.git"
         }
     ],
     "require-dev": {
-        "rahmatsyaparudin/yii3-api-skeleton": "dev-main"
+        "rahmatsyaparudin/yii3-api-boilerplate": "dev-main"
     },
     "scripts": {
+        "skeleton-scripts": [
+            "php scripts/skeleton-scripts.php"
+        ],
         "skeleton-update": [
-            "composer update rahmatsyaparudin/yii3-api-skeleton --ignore-platform-reqs",
-            "php scripts/install-skeleton.php"
+            "composer update rahmatsyaparudin/yii3-api-boilerplate --ignore-platform-reqs",
+            "php scripts/skeleton-update.php"
+        ],
+        "skeleton-copy-config": [
+            "php scripts/skeleton-copy-config.php"
         ],
         "skeleton-copy-examples": [
             "php scripts/skeleton-copy-examples.php"
@@ -85,12 +92,17 @@ Add this to your `composer.json`:
 # Update dependencies
 composer update --ignore-platform-reqs
 
-# Install skeleton structure
+# Install skeleton structure (shared classes, config, console commands, quality script)
 composer skeleton-update
+
+# Copy config files (first time only)
+composer skeleton-copy-config
 
 # Copy example files (first time only)
 composer skeleton-copy-examples
 ```
+
+The current skeleton version is tracked in `scripts/skeleton.version` (currently `1.1.0`). A new module can also be generated with `php scripts/generate-module.php --module=Product`.
 
 ---
 
@@ -101,38 +113,52 @@ After installation, your project will have this structure:
 ```
 yii3-api/
 ├── config/                 # Application configuration
-│   ├── common/             # Shared configuration
-│   ├── console/            # Console configuration
-│   ├── environments/       # Environment configs
-│   └── web/                # Web configuration
+│   ├── common/             # Shared configuration (params, routes, access, ...)
+│   │   └── di/             # DI definitions (db-*, jwt, middleware-di, ...)
+│   ├── console/            # Console configuration (commands.php)
+│   ├── environments/       # Environment configs (dev, test, prod)
+│   ├── web/                # Web configuration
+│   │   └── di/             # Web DI (application.php, psr17.php)
+│   └── configuration.php   # yiisoft/config plugin map
 ├── docs/                   # Documentation
-│   ├── architecture-guide.md # Architecture documentation
-│   ├── quality-guide.md    # Quality assurance guide
-│   └── setup-guide.md     # This setup guide
 ├── public/                 # Web root
-│   └── index.php          # Application entry point
+│   └── index.php           # Application entry point
 ├── resources/              # Application resources
-│   └── messages/           # Translation files
+│   └── messages/           # Translation files (en, id)
+├── scripts/                # Skeleton & generator scripts
+│   ├── skeleton-update.php
+│   ├── skeleton-copy-config.php
+│   ├── skeleton-copy-examples.php
+│   ├── generate-module.php
+│   └── skeleton.version    # Current skeleton version
 ├── src/                    # Source code
 │   ├── Api/                # API layer
-│   │   ├── V1/             # API version 1
-│   │   └── Shared/         # Shared API components
+│   │   ├── IndexAction.php # GET / action
+│   │   ├── Shared/         # Shared API components (ResponseFactory, presenters)
+│   │   └── V1/             # API version 1 (Example, AnotherExample)
 │   ├── Application/        # Application layer
-│   │   └── Example/        # Application services
+│   │   ├── Example/        # Application services, commands, DTOs
+│   │   └── Shared/         # Shared application components (factories)
+│   ├── Console/            # Console commands (hello, migrate:module, seed)
 │   ├── Domain/             # Domain layer
-│   │   ├── Example/        # Domain entities
+│   │   ├── Example/        # Domain entities, repository contracts, services
 │   │   └── Shared/         # Shared domain components
-│   ├── Infrastructure/      # Infrastructure layer
-│   │   ├── Audit/         # Audit services
-│   │   ├── Database/      # Database implementations
-│   │   ├── Persistence/   # Repository implementations
-│   │   └── Security/      # Security services
-│   └── Shared/            # Shared utilities
-├── tests/                  # Test suite
-│   ├── Api/                # API tests
+│   ├── Infrastructure/     # Infrastructure layer
+│   │   ├── Common/Persistence/  # Repository implementations
+│   │   └── Core/           # Audit, Clock, Database, Monitoring, Security, Seeder, Time
+│   ├── Migration/          # Migrations, grouped per module namespace
+│   ├── Seeder/             # Seeders, YAML fixtures, Faker providers
+│   ├── Shared/             # Shared utilities (middleware, exceptions, value objects)
+│   ├── Environment.php     # APP_ENV handling (dev/test/prod)
+│   └── autoload.php        # Bootstrap: loads vendor autoload + .env
+├── tests/                  # Codeception test suites
+│   ├── Api/                # API tests (REST module)
+│   ├── Console/            # Console tests
 │   ├── Functional/         # Functional tests
 │   ├── Support/            # Test support classes
-│   └── Unit/              # Unit tests
+│   └── Unit/               # Unit tests
+├── quality                 # QA runner (quality:check, test:run)
+├── yii                     # Console entry point
 └── vendor/                 # Dependencies
 ```
 
@@ -158,9 +184,11 @@ Edit `.env` file:
 APP_ENV=dev
 APP_DEBUG=1
 
-app.config.code=enterEDC
-app.config.name=enterEDC
+app.config.code=appAPI
+app.config.name="My Project"
+app.config.version="1.0"
 app.config.language=en
+app.config.allow_god_mode=true
 app.time.timezone=Asia/Jakarta
 app.pagination.defaultPageSize=10
 app.pagination.maxPageSize=100
@@ -177,22 +205,29 @@ app.cors.allowedHeaders=["Content-Type","Authorization","X-Requested-With","Acce
 app.cors.exposedHeaders=["X-Pagination-Total-Count","X-Pagination-Page-Count"]
 app.trusted_hosts.allowedHosts=["127.0.0.1","::1","localhost"]
 
+# Optimistic Lock Configuration
+app.optimistic_lock.enabled=true
+app.optimistic_lock.disabled.values=["example","example_1"]
+
 # SSO Configuration (External Keycloak)
 app.jwt.secret=secret-key-harus-panjang-256-bit
 app.jwt.algorithm=HS256
-app.jwt.issuer=https://sso.dev-enterkomputer.com
-app.jwt.audience=https://sso.dev-enterkomputer.com
+app.jwt.issuer=https://sso.example.com
+app.jwt.audience=https://sso.example.com
+app.jwt.publicPaths=["/","/auth/login","/auth/refresh"]
 
+# Database: pgsql | mysql | mariadb
 db.default.driver=pgsql
 db.default.host=localhost
 db.default.port=5432
 db.default.name=dev_yii3
 db.default.user=postgres
 db.default.password=postgres
+db.default.charset=utf8mb4
 
+db.mongodb.enabled=true
 db.mongodb.dsn=localhost:27017
 db.mongodb.name=db_example
-db.mongodb.enabled=true
 
 redis.default.host=127.0.0.1
 redis.default.port=6379
@@ -206,11 +241,14 @@ redis.default.password=null
 # Run database migrations
 ./yii migrate:up
 
-# Seed initial data (development only)
-./yii seed:example
+# Or per module (e.g. only App\Migration\Example)
+./yii migrate:module example
 
-# Or seed with custom options (development only)
-./yii seed:example --count=10 --truncate
+# Seed initial data (development only)
+./yii seed --module=example
+
+# Or seed all modules with a custom count (development only)
+./yii seed --count=10
 
 # Note: Seed commands only work in development environment (APP_ENV=dev)
 ```
@@ -224,32 +262,36 @@ redis.default.password=null
 The skeleton includes comprehensive quality assurance tools:
 
 ```bash
-# Run complete quality check suite
-php quality
+# Run complete quality check suite (php-cs-fixer, psalm, codecept Unit, composer audit)
+php quality quality:check
 
 # Auto-fix code style issues
-php quality --fix
+php quality quality:check --fix
 
 # Generate test coverage reports
-php quality --coverage
+php quality quality:check --coverage
 
 # Generate detailed analysis reports
-php quality --report
+php quality quality:check --report
 ```
 
 ### Testing
 
 ```bash
-# Run all tests
-vendor/bin/phpunit
+# Run all Codeception suites (Unit, Functional, Api, Console)
+composer test            # alias for `codecept run`
+vendor/bin/codecept run
 
-# Run specific test suite
-vendor/bin/phpunit tests/Unit/
-vendor/bin/phpunit tests/Api/
-vendor/bin/phpunit tests/Functional/
+# Run a specific suite
+vendor/bin/codecept run Unit
+vendor/bin/codecept run Functional
+vendor/bin/codecept run Api
+vendor/bin/codecept run Console
 
-# Run tests with coverage
-vendor/bin/phpunit --coverage-html tests/coverage/html
+# Or through the quality script
+php quality test:run --unit
+php quality test:run --integration   # runs the Functional suite
+php quality test:run --coverage
 ```
 
 ### Static Analysis
@@ -277,12 +319,21 @@ The domain layer contains business logic and entities:
 // src/Domain/Example/Entity/Example.php
 final class Example
 {
-    use Identifiable, Stateful, OptimisticLock;
-    
-    public static function create(string $name, Status $status, DetailInfo $detailInfo): self
-    {
-        self::guardInitialStatus($status, null, self::RESOURCE);
-        return new self(null, $name, $status, $detailInfo, null, LockVersion::create());
+    use Identifiable;
+    use Stateful;
+    use Descriptive;
+
+    public const RESOURCE = 'Example';
+
+    public static function create(
+        string $name,
+        ResourceStatus $status,
+        DetailInfo $detailInfo,
+        ?SyncMdb $syncMdb = null,
+    ): self {
+        self::guardInitialStatus(status: $status, resource: self::RESOURCE);
+
+        return new self(null, $name, $status, $detailInfo, $syncMdb, LockVersion::create());
     }
 }
 ```
@@ -297,14 +348,17 @@ final class ExampleApplicationService
 {
     public function create(CreateExampleCommand $command): ExampleResponse
     {
-        // Business logic validation
-        $this->domainService->ensureUnique(...);
-        
-        // Entity creation
-        $example = Example::create(...);
-        
-        // Persistence
-        return ExampleResponse::fromEntity($this->repository->insert($example));
+        $detailInfo = $this->detailInfoFactory->create(detailInfo: [])->build();
+
+        $data = Example::create(
+            name: $command->name,
+            status: ResourceStatus::from($command->status),
+            detailInfo: $detailInfo
+        );
+
+        return ExampleResponse::fromEntity(
+            entity: $this->repository->insert(entity: $data)
+        );
     }
 }
 ```
@@ -314,36 +368,35 @@ final class ExampleApplicationService
 Repository implementations handle data persistence:
 
 ```php
-// src/Infrastructure/Persistence/Example/ExampleRepository.php
+// src/Infrastructure/Common/Persistence/Example/ExampleRepository.php
 final class ExampleRepository implements ExampleRepositoryInterface
 {
     public function insert(Example $example): Example
     {
-        return $this->db->transaction(function() use ($example) {
-            // Database operations with MongoDB sync
-        });
+        // Database operations with MongoDB sync / optimistic locking
     }
 }
 ```
 
 ### API Layer
 
-Controllers handle HTTP requests:
+Actions handle HTTP requests:
 
 ```php
-// src/Api/V1/Action/Example/ExampleCreateAction.php
+// src/Api/V1/Example/Action/ExampleCreateAction.php
 final class ExampleCreateAction
 {
-    public function run(ServerRequestInterface $request): ResponseInterface
+    public function __invoke(ServerRequestInterface $request): ResponseInterface
     {
-        // Request validation
-        $command = new CreateExampleCommand(...);
-        
-        // Business logic
-        $response = $this->applicationService->create($command);
-        
-        // Response formatting
-        return $this->responseFactory->success($response->toArray());
+        $payload = $request->getAttribute('payload');
+        $params  = $payload->getRawParams()->onlyAllowed(self::ALLOWED_KEYS)->sanitize();
+
+        $this->inputValidator->validate(data: $params, context: ValidationContext::CREATE);
+
+        $command  = CreateExampleCommand::create(name: (string) $params->get('name'), ...);
+        $response = $this->applicationService->create(command: $command);
+
+        return $this->responseFactory->success(data: $response->toArray(), ...);
     }
 }
 ```
@@ -354,36 +407,44 @@ final class ExampleCreateAction
 
 ### Authentication & Authorization
 
-```php
-// JWT Authentication
-$app->addMiddleware(new AuthenticationMiddleware($jwtAuthenticator));
+The middleware stack is assembled in `config/web/di/application.php`:
 
-// RBAC Authorization
-$app->addMiddleware(new AuthorizationMiddleware($rbacAuthorizer));
+```php
+// JWT authentication and RBAC access control run as middleware
+JwtMiddleware::class,      // App\Shared\Core\Middleware\JwtMiddleware
+// ...
+AccessMiddleware::class,   // App\Shared\Core\Middleware\AccessMiddleware
 ```
+
+Authorization checks go through `AuthorizerInterface` (bound to `App\Infrastructure\Core\Security\RbacAuthorizer` in `config/common/di/security-di.php`), with the permission map in `config/common/access.php`.
 
 ### Input Validation
 
 ```php
-// Request validation
-final class ExampleValidator
-{
-    public function validate(array $data, ValidationContext $context): void
-    {
-        $this->validator->validate($data, $context);
-    }
-}
+// src/Api/V1/Example/Validation/ExampleInputValidator.php
+$this->inputValidator->validate(
+    data: $params,
+    context: ValidationContext::CREATE,   // App\Shared\Common\Context\ValidationContext
+);
 ```
 
 ### Audit Trail
 
 ```php
-// Automatic audit logging
+// src/Infrastructure/Core/Audit/DatabaseAuditService.php
 final class DatabaseAuditService implements AuditServiceInterface
 {
-    public function log(string $tableName, int $recordId, string $action, ?array $oldValues = null, ?array $newValues = null): void
-    {
-        // Log to database with actor information
+    public function log(
+        string $tableName,
+        int $recordId,
+        string $action,
+        ?array $oldValues = null,
+        ?array $newValues = null,
+        ?ActorInterface $actor = null,
+        ?string $ipAddress = null,
+        ?string $userAgent = null,
+    ): void {
+        // Writes to the audit_logs table with actor information
     }
 }
 ```
@@ -395,12 +456,12 @@ final class DatabaseAuditService implements AuditServiceInterface
 ### Create Resource
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/examples \
+curl -X POST http://localhost:8080/v1/example/create \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
     "name": "Example Resource",
-    "status": "active",
+    "status": 1,
     "detail_info": {
       "description": "Example description"
     }
@@ -410,14 +471,14 @@ curl -X POST http://localhost:8080/api/v1/examples \
 ### List Resources
 
 ```bash
-curl -X GET "http://localhost:8080/api/v1/examples?page=1&pageSize=10&sort=name&dir=asc" \
+curl -X GET "http://localhost:8080/v1/example?page=1&pageSize=10&sort=name&dir=asc" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
 ### Update Resource
 
 ```bash
-curl -X PUT http://localhost:8080/api/v1/examples/1 \
+curl -X PUT http://localhost:8080/v1/example/1 \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
@@ -429,33 +490,46 @@ curl -X PUT http://localhost:8080/api/v1/examples/1 \
 ### Delete Resource
 
 ```bash
-curl -X DELETE http://localhost:8080/api/v1/examples/1 \
+curl -X DELETE http://localhost:8080/v1/example/1 \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
+
+Routes are declared in `config/common/routes.php` (group `/v1`, e.g. `GET /v1/example`, `POST /v1/example/create`, `PUT /v1/example/{id}`, `DELETE /v1/example/{id}`, `POST /v1/example/{id}/restore`).
 
 ---
 
 ## 🐳 Docker Development
 
+The `Makefile` wraps `docker compose` with the files in `docker/` (`compose.yml` plus `dev/`, `test/`, `prod/` overrides).
+
 ### Development Environment
 
 ```bash
 # Start development containers
-docker-compose -f docker/dev/compose.yml up -d
+make up
 
-# Run commands in container
-docker-compose -f docker/dev/compose.yml exec app php yii migrate
-docker-compose -f docker/dev/compose.yml exec app php quality
+# Get a shell / run commands in the app container
+make shell
+make yii migrate:up
+make yii seed
+
+# Other helpers
+make composer <args>                  # run Composer in the container
+make cs-fix                           # run PHP CS Fixer
+make psalm                            # run Psalm
+make rector                           # run Rector
+make test                             # run Codeception in the test stack
+make test-coverage                    # tests with coverage
+make composer-dependency-analyser     # dependency analysis
 ```
 
 ### Production Environment
 
 ```bash
-# Build and run production containers
-docker-compose -f docker/prod/compose.yml up -d --build
-
-# View logs
-docker-compose -f docker/prod/compose.yml logs -f
+# Build and push the production image, then deploy the stack
+make prod-build
+make prod-push
+make prod-deploy
 ```
 
 ---
@@ -466,20 +540,18 @@ docker-compose -f docker/prod/compose.yml logs -f
 
 - **[Architecture Guide](architecture-guide.md)**: Complete architecture overview
 - **[Quality Guide](quality-guide.md)**: Quality assurance procedures
-- **[API Documentation](docs/api/)**: API endpoint documentation
-- **[Development Guide](docs/development/)**: Development setup and guidelines
+- **[Input Validator Guide](../docs/input-validator-guide.md)**: Request validation guide
+- **[Sync Flag Guide](../docs/sync-flag-guide.md)**: `sync_flag` / `sync_mdb` field semantics
+- **Postman collection**: `docs/Yii3-API.postman_collection.json`
 
-### Generating Documentation
+### Generating Reports
 
 ```bash
-# Generate API documentation
-php yii docs:generate
-
 # Generate coverage reports
-php quality --coverage
+php quality quality:check --coverage
 
 # Generate quality reports
-php quality --report
+php quality quality:check --report
 ```
 
 ---
@@ -488,51 +560,58 @@ php quality --report
 
 ### Test Types
 
-1. **Unit Tests**: Test individual classes and methods
-2. **Functional Tests**: Test application workflows
-3. **API Tests**: Test API endpoints
-4. **Integration Tests**: Test database and external service integration
+The project uses **Codeception** (`codeception.yml`, `composer test` → `codecept run`) with these suites:
+
+1. **Unit** (`tests/Unit`): Test individual classes and methods
+2. **Functional** (`tests/Functional`): Test application workflows
+3. **Api** (`tests/Api`): Test API endpoints via the REST module (starts `composer serve` on `http://127.0.0.1:8080`)
+4. **Console** (`tests/Console`): Test console commands via the Cli module
 
 ### Running Tests
 
 ```bash
 # Run all tests
-vendor/bin/phpunit
+composer test
+
+# Run a single suite or test
+vendor/bin/codecept run Unit
+vendor/bin/codecept run Unit tests/Unit/Domain/Example/ExampleTest.php
 
 # Run with coverage
-vendor/bin/phpunit --coverage-html tests/coverage/html
-
-# Run specific test
-vendor/bin/phpunit tests/Unit/Domain/Example/ExampleTest.php
+vendor/bin/codecept run --coverage-html
 ```
 
 ### Test Examples
 
 ```php
-// Unit Test Example
-class ExampleTest extends TestCase
+// Unit Test Example (tests/Unit)
+final class ExampleTest extends \Codeception\Test\Unit
 {
     public function testCreateExample(): void
     {
-        $example = Example::create('Test', Status::ACTIVE, DetailInfo::empty());
+        $example = Example::create(
+            'Test',
+            ResourceStatus::active(),
+            DetailInfo::fromArray([])
+        );
         
         $this->assertEquals('Test', $example->getName());
-        $this->assertEquals(Status::ACTIVE, $example->getStatus());
+        $this->assertTrue($example->getStatus()->isActive());
     }
 }
 
-// API Test Example
-class ExampleApiCest extends ApiTester
+// API Test Example (tests/Api)
+final class ExampleApiCest
 {
-    public function testCreateExample(): void
+    public function testCreateExample(ApiTester $I): void
     {
-        $this->sendPost('/api/v1/examples', [
+        $I->sendPost('/v1/example/create', [
             'name' => 'Test Example',
-            'status' => 'active'
+            'status' => 1,
         ]);
         
-        $this->seeResponseCode(201);
-        $this->seeJsonContains(['name' => 'Test Example']);
+        $I->seeResponseCodeIs(200);
+        $I->seeResponseContainsJson(['data' => ['name' => 'Test Example']]);
     }
 }
 ```
@@ -543,9 +622,11 @@ class ExampleApiCest extends ApiTester
 
 ### Application Logging
 
+Logging goes through `Psr\Log\LoggerInterface` (bound to `Yiisoft\Log\Logger` with file/stream/security targets in `config/common/di/logger.php`):
+
 ```php
 // Structured logging
-Yii::info('User created example', [
+$this->logger->info('User created example', [
     'user_id' => $userId,
     'example_id' => $exampleId,
     'ip' => $request->getServerParam('REMOTE_ADDR')
@@ -555,12 +636,13 @@ Yii::info('User created example', [
 ### Performance Monitoring
 
 ```php
-// Performance metrics
+// Performance metrics are collected by MetricsMiddleware / CustomMonitoringService
+// (see src/Infrastructure/Core/Monitoring and the app/monitoring params group)
 $startTime = microtime(true);
 $result = $this->complexOperation();
 $duration = (microtime(true) - $startTime) * 1000;
 
-Yii::info('Operation completed', ['duration' => $duration]);
+$this->logger->info('Operation completed', ['duration' => $duration]);
 ```
 
 ### Error Handling
@@ -569,7 +651,7 @@ Yii::info('Operation completed', ['duration' => $duration]);
 try {
     $result = $this->riskyOperation();
 } catch (\Exception $e) {
-    Yii::error('Operation failed', [
+    $this->logger->error('Operation failed', [
         'error' => $e->getMessage(),
         'trace' => $e->getTraceAsString(),
     ]);
@@ -586,10 +668,9 @@ try {
 #### 1. Environment Setup
 
 ```bash
-# Set production environment
-export YII_ENV=prod
-export YII_DEBUG=false
-export APP_ENV=production
+# Set production environment (valid values: dev, test, prod)
+export APP_ENV=prod
+export APP_DEBUG=0
 ```
 
 #### 2. Dependencies
@@ -602,31 +683,19 @@ composer install --no-dev --optimize-autoloader
 #### 3. Database
 
 ```bash
-# Run migrations
-php yii migrate --interactive=0
-
-# Optimize database
-php yii db/optimize
+# Run migrations without interactive confirmation
+./yii migrate:up --force-yes
 ```
 
-#### 4. Cache
+#### 4. Docker Deployment
 
 ```bash
-# Clear all caches
-php yii cache/flush-all
+# Build the production image
+make prod-build
 
-# Warm up caches
-php yii cache/warm-up
-```
-
-#### 5. Docker Deployment
-
-```bash
-# Build production image
-docker build -t yii3-api:latest .
-
-# Run with Docker Compose
-docker-compose -f docker/prod/compose.yml up -d
+# Push and deploy
+make prod-push
+make prod-deploy
 ```
 
 ### CI/CD Pipeline
@@ -646,8 +715,8 @@ jobs:
       - uses: actions/checkout@v3
       - uses: shivammathur/setup-php@v2
       - run: composer install --no-dev
-      - run: php quality
-      - run: php yii migrate --interactive=0
+      - run: php quality quality:check
+      - run: php yii migrate:up --force-yes
       - name: Deploy to production
         run: |
           # Deployment commands
@@ -661,9 +730,9 @@ jobs:
 
 #### Weekly
 - Update dependencies: `composer update`
-- Run quality checks: `php quality`
+- Run quality checks: `php quality quality:check`
 - Review test coverage trends
-- Check security advisories
+- Check security advisories: `composer audit`
 
 #### Monthly
 - Review and update quality configuration
@@ -682,18 +751,18 @@ jobs:
 #### Common Issues
 
 ```bash
-# Clear all caches
-php yii cache/flush-all
+# Clear caches
+rm -rf runtime/cache/*
 vendor/bin/psalm --clear-cache
 
 # Reinstall dependencies
 composer install --no-dev --optimize-autoloader
 
-# Check configuration
-php yii config/test
+# Check console configuration / available commands
+./yii list
 
-# Run diagnostics
-php yii diagnose
+# Verify pending migrations and seeder discovery
+./yii migrate:new
 ```
 
 ---

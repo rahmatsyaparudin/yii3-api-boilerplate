@@ -12,7 +12,19 @@ Value Objects provide immutable, type-safe representations of domain concepts wi
 
 ```
 src/Shared/Core/ValueObject/
-└── Message.php    # Translation message value object
+├── Message.php            # Translation message value object
+└── LockVersionConfig.php  # Optimistic-lock configuration object
+
+src/Domain/Shared/Core/ValueObject/
+├── DetailInfo.php         # JSON detail_info payload with change_log helpers
+├── LockVersion.php        # Optimistic locking version (lock_version column)
+├── ResourceStatus.php     # Entity status value object (wraps RecordStatus enum)
+├── SyncFlag.php           # Master/origin sync flag (origin_id + sync_flag + direction)
+└── SyncMdb.php            # MongoDB sync flag (sync_mdb column)
+
+src/Domain/Shared/Core/Enum/
+├── SyncStatus.php         # sync_flag status enum (SYNCED → null, NOT_SYNCED → 1)
+└── SyncDirection.php      # Sync direction enum (NONE/MASTER_TO_ORIGIN/ORIGIN_TO_MASTER/BIDIRECTIONAL)
 ```
 
 ### Design Principles
@@ -43,7 +55,10 @@ src/Shared/Core/ValueObject/
 
 ### 1. Message
 
-**Purpose**: Translation message value object with localization support
+**Purpose**: Translation message value object with localization support.
+Carries a translation `key`, `params`, and an optional `domain` (message file:
+`error`, `success`, `validation`, `app`). The translator resolves it inside
+`ResponseFactory` and the HTTP exceptions.
 
 ```php
 <?php
@@ -52,315 +67,266 @@ declare(strict_types=1);
 
 namespace App\Shared\Core\ValueObject;
 
-/**
- * Translation Message Value Object
- */
 final readonly class Message
 {
     public function __construct(
-        public readonly string $key,
-        public readonly array $params = [],
-        public readonly ?string $domain = null
-    ) {}
-
-    /**
-     * Create message with key only
-     */
-    public static function create(string $key, ?string $domain = null): self
-    {
-        return new self(key: $key, domain: $domain);
+        public string $key,
+        public array $params = [],
+        public ?string $domain = null
+    ) {
     }
 
-    /**
-     * Create message with parameters
-     */
-    public static function withParams(string $key, array $params, ?string $domain = null): self
-    {
-        return new self(key: $key, params: $params, domain: $domain);
+    public static function create(
+        string $key,
+        array $params = [],
+        ?string $domain = null,
+    ): self {
+        return new self(domain: $domain, key: $key, params: $params);
     }
 
-    /**
-     * Create message for error domain
-     */
-    public static function error(string $key, array $params = []): self
-    {
-        return new self(key: $key, params: $params, domain: 'error');
-    }
-
-    /**
-     * Create message for success domain
-     */
-    public static function success(string $key, array $params = []): self
-    {
-        return new self(key: $key, params: $params, domain: 'success');
-    }
-
-    /**
-     * Create message for validation domain
-     */
-    public static function validation(string $key, array $params = []): self
-    {
-        return new self(key: $key, params: $params, domain: 'validation');
-    }
-
-    /**
-     * Create message for app domain
-     */
-    public static function app(string $key, array $params = []): self
-    {
-        return new self(key: $key, params: $params, domain: 'app');
-    }
-
-    /**
-     * Get message key
-     */
     public function getKey(): string
     {
         return $this->key;
     }
 
-    /**
-     * Get message parameters
-     */
     public function getParams(): array
     {
         return $this->params;
     }
 
-    /**
-     * Get message domain
-     */
     public function getDomain(): ?string
     {
         return $this->domain;
-    }
-
-    /**
-     * Check if has parameters
-     */
-    public function hasParams(): bool
-    {
-        return !empty($this->params);
-    }
-
-    /**
-     * Check if has domain
-     */
-    public function hasDomain(): bool
-    {
-        return $this->domain !== null;
-    }
-
-    /**
-     * Get parameter value
-     */
-    public function getParam(string $key, mixed $default = null): mixed
-    {
-        return $this->params[$key] ?? $default;
-    }
-
-    /**
-     * Check if has parameter
-     */
-    public function hasParam(string $key): bool
-    {
-        return array_key_exists($key, $this->params);
-    }
-
-    /**
-     * Create with additional parameters
-     */
-    public function withParams(array $params): self
-    {
-        return new self(
-            key: $this->key,
-            params: array_merge($this->params, $params),
-            domain: $this->domain
-        );
-    }
-
-    /**
-     * Create with domain
-     */
-    public function withDomain(string $domain): self
-    {
-        return new self(
-            key: $this->key,
-            params: $this->params,
-            domain: $domain
-        );
-    }
-
-    /**
-     * Create with key
-     */
-    public function withKey(string $key): self
-    {
-        return new self(
-            key: $key,
-            params: $this->params,
-            domain: $this->domain
-        );
-    }
-
-    /**
-     * Merge with another message
-     */
-    public function merge(Message $other): self
-    {
-        return new self(
-            key: $other->key ?: $this->key,
-            params: array_merge($this->params, $other->params),
-            domain: $other->domain ?: $this->domain
-        );
-    }
-
-    /**
-     * Convert to array
-     */
-    public function toArray(): array
-    {
-        return [
-            'key' => $this->key,
-            'params' => $this->params,
-            'domain' => $this->domain,
-        ];
-    }
-
-    /**
-     * Convert to JSON
-     */
-    public function toJson(): string
-    {
-        return json_encode($this->toArray());
-    }
-
-    /**
-     * Create from JSON
-     */
-    public static function fromJson(string $json): self
-    {
-        $data = json_decode($json, true);
-        
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \InvalidArgumentException('Invalid JSON: ' . json_last_error_msg());
-        }
-        
-        return new self(
-            key: $data['key'] ?? '',
-            params: $data['params'] ?? [],
-            domain: $data['domain'] ?? null
-        );
-    }
-
-    /**
-     * Create from array
-     */
-    public static function fromArray(array $data): self
-    {
-        return new self(
-            key: $data['key'] ?? '',
-            params: $data['params'] ?? [],
-            domain: $data['domain'] ?? null
-        );
-    }
-
-    /**
-     * Validate message structure
-     */
-    public function isValid(): bool
-    {
-        return !empty($this->key) && is_string($this->key);
-    }
-
-    /**
-     * Get string representation
-     */
-    public function __toString(): string
-    {
-        $parts = [$this->key];
-        
-        if ($this->hasParams()) {
-            $parts[] = '[' . implode(', ', array_map(
-                fn($key, $value) => "{$key}: {$value}",
-                array_keys($this->params),
-                $this->params
-            )) . ']';
-        }
-        
-        if ($this->hasDomain()) {
-            $parts[] = "@{$this->domain}";
-        }
-        
-        return implode(' ', $parts);
-    }
-
-    /**
-     * Check equality
-     */
-    public function equals(Message $other): bool
-    {
-        return $this->key === $other->key
-            && $this->params === $other->params
-            && $this->domain === $other->domain;
-    }
-
-    /**
-     * Create empty message
-     */
-    public static function empty(): self
-    {
-        return new self(key: '', params: [], domain: null);
-    }
-
-    /**
-     * Check if is empty
-     */
-    public function isEmpty(): bool
-    {
-        return empty($this->key);
     }
 }
 ```
 
 **Usage Example**:
 ```php
-// Create simple message
-$message = Message::create('welcome');
-
-// Create message with parameters
-$message = Message::withParams('user.created', [
-    'name' => 'John Doe',
-    'email' => 'john@example.com'
+// Simple message (domain defaults to 'success' in ResponseFactory::success,
+// 'error' in ResponseFactory::fail, or the exception's default)
+$message = Message::create(key: 'resource.list_retrieved', params: [
+    'resource' => 'Example',
 ]);
 
-// Create domain-specific message
-$error = Message::error('resource.not_found', [
-    'resource' => 'User',
-    'field' => 'id',
-    'value' => 123
-]);
+// Message for a specific domain — keys live in resources/messages/{en,id}/
+$message = Message::create(
+    domain: 'validation',
+    key: 'resource.not_deleted',
+    params: ['resource' => 'Example', 'id' => $id]
+);
 
-$success = Message::success('general.created', [
-    'resource' => 'Example'
-]);
-
-// In exception
+// In exception — all HttpException subclasses accept `translate: Message|string|null`
 throw new NotFoundException(
-    translate: Message::error('resource.not_found', [
-        'resource' => 'User',
-        'field' => 'id',
-        'value' => $id
-    ])
+    translate: Message::create(
+        key: 'resource.not_found',
+        params: ['resource' => 'Example', 'field' => 'id', 'value' => $id]
+    )
 );
 
 // In response factory
 return $this->responseFactory->success(
     data: $data,
-    translate: Message::success('resource.created', [
+    translate: Message::create(key: 'resource.created', params: [
         'resource' => 'Example'
     ])
 );
+```
+
+---
+
+### 2. LockVersion
+
+**Purpose**: Optimistic-locking version stored in the `lock_version` column.
+Entities expose it via `getLockVersion()` (provided by the `Identifiable` trait).
+
+```php
+use App\Domain\Shared\Core\ValueObject\LockVersion;
+
+LockVersion::field();            // 'lock_version' (AppConstants::OPTIMISTIC_LOCK)
+LockVersion::create();           // new version starting at 1 (DEFAULT_VALUE)
+LockVersion::fromInt(3);         // from a database value
+LockVersion::fromNullable(null); // defaults to 1 when null
+
+$version->increment();           // new instance with value + 1
+$version->value();               // int value (also toInt() / toString())
+$version->isInitial();           // value === 1
+$version->equals($other);        // value comparison
+$version->isGreaterThan($other);
+```
+
+Repositories verify/increment it through the `ManagesPersistence` trait
+(`verifyLockVersion()`, `upgradeEntityLockVersion()`), driven by the
+`app/optimisticLock` params and `LockVersionConfig` (`src/Shared/Core/ValueObject/`).
+
+---
+
+### 3. SyncMdb
+
+**Purpose**: MongoDB sync marker for the `sync_mdb` column —
+`null` = synced, `1` = pending.
+
+```php
+use App\Domain\Shared\Core\ValueObject\SyncMdb;
+
+SyncMdb::field();          // 'sync_mdb' (AppConstants::SYNC_MONGODB)
+SyncMdb::create($value);   // validates: only null or 1 allowed
+SyncMdb::fromInt($value);  // alias of create()
+SyncMdb::fromString($raw); // parses ''/numeric strings
+SyncMdb::pending();        // value = 1 (needs sync)
+SyncMdb::synced();         // value = null (synced)
+
+$syncMdb->value();         // ?int raw column value (also toInt())
+$syncMdb->isPending();     // value === 1
+$syncMdb->isSynced();      // value === null
+$syncMdb->isNull();        // same as isSynced()
+$syncMdb->equals($other);
+```
+
+The `HasMongoDBSync` repository trait sets `SyncMdb::pending()` when the MongoDB
+write fails and `SyncMdb::synced()` when it succeeds.
+
+---
+
+### 4. SyncFlag (+ SyncStatus / SyncDirection enums)
+
+**Purpose**: Master/origin sync state for entities such as `AnotherExample`
+(columns `origin_id` + `sync_flag`). Replaces the former `SyncSlave` value object.
+
+```php
+use App\Domain\Shared\Core\ValueObject\SyncFlag;
+use App\Domain\Shared\Core\Enum\SyncDirection;
+use App\Domain\Shared\Core\Enum\SyncStatus;
+
+// Column names
+SyncFlag::fieldOriginId();  // 'origin_id'  (AppConstants::ORIGIN_ID)
+SyncFlag::fieldSyncFlag();  // 'sync_flag'  (AppConstants::SYNC_FLAG)
+
+// Creation
+SyncFlag::create(
+    originId: 5,
+    status: SyncStatus::NOT_SYNCED,          // default; direction auto-resolved
+    direction: SyncDirection::ORIGIN_TO_MASTER // optional explicit direction
+);
+SyncFlag::fromArray($row);        // from a DB row / request array
+SyncFlag::fromEntity($entity);    // from an entity with getOriginId()/getSyncFlagValue()
+SyncFlag::masterToOrigin(5);      // push master → origin
+SyncFlag::originToMaster(5);      // push origin → master (originId required)
+SyncFlag::bidirectional(5);       // both directions
+SyncFlag::synced();               // status SYNCED, direction NONE
+
+// Reading
+$flag->getOriginId();     // ?int
+$flag->getSyncStatus();   // SyncStatus enum
+$flag->getSyncFlag();     // ?int raw column value (null=synced, 1=not synced)
+$flag->getDirection();    // SyncDirection enum
+$flag->isPending();       // status === NOT_SYNCED
+$flag->isSynced();
+$flag->isMasterToOrigin();   // MASTER_TO_ORIGIN or BIDIRECTIONAL
+$flag->isOriginToMaster();   // ORIGIN_TO_MASTER or BIDIRECTIONAL
+$flag->isBidirectional();
+$flag->needsSyncToOrigin();  // pending && master→origin
+$flag->needsSyncToMaster();  // pending && origin→master
+
+// Immutable transitions
+$flag->markForSync();          // status → NOT_SYNCED
+$flag->markSynced();           // status → SYNCED
+$flag->withOriginId(7);        // change origin, direction re-resolved
+$flag->withDirection(SyncDirection::BIDIRECTIONAL);
+$flag->toArray();              // origin_id + sync_flag + direction
+$flag->toDbArray();            // origin_id + sync_flag only (for persistence)
+$flag->equals($other);
+```
+
+The enums (both in `App\Domain\Shared\Core\Enum`):
+
+```php
+// Pure enum — DB value for the sync_flag column
+SyncStatus::SYNCED->dbValue();      // null
+SyncStatus::NOT_SYNCED->dbValue();  // 1
+SyncStatus::fromDbValue(null);      // SyncStatus::SYNCED (throws BadRequestException otherwise)
+$status->label();                   // 'Synced' | 'Not Synced'
+$status->isSynced();  $status->isPending();
+
+// int-backed enum — sync direction
+SyncDirection::NONE->value;             // 0
+SyncDirection::MASTER_TO_ORIGIN->value; // 1
+SyncDirection::ORIGIN_TO_MASTER->value; // 2
+SyncDirection::BIDIRECTIONAL->value;    // 3
+SyncDirection::fromValue(3);            // SyncDirection::BIDIRECTIONAL (throws otherwise)
+$direction->label();                    // 'Master to Origin', ...
+```
+
+In application code, build `SyncFlag` through `SyncFlagFactory`
+(`src/Application/Shared/Core/Factory/SyncFlagFactory.php`), which accepts raw
+values and also offers `buildPayload()`, `buildSyncLog()`, `mergeIntoDetailInfo()`,
+`shouldPushToOrigin()` / `shouldPushToMaster()` helpers.
+
+---
+
+### 5. ResourceStatus
+
+**Purpose**: Rich status value object wrapping the `RecordStatus` enum —
+encapsulates state checks and transition rules instead of raw integers.
+
+```php
+use App\Domain\Shared\Core\ValueObject\ResourceStatus;
+
+// Named constructors
+ResourceStatus::draft();      ResourceStatus::active();
+ResourceStatus::inactive();   ResourceStatus::restored();   // → INACTIVE
+ResourceStatus::deleted();    ResourceStatus::completed();
+ResourceStatus::maintenance(); ResourceStatus::approved();  ResourceStatus::rejected();
+
+// From raw values (delegates to RecordStatus)
+ResourceStatus::from($command->status);        // int|string
+ResourceStatus::tryFrom($command->status);     // ?self — null-safe
+
+// State checks & rules
+$status->value();          // int (RecordStatus value)
+$status->name();           // enum name, e.g. 'ACTIVE'
+$status->label();          // 'Active', ...
+$status->isActive();       // + isDraft/isInactive/isCompleted/isDeleted
+$status->canBeUpdated();   // not in RecordStatus::IMMUTABLE_STATUSES
+$status->canBeDeleted();   // not active
+$status->isLocked();       // ACTIVE/COMPLETED/DELETED/REJECTED
+$status->isValidForCreation(); // active or draft
+$status->canTransitionTo($newStatus); // STATUS_TRANSITION_MAP
+$status->equals($other);
+$status->toArray();        // ['value' => ..., 'name' => ..., 'label' => ...]
+```
+
+---
+
+### 6. DetailInfo
+
+**Purpose**: Generic JSON `detail_info` payload with built-in `change_log`
+audit fields (created/updated/deleted/restored/approved/rejected at+by).
+
+```php
+use App\Domain\Shared\Core\ValueObject\DetailInfo;
+
+// Usually built via DetailInfoFactory (injects clock + current user):
+$detailInfo = $this->detailInfoFactory->create(detailInfo: [])->build();
+
+// Direct creation
+DetailInfo::fromArray(['key' => 'value']);
+DetailInfo::fromJson($row['detail_info']); // tolerant — invalid JSON → empty
+
+// change_log helpers (used by DetailInfoFactory)
+DetailInfo::createdLog($dateTime, $user, $payload);
+DetailInfo::updatedLog($dateTime, $user, $currentLog, $payload);
+DetailInfo::deletedLog($dateTime, $user, $currentLog, $payload);
+DetailInfo::restoredLog($dateTime, $user, $currentLog, $payload);
+DetailInfo::approvedLog($dateTime, $user, $currentLog, $payload);
+DetailInfo::rejectedLog($dateTime, $user, $currentLog, $payload);
+
+// Access
+$detailInfo->get('change_log.created_by', 'default'); // dot-notation
+$detailInfo->has('key');
+$detailInfo->with(['approved_at' => null]);           // merge into change_log
+$detailInfo->toArray();
+$detailInfo->toJson();
 ```
 
 ---
@@ -567,110 +533,105 @@ final readonly class Address
 
 ### 1. **Entity Integration**
 ```php
-final class User
+// src/Domain/AnotherExample/Entity/AnotherExample.php (simplified) —
+// entities hold value objects, not raw column values
+final class AnotherExample
 {
-    public function __construct(
-        public readonly int $id,
-        public readonly string $name,
-        public readonly Email $email,
-        public readonly ?Address $address = null,
-        private readonly \DateTimeImmutable $createdAt = new \DateTimeImmutable()
-    ) {}
+    use Identifiable, Stateful, Descriptive; // traits provide id/name/status/detailInfo/
+                                           // syncMdb/lockVersion accessors
 
-    public function changeEmail(Email $newEmail): self
-    {
-        return new self(
-            id: $this->id,
-            name: $this->name,
-            email: $newEmail,
-            address: $this->address,
-            createdAt: $this->createdAt
-        );
+    protected function __construct(
+        private readonly ?int $id,
+        private string $name,
+        private int $exampleId,
+        private ResourceStatus $status,
+        private DetailInfo $detailInfo,
+        private ?SyncMdb $syncMdb = null,
+        private ?SyncFlag $syncFlag = null,
+        ?LockVersion $lockVersion = null,
+    ) {
+        $this->resource    = self::RESOURCE;
+        $this->lockVersion = $lockVersion ?? LockVersion::create();
     }
 
-    public function updateAddress(Address $newAddress): self
+    public function getSyncFlag(): ?SyncFlag
     {
-        return new self(
-            id: $this->id,
-            name: $this->name,
-            email: $this->email,
-            address: $newAddress,
-            createdAt: $this->createdAt
-        );
+        return $this->syncFlag;
+    }
+
+    public function getOriginId(): ?int
+    {
+        return $this->syncFlag?->getOriginId();
+    }
+
+    public function updateSyncFlag(?SyncFlag $syncFlag): void
+    {
+        $this->syncFlag = $syncFlag;
     }
 }
 ```
 
 ### 2. **Service Integration**
 ```php
-final class UserApplicationService
+// src/Application/AnotherExample/AnotherExampleApplicationService.php (simplified)
+public function create(CreateAnotherExampleCommand $command): AnotherExampleResponse
 {
-    public function create(CreateUserCommand $command): UserResponse
-    {
-        $email = new Email($command->email);
-        
-        if ($this->repository->findByEmail($email) !== null) {
-            throw ConflictException::duplicateResource('User', 'email', $email->value);
-        }
-        
-        $address = $command->address ? new Address(
-            street: $command->address['street'],
-            city: $command->address['city'],
-            state: $command->address['state'],
-            postalCode: $command->address['postalCode'],
-            country: $command->address['country']
-        ) : null;
-        
-        $user = new User(
-            id: $this->idGenerator->generate(),
-            name: $command->name,
-            email: $email,
-            address: $address
-        );
-        
-        $this->repository->save($user);
-        
-        return UserResponse::fromEntity($user);
-    }
+    $detailInfo = $this->detailInfoFactory
+        ->create(detailInfo: $detailInfoPayload)
+        ->build();
+
+    // Build the SyncFlag value object from raw command values
+    $syncFlag = $this->syncFlagFactory->create(
+        originId: $command->originId,
+        syncFlag: $command->syncFlag ?? 1,
+    );
+
+    $data = AnotherExample::create(
+        name: $command->name,
+        status: ResourceStatus::from($command->status), // raw int → VO
+        detailInfo: $detailInfo,
+        exampleId: $command->exampleId,
+        syncFlag: $syncFlag,
+    );
+
+    return AnotherExampleResponse::fromEntity(
+        entity: $this->repository->insert(entity: $data)
+    );
 }
 ```
 
-### 3. **Controller Integration**
+### 3. **Action Integration**
 ```php
-final class UserController
+// src/Api/V1/AnotherExample/Action/AnotherExampleCreateAction.php (simplified)
+public function __invoke(ServerRequestInterface $request): ResponseInterface
 {
-    public function actionCreate(): array
-    {
-        $data = $this->request->getParsedBody();
-        
-        try {
-            $email = new Email($data['email']);
-            
-            $address = null;
-            if (!empty($data['address'])) {
-                $address = new Address(
-                    street: $data['address']['street'],
-                    city: $data['address']['city'],
-                    state: $data['address']['state'],
-                    postalCode: $data['address']['postalCode'],
-                    country: $data['address']['country']
-                );
-            }
-            
-            $command = new CreateUserCommand(
-                name: $data['name'],
-                email: $email->value,
-                address: $address?->toArray()
-            );
-            
-            $result = $this->service->create($command);
-            
-            return $result->toArray();
-            
-        } catch (\InvalidArgumentException $e) {
-            throw ValidationException::fieldError('data', $e->getMessage());
-        }
-    }
+    /** @var RequestParams $payload */
+    $payload = $request->getAttribute('payload');
+
+    $params = $payload->getRawParams()
+        ->onlyAllowed(allowedKeys: self::ALLOWED_KEYS)
+        ->with('status', RecordStatus::DRAFT->value)
+        ->sanitize();
+
+    $this->inputValidator->validate(data: $params, context: ValidationContext::CREATE);
+
+    $command = CreateAnotherExampleCommand::create(
+        name: (string) $params->get('name'),
+        status: $params->get('status'),
+        exampleId: (int) $params->get('example_id'),
+        detailInfo: $params->get('detail_info'),
+        originId: $params->get('origin_id'),
+        syncFlag: $params->get('sync_flag'),
+    );
+
+    $response = $this->applicationService->create(command: $command);
+
+    return $this->responseFactory->success(
+        data: $response->toArray(),
+        translate: Message::create(key: 'resource.created', params: [
+            'resource' => $this->applicationService->getResource(),
+        ])
+    );
 }
 ```
 

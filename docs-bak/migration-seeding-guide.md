@@ -12,24 +12,34 @@ This guide covers database migrations and data seeding in the Yii3 API project. 
 
 ```
 src/
-├── Migration/                    # Database migrations
-│   ├── M20240101000000CreateExample.php     # Table creation
-└── Seed/                        # Seed classes (recommended)
-    └── M20240101010000SeedExampleData.php   # Modern seed implementation
+└── Migration/                                    # Database migrations (grouped per module)
+    ├── Auditable/
+    │   ├── M20240101000000CreateAuditLogsTable.php
+    │   └── M20240101000001CreateRateLimitsTable.php
+    └── Example/
+        ├── M20240101000000CreateExampleTable.php          # example table
+        └── M20260910104729CreateAnotherExampleTable.php   # another_example table
 ```
+
+Migrations are namespaced per module: `App\Migration\Example`, `App\Migration\Auditable`, etc. (see `yiisoft/db-migration` settings in `config/common/params.php`).
 
 ### Seeding Structure
 
 ```
 src/
 ├── Console/                     # Console commands
-│   └── SeedExampleCommand.php   # Flexible seeding command
-├── Seed/                        # Seed classes
-│   └── M20240101010000SeedExampleData.php
-└── Config/
-    └── common/
-        └── di/
-            └── seed.php       # DI configuration for seeds
+│   ├── MigrateModuleCommand.php # Per-module migrations (migrate:module)
+│   └── SeederCommand.php        # Flexible seeding command (seed)
+├── Seeder/                      # Seed classes
+│   ├── SeedExampleData.php          # Seeds the example table
+│   ├── SeedAnotherExampleData.php   # Seeds the another_example table
+│   ├── Fixtures/                    # nelmio/alice YAML fixtures
+│   │   ├── example.yaml
+│   │   └── anotherexample.yaml
+│   └── Faker/                       # Custom Faker providers
+│       └── SeedDataPoolFaker.php
+└── Infrastructure/Core/Seeder/
+    └── AbstractSeederData.php   # Base class that loads fixtures and inserts entities
 ```
 
 ---
@@ -41,8 +51,8 @@ src/
 #### 1. **Separation of Concerns**
 ```php
 // ✅ GOOD: Separate table creation from data seeding
-M20240101000000CreateExample.php     // Table structure only
-M20240101010000SeedExampleData.php   // Data seeding only
+src/Migration/Example/M20240101000000CreateExampleTable.php  // Table structure only
+src/Seeder/SeedExampleData.php                               // Data seeding only
 
 // ❌ AVOID: Mix structure and data in one migration
 M20240101000000CreateExampleWithSeed.php  // Combined approach
@@ -50,16 +60,16 @@ M20240101000000CreateExampleWithSeed.php  // Combined approach
 
 #### 2. **Naming Convention**
 ```php
-// ✅ Format: M{YYYYMMDDHHMMSS}{Description}
-M20240101000000CreateExample.php     // Create table
-M20240101010000UpdateExampleFields.php // Update fields
-M20240101020000DropExampleIndex.php   // Drop index
+// ✅ Format: M{YYYYMMDDHHMMSS}{Description}, placed in a per-module namespace
+src/Migration/Example/M20240101000000CreateExampleTable.php     // namespace App\Migration\Example
+src/Migration/Example/M20240101010000UpdateExampleFields.php    // Update fields
+src/Migration/Auditable/M20240101000000CreateAuditLogsTable.php // namespace App\Migration\Auditable
 ```
 
 #### 3. **Reversible Migrations**
 ```php
 // ✅ Always implement RevertibleMigrationInterface
-final class M20240101000000CreateExample implements RevertibleMigrationInterface
+final class M20240101000000CreateExampleTable implements RevertibleMigrationInterface
 {
     public function up(MigrationBuilder $b): void
     {
@@ -77,12 +87,17 @@ final class M20240101000000CreateExample implements RevertibleMigrationInterface
 
 #### 1. **Generate Migration**
 ```bash
-# Create new migration
-./yii migrate:create create_user_table
+# Create new migration for the "user" table in the default namespace (App\Migration)
+./yii migrate:create user --command=table
 
-# With custom name
-./yii migrate:create M20240101120000CreateUserTable
+# Create it inside a module namespace (directory must exist: src/Migration/Example)
+./yii migrate:create user --command=table --namespace=App\\Migration\\Example
+
+# Generate fields inline
+./yii migrate:create user --command=table --fields="name:string(255):notNull(),status:smallint:notNull():defaultValue(1)"
 ```
+
+Available `--command` values: `create`, `table`, `dropTable`, `addColumn`, `dropColumn`, `junction`.
 
 #### 2. **Migration Template**
 ```php
@@ -90,39 +105,47 @@ final class M20240101000000CreateExample implements RevertibleMigrationInterface
 
 declare(strict_types=1);
 
-namespace App\Migration;
+namespace App\Migration\Example;
 
+// PSR Interfaces
+use Psr\Clock\ClockInterface;
 // Vendor Layer
 use Yiisoft\Db\Migration\MigrationBuilder;
 use Yiisoft\Db\Migration\RevertibleMigrationInterface;
 
 /**
- * Migration description.
+ * Creates user table.
  */
 final class M20240101120000CreateUserTable implements RevertibleMigrationInterface
 {
+    private const TABLE_NAME = 'user';
+
+    public function __construct(
+        private ClockInterface $clock
+    ) {
+    }
+
     public function up(MigrationBuilder $b): void
     {
         $cb = $b->columnBuilder();
 
-        $b->createTable('user', [
-            'id' => $cb::primaryKey(),
-            'username' => $cb::string(255)->notNull()->unique(),
-            'email' => $cb::string(255)->notNull()->unique(),
+        $b->createTable(self::TABLE_NAME, [
+            'id'            => $cb::integer()->notNull()->extra('PRIMARY KEY GENERATED BY DEFAULT AS IDENTITY'),
+            'username'      => $cb::string(255)->notNull(),
+            'email'         => $cb::string(255)->notNull(),
             'password_hash' => $cb::string(255)->notNull(),
-            'status' => $cb::smallint()->notNull()->defaultValue(1),
-            'created_at' => $cb::timestamp()->notNull()->defaultExpression('NOW()'),
-            'updated_at' => $cb::timestamp()->notNull()->defaultExpression('NOW()'),
+            'status'        => $cb::smallint()->notNull()->defaultValue(1),
+            'detail_info'   => $cb::json()->notNull()->defaultValue(['change_log' => []]),
+            'lock_version'  => $cb::integer()->notNull()->defaultValue(1)->comment('Optimistic locking version'),
         ]);
 
         // Create indexes
-        $b->createIndex('idx_user_status', 'user', 'status');
-        $b->createIndex('idx_user_created_at', 'user', 'created_at');
+        $b->createIndex('user', 'idx_user_status', 'status');
     }
 
     public function down(MigrationBuilder $b): void
     {
-        $b->dropTable('user');
+        $b->dropTable(self::TABLE_NAME);
     }
 }
 ```
@@ -131,17 +154,28 @@ final class M20240101120000CreateUserTable implements RevertibleMigrationInterfa
 
 #### 1. **Basic Migration Commands**
 ```bash
-# Run all pending migrations
+# Apply all pending migrations
 ./yii migrate:up
 
-# Run specific migration
-./yii migrate:up M20240101000000CreateExample
+# Apply only the first N pending migrations
+./yii migrate:up --limit=3
 
-# Run multiple migrations
-./yii migrate:up M20240101000000CreateExample
+# Apply migrations from a specific namespace or path
+./yii migrate:up --namespace=App\\Migration\\Example
+./yii migrate:up --path=@src/Migration/Example
+
+# Skip the confirmation prompt
+./yii migrate:up --force-yes
 ```
 
-#### 2. **Migration Management**
+#### 2. **Per-Module Migrations**
+```bash
+# Apply pending migrations of one module only (custom command)
+./yii migrate:module example
+./yii migrate:module auditable --limit=1 --force-yes
+```
+
+#### 3. **Migration Management**
 ```bash
 # Show migration history
 ./yii migrate:history
@@ -149,17 +183,18 @@ final class M20240101120000CreateUserTable implements RevertibleMigrationInterfa
 # Show pending migrations
 ./yii migrate:new
 
-# Mark migration as applied (without running)
-./yii migrate:mark M20240101000000CreateExample
-
 # Rollback last migration
 ./yii migrate:down
 
-# Rollback to specific migration
-./yii migrate:down M20240101000000CreateExample
+# Rollback last 3 migrations / all migrations
+./yii migrate:down --limit=3
+./yii migrate:down --all
+
+# Revert and re-apply the last migration
+./yii migrate:redo
 ```
 
-#### 3. **Environment-Specific Migrations**
+#### 4. **Environment-Specific Migrations**
 ```bash
 # Development environment
 APP_ENV=dev ./yii migrate:up
@@ -175,198 +210,160 @@ APP_ENV=test ./yii migrate:up
 
 ## 🌱 Data Seeding
 
-### Seeding Approaches
-
-#### 1. **Console Command (Recommended)**
-```php
-// ✅ Flexible and reusable
-final class SeedExampleCommand extends Command
-{
-    public function execute(InputInterface $input, OutputInterface $output): int
-    {
-        // Environment check
-        if (!in_array($_ENV['APP_ENV'] ?? '', ['dev', 'development'], true)) {
-            $output->writeln('<error>Seed command can only be run in development environment.</error>');
-            return Command::FAILURE;
-        }
-        
-        // Flexible seeding logic
-        $count = (int) $input->getOption('count');
-        $truncate = $input->getOption('truncate');
-        
-        // ... seeding implementation
-    }
-}
-```
-
-#### 2. **Seed Classes (Modern Approach)**
-```php
-// ✅ Modern, reusable seed classes
-namespace App\Seed;
-
-final class M20240101010000SeedExampleData
-{
-    public function __construct(
-        private ClockInterface $clock,
-        private ConnectionInterface $db
-    ) {}
-    
-    public function up(): void
-    {
-        // Environment check
-        if (!in_array($_ENV['APP_ENV'] ?? '', ['dev', 'development'], true)) {
-            echo "Seed skipped: Development environment only.\n";
-            return;
-        }
-        
-        // Seeding logic
-    }
-    
-    public function down(): void
-    {
-        // Cleanup logic
-    }
-}
-```
-
-#### 3. **Migration-Based Seeding (Legacy)**
-```php
-// ❌ Not recommended - mixed concerns
-final class M20240101010000SeedExampleData implements RevertibleMigrationInterface
-{
-    public function up(MigrationBuilder $b): void
-    {
-        // Environment check
-        if (!in_array($_ENV['APP_ENV'] ?? '', ['dev', 'development'], true)) {
-            echo "Seed migration skipped.\n";
-            return;
-        }
-        
-        // Direct database operations
-        $b->insert('example', [...]);
-    }
-}
-```
+Seeding is handled by the `seed` console command (`src/Console/SeederCommand.php`) together with per-module seeder classes in `src/Seeder/` that extend `App\Infrastructure\Core\Seeder\AbstractSeederData`. Fixtures are written in YAML using [nelmio/alice](https://github.com/nelmio/alice) `__factory` syntax.
 
 ### Console Seeding Commands
 
 #### 1. **Basic Seeding**
 ```bash
-# Seed with default options (5 records)
-./yii seed:example
+# Seed all seeders found in src/Seeder/ (default: 10 records each)
+./yii seed
+
+# Seed a specific module (resolves App\Seeder\SeedExampleData)
+./yii seed --module=example
+./yii seed --module=anotherexample
 
 # Seed with custom count
-./yii seed:example --count=20
-
-# Truncate and reseed
-./yii seed:example --truncate
-
-# Custom count with truncate
-./yii seed:example --count=10 --truncate
+./yii seed --module=example --count=20
 ```
 
 #### 2. **Command Options**
 ```bash
 # Show help
-./yii help seed:example
+./yii help seed
 
 # Available options:
-#   --truncate, -t    Truncate table before seeding
-#   --count, -c      Number of records to seed (default: 5)
+#   --module, -m   Specific module to seed (e.g., example, product)
+#   --count, -c    Number of records to seed (default: 10)
 ```
 
-#### 3. **Command Implementation**
+#### 3. **Command Implementation** (`src/Console/SeederCommand.php`)
 ```php
-final class SeedExampleCommand extends Command
+final class SeederCommand extends Command
 {
     protected function configure(): void
     {
         $this
-            ->setName('seed:example')
-            ->setDescription('Seed example table with initial data')
-            ->addOption('truncate', 't', InputOption::VALUE_NONE, 'Truncate table before seeding')
-            ->addOption('count', 'c', InputOption::VALUE_OPTIONAL, 'Number of records to seed', '5');
+            ->setName('seed')
+            ->setDescription('Seed all available seeders or specific module')
+            ->addOption('module', 'm', InputOption::VALUE_OPTIONAL, 'Specific module to seed (e.g., example, product)', null)
+            ->addOption('count', 'c', InputOption::VALUE_OPTIONAL, 'Number of records to seed (default: 10)', 10);
     }
-    
+
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        // Environment validation
-        if (!in_array($_ENV['APP_ENV'] ?? '', ['dev', 'development'], true)) {
-            $output->writeln('<error>Seed command can only be run in development environment.</error>');
+        // Seeding is restricted to the development environment
+        if (!\in_array($_ENV['APP_ENV'] ?? '', ['dev', 'development'], true)) {
+            $output->writeln('<error>Seeding is only allowed in development environment!</error>');
             return Command::FAILURE;
         }
-        
-        $truncate = $input->getOption('truncate');
-        $count = (int) $input->getOption('count');
-        
-        // Implementation
-        return Command::SUCCESS;
+
+        // --module resolves to App\Seeder\Seed{Module}Data via the container;
+        // without --module every src/Seeder/Seed*Data.php file is run.
+        $seeder = $this->container->get('App\\Seeder\\Seed' . \ucfirst($module) . 'Data');
+        $seeder->run($count);
+        // ...
     }
 }
 ```
 
-### Seed Data Management
+### Seeder Classes
 
-#### 1. **Data Generation**
+Each seeder extends `AbstractSeederData`, declares its fixture file and entity class via constants, and implements `insertEntity()`:
+
 ```php
-private function generateExampleData(int $count): array
+// src/Seeder/SeedExampleData.php
+namespace App\Seeder;
+
+final class SeedExampleData extends AbstractSeederData
 {
-    $defaultExamples = [
-        ['name' => 'Asus', 'status' => RecordStatus::DRAFT->value],
-        ['name' => 'Acer', 'status' => RecordStatus::DRAFT->value],
-        ['name' => 'Intel', 'status' => RecordStatus::DRAFT->value],
-        ['name' => 'AMD', 'status' => RecordStatus::DRAFT->value],
-        ['name' => 'Klevv', 'status' => RecordStatus::DRAFT->value],
-    ];
-    
-    if ($count <= count($defaultExamples)) {
-        return array_slice($defaultExamples, 0, $count);
+    protected const YAML_FILE    = 'example.yaml';        // src/Seeder/Fixtures/example.yaml
+    protected const ENTITY_CLASS = Example::class;        // App\Domain\Example\Entity\Example
+
+    public function __construct(
+        ConnectionInterface $db,
+        ClockInterface $clock,
+        DetailInfoFactory $detailInfoFactory,
+        Aliases $aliases,
+        ExampleRepositoryInterface $repository
+    ) {
+        parent::__construct($db, $clock, $detailInfoFactory, $aliases);
+        $this->repository = $repository;
     }
-    
-    // Generate additional data if needed
-    $additionalExamples = [];
-    for ($i = count($defaultExamples); $i < $count; $i++) {
-        $additionalExamples[] = [
-            'name' => 'Example ' . ($i + 1),
-            'status' => RecordStatus::DRAFT->value,
-        ];
+
+    protected function insertEntity(object $entity, mixed $detailInfo): void
+    {
+        $newEntity = Example::create(
+            $entity->getName(),
+            $entity->getStatus(),
+            $detailInfo
+        );
+
+        $this->repository->insert($newEntity);
     }
-    
-    return array_merge($defaultExamples, $additionalExamples);
 }
 ```
 
-#### 2. **Data Insertion**
-```php
-foreach ($examples as $data) {
-    $this->db->createCommand()->insert('example', [
-        'name' => $data['name'],
-        'status' => $data['status'],
-        'detail_info' => [
-            'change_log' => [
-                'created_at' => $createdAt,
-                'created_by' => $user,
-                'deleted_at' => null,
-                'deleted_by' => null,
-                'updated_at' => null,
-                'updated_by' => null,
-            ],
-        ],
-        'sync_mdb' => null,
-        'lock_version' => 1,
-    ])->execute();
-}
+`AbstractSeederData::run($count)` checks the environment, loads the YAML fixture through `NativeLoader`, filters objects by `ENTITY_CLASS`, builds a `DetailInfo` via `DetailInfoFactory`, then calls `insertEntity()` for each entity (sliced to `$count`).
+
+### Fixture Files (nelmio/alice)
+
+Fixtures live in `src/Seeder/Fixtures/*.yaml` and use `__factory` to call static constructors. References to other fixtures use `@name`:
+
+```yaml
+# src/Seeder/Fixtures/example.yaml
+App\Domain\Shared\Core\ValueObject\ResourceStatus:
+  status_draft:
+    __factory:
+      'App\Domain\Shared\Core\ValueObject\ResourceStatus::from': [2]
+  status_active:
+    __factory:
+      'App\Domain\Shared\Core\ValueObject\ResourceStatus::from': [1]
+
+App\Domain\Shared\Core\ValueObject\DetailInfo:
+  info_empty:
+    __factory:
+      'App\Domain\Shared\Core\ValueObject\DetailInfo::fromArray': [[]]
+
+App\Domain\Example\Entity\Example:
+  example_{1..5}:
+    __factory:
+      'App\Domain\Example\Entity\Example::create':
+        - '<seedDataPoolRandom()>'   # $name
+        - '@status_draft'            # $status
+        - '@info_empty'              # $detailInfo
+        - null                       # $syncMdb
 ```
 
-#### 3. **Data Cleanup**
+### Custom Faker Providers
+
+`AbstractSeederData` automatically registers every `Faker\Provider\Base` subclass found in `src/Seeder/Faker/`. Providers must implement `SeederProviderInterface`:
+
 ```php
-public function down(): void
+// src/Seeder/Faker/SeedDataPoolFaker.php
+namespace App\Seeder\Faker;
+
+final class SeedDataPoolFaker extends Base implements SeederProviderInterface
 {
-    // Remove seeded data
-    $this->db->createCommand()
-        ->delete('example', ['name' => ['Asus', 'Acer', 'Intel', 'AMD', 'Klevv']])
-        ->execute();
+    protected static array $brands = ['Item Name 1', 'Item Name 2', /* ... */];
+
+    public function seedDataPoolRandom(): string
+    {
+        return self::randomElement(self::$brands);
+    }
 }
+```
+
+Use it in fixtures as `<seedDataPoolRandom()>`. Standard Faker formatters such as `<company()>` or `<sentence()>` work as well.
+
+### Data Cleanup
+
+Seeders do not provide a `down()`/truncate path. To reseed a table, truncate it manually before running `./yii seed` again:
+
+```bash
+# Example: clear the table then reseed
+./yii migrate:down --limit=1 && ./yii migrate:up   # recreate table structure
+./yii seed --module=example --count=20
 ```
 
 ---
@@ -379,56 +376,59 @@ public function down(): void
 ```php
 // config/common/params.php
 return [
+    // ...
     'yiisoft/db-migration' => [
-        'historyTable' => 'migration',
-        'migrationPath' => '@src/Migration',
+        'newMigrationNamespace' => 'App\\Migration',
+        'sourceNamespaces'      => ['App\\Migration'],
     ],
 ];
 ```
+
+All migrations are loaded by namespace, so any class under `App\Migration\*` (e.g. `App\Migration\Example`, `App\Migration\Auditable`) is discovered automatically.
 
 #### 2. **Database Configuration**
 ```php
-// config/common/di/db-pgsql.php
+// config/common/di/db-pgsql.php (used when db.default.driver=pgsql)
+$dsn = new Dsn('pgsql', $db['host'], $db['name'], $db['port']);
+
 return [
-    ConnectionInterface::class => [
-        'class' => Connection::class,
+    FileCache::class => [
+        'class'         => FileCache::class,
         '__construct()' => [
-            'driver' => new Driver(
-                $params['yiisoft/db-pgsql']['dsn'],
-                $params['yiisoft/db-pgsql']['username'],
-                $params['yiisoft/db-pgsql']['password'],
-            ),
+            'cachePath' => DynamicReference::to(static fn (Aliases $aliases) => $aliases->get('@runtime/cache')),
         ],
     ],
+    SchemaCache::class => [
+        'class'         => SchemaCache::class,
+        '__construct()' => [Reference::to(FileCache::class)],
+        'setEnabled()'  => [true],
+    ],
+    ConnectionInterface::class => static fn (SchemaCache $schemaCache) => new Connection(
+        new Driver($dsn, $db['user'] ?? '', $db['password'] ?? ''),
+        $schemaCache,
+    ),
 ];
 ```
+
+`config/common/di/db-mysql.php` provides the equivalent binding when `db.default.driver=mysql` (or `mariadb`). Connection details come from the `yiisoft/db` group in `params.php`, populated from `db.default.*` variables in `.env`.
 
 ### Seeding Configuration
 
-#### 1. **DI Configuration**
-```php
-// config/common/di/seed.php
-return [
-    SeedExampleCommand::class => [
-        'class' => SeedExampleCommand::class,
-        '__construct()' => [
-            Reference::to(ClockInterface::class),
-            Reference::to(ConnectionInterface::class),
-        ],
-    ],
-];
-```
+No dedicated DI file is needed — seeders are plain classes resolved through the container (autowiring), and `SeederCommand` is registered as a console command:
 
-#### 2. **Console Commands**
+#### 1. **Console Commands**
 ```php
 // config/console/commands.php
+use App\Console;
+
 return [
-    'hello' => Console\HelloCommand::class,
-    'seed:example' => Console\SeedExampleCommand::class,
+    'hello'          => Console\HelloCommand::class,
+    'migrate:module' => Console\MigrateModuleCommand::class,
+    'seed'           => Console\SeederCommand::class,
 ];
 ```
 
-#### 3. **Console Parameters**
+#### 2. **Console Parameters**
 ```php
 // config/console/params.php
 return [
@@ -454,7 +454,7 @@ createdb yii3_api
 ./yii migrate:up
 
 # 4. Seed data (development only)
-./yii seed:example
+./yii seed --module=example
 
 # 5. Start development server
 ./yii serve
@@ -464,7 +464,7 @@ createdb yii3_api
 ```bash
 # During development
 ./yii migrate:up                    # Apply new migrations
-./yii seed:example --truncate        # Refresh seed data
+./yii seed --module=example          # Refresh seed data
 ./yii serve                         # Start server
 ```
 
@@ -472,15 +472,14 @@ createdb yii3_api
 ```bash
 # Test environment
 APP_ENV=test ./yii migrate:up        # Create test schema
-./yii seed:example --count=100        # Seed test data
-./yii test                           # Run tests
+composer test                        # Run the Codeception test suites
 ```
 
 ### 4. **Production Deployment**
 ```bash
 # Production environment
 APP_ENV=prod ./yii migrate:up         # Apply migrations only
-# No seeding in production
+# No seeding in production (the seed command refuses to run outside dev)
 ```
 
 ---
@@ -491,9 +490,9 @@ APP_ENV=prod ./yii migrate:up         # Apply migrations only
 
 #### 1. **Development Only Seeding**
 ```php
-// ✅ Environment check in commands
-if (!in_array($_ENV['APP_ENV'] ?? '', ['dev', 'development'], true)) {
-    $output->writeln('<error>Seed command can only be run in development environment.</error>');
+// ✅ Environment check in SeederCommand (and again in AbstractSeederData::run())
+if (!\in_array($_ENV['APP_ENV'] ?? '', ['dev', 'development'], true)) {
+    $output->writeln('<error>Seeding is only allowed in development environment!</error>');
     return Command::FAILURE;
 }
 ```
@@ -511,9 +510,10 @@ APP_DEBUG=0
 
 #### 3. **Environment Detection**
 ```php
-// ✅ Multiple development environment support
-$devEnvironments = ['dev', 'development', 'local'];
-if (!in_array($_ENV['APP_ENV'] ?? '', $devEnvironments, true)) {
+// ✅ Valid environments are restricted to dev/test/prod (src/Environment.php)
+use App\Environment;
+
+if (!Environment::isDev()) {
     // Block seeding
 }
 ```
@@ -523,30 +523,17 @@ if (!in_array($_ENV['APP_ENV'] ?? '', $devEnvironments, true)) {
 #### 1. **Confirmation Prompts**
 ```php
 // ✅ Add confirmation for destructive operations
-if ($truncate) {
-    $helper = $this->getHelper('question');
-    $question = new ConfirmationQuestion(
-        'This will truncate the example table. Continue? (y/n)',
-        false
-    );
-    
-    if (!$helper->ask($input, $output, $question)) {
-        return Command::SUCCESS;
-    }
+$io = new SymfonyStyle($input, $output);
+if (!$io->confirm('This will reseed the example table. Continue?', false)) {
+    return Command::SUCCESS;
 }
 ```
 
 #### 2. **Backup Before Seeding**
 ```php
-// ✅ Create backup before destructive operations
-if ($truncate) {
-    $backupTable = 'example_backup_' . date('Y_m_d_His');
-    $this->db->createCommand()->createTable($backupTable, $this->db->getTableSchema('example'))->execute();
-    
-    // After seeding, you can restore if needed
-    // $this->db->createCommand()->dropTable('example')->execute();
-    // $this->db->createCommand()->renameTable($backupTable, 'example')->execute();
-}
+// ✅ Create backup before destructive operations (inside a custom seeder/command)
+$backupTable = 'example_backup_' . date('Y_m_d_His');
+$this->db->createCommand()->renameTable('example', $backupTable)->execute();
 ```
 
 ---
@@ -558,9 +545,9 @@ if ($truncate) {
 #### 1. **Single Responsibility**
 ```php
 // ✅ One migration, one purpose
-M20240101000000CreateExample.php     // Create table
-M20240101010000AddExampleFields.php  // Add fields
-M20240101020000CreateExampleIndex.php // Create index
+M20240101000000CreateExampleTable.php   // Create table
+M20240101010000AddExampleFields.php     // Add fields
+M20240101020000CreateExampleIndex.php   // Create index
 
 // ❌ Avoid: Multiple operations in one migration
 M20240101000000CreateExampleWithFieldsAndIndex.php
@@ -568,14 +555,9 @@ M20240101000000CreateExampleWithFieldsAndIndex.php
 
 #### 2. **Idempotent Migrations**
 ```php
-// ✅ Check before creating
-if (!$this->tableExists('example')) {
+// ✅ Check before creating (via the schema of the underlying connection)
+if ($b->getDb()->getSchema()->getTableSchema('example') === null) {
     $b->createTable('example', [...]);
-}
-
-// ✅ Check before adding column
-if (!$this->columnExists('example', 'new_field')) {
-    $b->addColumn('example', 'new_field', $type);
 }
 ```
 
@@ -593,30 +575,28 @@ public function down(MigrationBuilder $b): void
 
 #### 1. **Environment Awareness**
 ```php
-// ✅ Always check environment
-if (!in_array($_ENV['APP_ENV'] ?? '', ['dev', 'development'], true)) {
-    throw new \RuntimeException('Seeding only allowed in development');
-}
+// ✅ Handled automatically: both SeederCommand and AbstractSeederData::run()
+// refuse to run when APP_ENV is not dev/development
 ```
 
 #### 2. **Data Consistency**
 ```php
-// ✅ Use transactions for data consistency
-$this->db->transaction(function() use ($data) {
-    foreach ($data as $item) {
-        $this->db->createCommand()->insert('example', $item)->execute();
-    }
-});
+// ✅ Insert through the repository (inside insertEntity())
+protected function insertEntity(object $entity, mixed $detailInfo): void
+{
+    $newEntity = Example::create($entity->getName(), $entity->getStatus(), $detailInfo);
+    $this->repository->insert($newEntity);
+}
 ```
 
 #### 3. **Error Handling**
 ```php
-// ✅ Handle errors gracefully
+// ✅ SeederCommand already wraps seeder->run() in try/catch
 try {
-    $this->db->createCommand()->insert('example', $data)->execute();
+    $seeder = $this->container->get($seederClass);
+    $seeder->run($count);
 } catch (\Exception $e) {
-    $output->writeln('<error>Failed to seed data: ' . $e->getMessage() . '</error>');
-    return Command::FAILURE;
+    $output->writeln("<error>❌ Error seeding {$module}: {$e->getMessage()}</error>");
 }
 ```
 
@@ -628,28 +608,24 @@ try {
 
 #### 1. **Migration Conflicts**
 ```bash
-# Error: Migration already applied
-./yii migrate:mark M20240101000000CreateExample
-
-# Error: Migration not found
-./yii migrate:history  # Check applied migrations
+# Check which migrations are applied / pending
+./yii migrate:history
+./yii migrate:new
 ```
 
 #### 2. **Database Connection Issues**
 ```bash
-# Check database connection
-./yii db/info
-
-# Test database connection
-./yii db/test
+# Check the db.default.* variables in your .env file
+# then re-run:
+./yii migrate:new   # fails early if the connection cannot be established
 ```
 
 #### 3. **Migration Rollback Issues**
 ```bash
-# Force rollback (use with caution)
-./yii migrate:down --force
+# Skip the confirmation prompt (use with caution)
+./yii migrate:down --force-yes
 
-# Check migration dependencies
+# Check migration history
 ./yii migrate:history
 ```
 
@@ -662,25 +638,21 @@ echo $APP_ENV
 
 # Set environment manually
 export APP_ENV=dev
-./yii seed:example
+./yii seed --module=example
 ```
 
-#### 2. **Permission Issues**
+#### 2. **Seeder Not Found**
 ```bash
-# Check database permissions
-./yii db/info
-
-# Test write permissions
-./yii seed:example --count=1
+# "Seeder not found: App\Seeder\SeedXxxData" means the class is missing.
+# Create src/Seeder/SeedXxxData.php extending AbstractSeederData, then:
+./yii seed --module=xxx --count=1
 ```
 
-#### 3. **Data Conflicts**
+#### 3. **Fixture Issues**
 ```bash
-# Clear existing data
-./yii seed:example --truncate
-
-# Check existing data
-./yii db/query "SELECT COUNT(*) FROM example"
+# "Fixture file not found" -> create the YAML file under src/Seeder/Fixtures/
+# "No entities found in fixtures" -> the YAML __factory blocks must produce
+# instances of the seeder's ENTITY_CLASS.
 ```
 
 ---
@@ -692,7 +664,7 @@ export APP_ENV=dev
 public function up(MigrationBuilder $b): void
 {
     // Only run in specific conditions
-    if ($this->isProductionEnvironment()) {
+    if (\App\Environment::isProd()) {
         return; // Skip in production
     }
     
@@ -702,6 +674,8 @@ public function up(MigrationBuilder $b): void
 
 ### 2. **Data Transformations**
 ```php
+use App\Shared\Core\Enums\RecordStatus;
+
 public function up(MigrationBuilder $b): void
 {
     // Transform existing data
@@ -720,14 +694,11 @@ public function up(MigrationBuilder $b): void
     $offset = 0;
     
     do {
-        $data = $this->generateBatch($offset, $batchSize);
-        
-        foreach ($data as $item) {
-            $b->insert('example', $item);
-        }
+        $rows = $this->generateBatch($offset, $batchSize);
+        $b->insertBatch('example', $rows);
         
         $offset += $batchSize;
-    } while (count($data) === $batchSize);
+    } while (count($rows) === $batchSize);
 }
 ```
 
@@ -748,13 +719,12 @@ public function up(MigrationBuilder $b): void
 ```bash
 # Development
 ./yii migrate:up                    # Apply schema changes
-./yii seed:example --truncate        # Refresh seed data
+./yii seed --module=example          # Refresh seed data
 ./yii serve                         # Start development
 
 # Testing
 APP_ENV=test ./yii migrate:up        # Test schema
-./yii seed:example --count=100        # Test data
-./yii test                           # Run tests
+composer test                        # Run tests
 
 # Production
 APP_ENV=prod ./yii migrate:up         # Production schema only
@@ -766,17 +736,17 @@ APP_ENV=prod ./yii migrate:up         # Production schema only
 ## 📞 Resources
 
 ### Documentation
-- **[Yii3 Migration Guide](https://www.yiiframework.com/doc/guide/2.0/en/db-migrations.html)**: Official migration documentation
-- **[Yii3 Console Guide](https://www.yiiframework.com/doc/guide/2.0/en/tutorial-console.html)**: Console application guide
-- **[Database Best Practices](https://www.yiiframework.com/doc/guide/2.0/en/db-dao.html)**: Database access patterns
+- **[yiisoft/db-migration](https://github.com/yiisoft/db-migration)**: Migration package documentation
+- **[yiisoft/yii-console](https://github.com/yiisoft/yii-console)**: Console application package
+- **[nelmio/alice](https://github.com/nelmio/alice)**: Fixture generation library used by the seeders
 
 ### Tools
-- **[Yii3 Migration Tool](https://www.yiiframework.com/doc/api/2.0/class-yii-db-migration-migration.html)**: Migration API reference
-- **[Yii3 Console](https://www.yiiframework.com/doc/api/2.0/class-yii-console-controller.html)**: Console controller reference
+- **[MigrationBuilder](../vendor/yiisoft/db-migration/src/MigrationBuilder.php)**: Available schema/data operations
+- **[AbstractSeederData](../src/Infrastructure/Core/Seeder/AbstractSeederData.php)**: Seeder base class
 
 ### Examples
 - **[Project Examples](../src/Migration/)**: Migration examples in this project
-- **[Seed Examples](../src/Seed/)**: Seed examples in this project
+- **[Seed Examples](../src/Seeder/)**: Seeders, fixtures and Faker providers in this project
 - **[Console Examples](../src/Console/)**: Console command examples
 
 ---

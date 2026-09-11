@@ -2,16 +2,26 @@
 
 ## Overview
 
-Input Validator adalah komponen yang bertanggung jawab untuk memvalidasi data input yang masuk ke sistem. Validator menggunakan pattern `AbstractValidator` dengan `ValidationContext` untuk menerapkan aturan validasi yang berbeda sesuai dengan operasi yang sedang dilakukan.
+Input Validator memvalidasi parameter request sebelum data masuk ke application service. Boilerplate ini memakai `AbstractValidator` bersama `Yiisoft\Validator\ValidatorInterface` dan `ValidationContext` untuk memilih rules berdasarkan operasi.
 
-## Struktur Dasar
+Lokasi validator per modul:
 
-### File Location
-```
+```text
 src/Api/V1/{Module}/Validation/{Module}InputValidator.php
 ```
 
-### Class Structure
+## API Utama
+
+`AbstractValidator::validate()` memiliki signature:
+
+```php
+final public function validate(string $context, RawParams $data): void
+```
+
+Method ini tidak mengembalikan object validator dan tidak menyediakan `fails()`, `errors()`, atau `validated()`. Jika validasi gagal, method ini melempar `ValidationException` berisi daftar error yang sudah diformat.
+
+## Struktur Dasar
+
 ```php
 <?php
 
@@ -19,407 +29,346 @@ declare(strict_types=1);
 
 namespace App\Api\V1\Example\Validation;
 
-// Domain Layer
-use App\Domain\Example\Entity\Example;
-
-// Shared Layer
 use App\Shared\Common\Context\ValidationContext;
+use App\Shared\Core\Enums\RecordStatus;
 use App\Shared\Core\Validation\AbstractValidator;
-use App\Shared\Core\Validation\Rules\HasNoDependencies;
 use App\Shared\Core\Validation\Rules\UniqueValue;
+use Yiisoft\Validator\Rule\In;
+use Yiisoft\Validator\Rule\Integer;
+use Yiisoft\Validator\Rule\Length;
+use Yiisoft\Validator\Rule\Required;
+use Yiisoft\Validator\Rule\StopOnError;
+use Yiisoft\Validator\Rule\StringValue;
 
-/**
- * Example Input Validator
- * 
- * Menggunakan pattern AbstractValidator dengan ValidationContext
- * untuk validasi input yang berbeda per operation
- */
 final class ExampleInputValidator extends AbstractValidator
 {
     protected function rules(string $context): array
     {
         return match ($context) {
-            // Aturan untuk operasi CREATE
             ValidationContext::CREATE => [
-                // Field validation rules
+                'name' => [
+                    new StopOnError([
+                        new Required(),
+                        new StringValue(),
+                        new Length(min: 3, max: 255),
+                        new UniqueValue(
+                            table: 'example',
+                            column: 'name',
+                            ignoreId: null,
+                        ),
+                    ]),
+                ],
+                'status' => [
+                    new Required(),
+                    new Integer(),
+                    new In(RecordStatus::draftOnlyStates()),
+                ],
             ],
-            
-            // Aturan untuk operasi UPDATE
+
             ValidationContext::UPDATE => [
-                // Field validation rules
+                'id' => [
+                    new Required(),
+                    new Integer(min: 1),
+                ],
+                'name' => [
+                    new StopOnError([
+                        new StringValue(skipOnEmpty: true),
+                        new Length(min: 3, max: 255, skipOnEmpty: true),
+                        new UniqueValue(
+                            table: 'example',
+                            column: 'name',
+                            ignoreId: $this->data['id'] ?? null,
+                        ),
+                    ]),
+                ],
+                'lock_version' => [
+                    new Required(
+                        when: fn () => $this->shouldValidateOptimisticLock()
+                    ),
+                    new Integer(min: 1, skipOnEmpty: true),
+                ],
             ],
-            
-            // Aturan untuk operasi DELETE
+
             ValidationContext::DELETE => [
-                // Field validation rules
+                'id' => [
+                    new Required(),
+                    new Integer(min: 1),
+                ],
             ],
-            
-            // Aturan untuk operasi SEARCH
+
             ValidationContext::SEARCH => [
-                // Field validation rules
+                'page' => [new Integer(min: 1, skipOnEmpty: true)],
+                'page_size' => [new Integer(min: 1, max: 200, skipOnEmpty: true)],
+                'sort_dir' => [new In(['asc', 'desc'], skipOnEmpty: true)],
             ],
-            
+
             default => [],
         };
     }
 }
 ```
 
-## Cara Penggunaan
+## Cara Penggunaan di Action
 
-### 1. Menggunakan Validator
-
-Cara dasar menggunakan validator dengan context yang sesuai:
+Validator menerima `RawParams`, bukan array mentah. Pada action, request payload biasanya sudah tersedia lewat attribute `payload`.
 
 ```php
-// Validasi input dengan context CREATE
-$validator = $this->inputValidator->validate(
+/** @var \App\Shared\Core\Request\RequestParams $payload */
+$payload = $request->getAttribute('payload');
+
+$params = $payload->getRawParams()
+    ->onlyAllowed(allowedKeys: self::ALLOWED_KEYS)
+    ->with('status', RecordStatus::DRAFT->value)
+    ->sanitize();
+
+$this->inputValidator->validate(
     data: $params,
-    context: ValidationContext::CREATE
+    context: ValidationContext::CREATE,
+);
+```
+
+Karena `validate()` mengembalikan `void`, lanjutkan proses setelah method itu berjalan tanpa exception:
+
+```php
+$this->inputValidator->validate(
+    data: $params,
+    context: ValidationContext::CREATE,
 );
 
-// Validasi input dengan context UPDATE
-$validator = $this->inputValidator->validate(
-    data: $params,
-    context: ValidationContext::UPDATE
+$command = CreateExampleCommand::create(
+    name: (string) $params->get('name'),
+    status: $params->get('status'),
+    detailInfo: $params->get('detail_info'),
 );
+```
 
-// Validasi input dengan context DELETE
-$validator = $this->inputValidator->validate(
-    data: $params,
-    context: ValidationContext::DELETE
-);
+## Context yang Tersedia
 
-// Validasi input dengan context SEARCH
-$validator = $this->inputValidator->validate(
-    data: $params,
-    context: ValidationContext::SEARCH
-);
+`ValidationContext` mewarisi konstanta dari `ValidationContextInterface`:
 
-// Cek hasil validasi
-if ($validator->fails()) {
-    // Handle validation errors
-    $errors = $validator->errors();
-    // ... error handling logic
+- `ValidationContext::SEARCH` — `search`
+- `ValidationContext::CREATE` — `create`
+- `ValidationContext::UPDATE` — `update`
+- `ValidationContext::DELETE` — `delete`
+- `ValidationContext::APPROVE` — `approve`
+- `ValidationContext::REJECT` — `reject`
+
+Context kustom dapat ditambahkan di `ValidationContext` atau langsung memakai string context yang cocok dengan cabang `match` pada validator.
+
+## Error Handling
+
+Tidak perlu mengecek `$validator->fails()`. Jika rules gagal, `AbstractValidator` melempar:
+
+```php
+App\Shared\Core\Exception\ValidationException
+```
+
+Format error yang dihasilkan berupa array item:
+
+```php
+[
+    'field' => 'name',
+    'message' => 'Name is required.',
+]
+```
+
+Exception ini dipetakan ke HTTP `422 Unprocessable Entity` dan biasanya ditangani oleh error-handling middleware/application layer. Tangani manual hanya jika action memerlukan respons khusus:
+
+```php
+try {
+    $this->inputValidator->validate(
+        data: $params,
+        context: ValidationContext::CREATE,
+    );
+} catch (ValidationException $e) {
+    // Custom handling jika benar-benar diperlukan.
+    throw $e;
 }
-
-// Lanjutkan dengan data yang valid
-$validatedData = $validator->validated();
 ```
 
-### 2. Context yang Tersedia
+## Rules yang Umum Dipakai
 
-#### CREATE Context
-Untuk validasi saat membuat data baru:
+### Rules Yii Validator
+
+- `new Required()` — field wajib ada.
+- `new Required(when: fn () => ...)` — wajib secara kondisional.
+- `new Integer(min: 1, max: 200, skipOnEmpty: true)` — integer dengan batas optional.
+- `new StringValue(skipOnEmpty: true)` — nilai harus string.
+- `new Length(min: 3, max: 255, skipOnEmpty: true)` — panjang string.
+- `new In([...], skipOnEmpty: true)` — nilai harus termasuk daftar yang diizinkan.
+- `new StopOnError([...])` — hentikan rules berikutnya setelah error pertama.
+
+### Rules Internal
+
+#### `UniqueValue`
+
 ```php
-$validator = $this->inputValidator->validate(
-    data: $params,
-    context: ValidationContext::CREATE
-);
+new UniqueValue(
+    table: 'example',
+    column: 'name',
+    ignoreId: $this->data['id'] ?? null,
+    idColumn: 'id',
+    message: 'Nama sudah digunakan.',
+)
 ```
 
-#### UPDATE Context  
-Untuk validasi saat mengupdate data yang sudah ada:
+Rule ini memastikan nilai belum dipakai oleh record lain. Untuk operasi update, isi `ignoreId` dengan ID record yang sedang diupdate.
+
+#### `HasNoDependencies`
+
 ```php
-$validator = $this->inputValidator->validate(
-    data: $params,
-    context: ValidationContext::UPDATE
-);
+new HasNoDependencies(
+    map: [
+        'another_example' => ['example_id'],
+    ],
+    message: 'Data tidak bisa dihapus karena masih digunakan.',
+)
 ```
 
-#### DELETE Context
-Untuk validasi saat menghapus data:
-```php
-$validator = $this->inputValidator->validate(
-    data: $params,
-    context: ValidationContext::DELETE
-);
-```
+Rule ini cocok untuk validasi `DELETE` ketika record tidak boleh memiliki dependensi pada tabel lain.
 
-#### SEARCH Context
-Untuk validasi parameter pencarian:
-```php
-$validator = $this->inputValidator->validate(
-    data: $params,
-    context: ValidationContext::SEARCH
-);
-```
+## Contoh Context
 
-### 3. Error Handling
+### CREATE
 
-Cek hasil validasi dan handle errors:
-```php
-$validator = $this->inputValidator->validate(
-    data: $params,
-    context: ValidationContext::CREATE
-);
-
-if ($validator->fails()) {
-    // Ambil semua error messages
-    $errors = $validator->errors();
-    
-    // Ambil error untuk field tertentu
-    $nameError = $validator->error('name');
-    
-    // Cek apakah field tertentu memiliki error
-    $hasNameError = $validator->hasError('name');
-    
-    // ... handle validation errors
-}
-
-// Data yang sudah valid
-$validatedData = $validator->validated();
-```
-
-### 4. Validation Contexts
-
-#### CREATE Context
-Digunakan saat membuat entitas baru:
 ```php
 ValidationContext::CREATE => [
     'name' => [
-        new Required(),                          // Wajib diisi
-        new StringLength(max: 255),             // Maksimal 255 karakter
-        new UniqueValue(                        // Harus unik
-            table: 'examples',
-            column: 'name',
-            ignoreId: null,                      // Tidak ada exclusion untuk create
-        ),
+        new StopOnError([
+            new Required(),
+            new StringValue(),
+            new Length(min: 3, max: 255),
+            new UniqueValue(table: 'example', column: 'name'),
+        ]),
     ],
     'status' => [
-        new Required(),                          // Wajib diisi
-        new Integer(min: 1, max: 10),           // Harus integer 1-10
-    ],
-    'detail_info' => [
-        new ArrayType(),                         // Harus array
-        skipOnEmpty: true,                       // Boleh kosong
+        new Required(),
+        new Integer(),
+        new In(RecordStatus::draftOnlyStates()),
     ],
 ],
 ```
 
-#### UPDATE Context
-Digunakan saat mengupdate entitas yang sudah ada:
+### UPDATE
+
 ```php
 ValidationContext::UPDATE => [
     'id' => [
-        new Required(),                          // Wajib diisi
-        new Integer(min: 1),                   // Harus integer positif
+        new Required(),
+        new Integer(min: 1),
     ],
     'name' => [
-        new StringLength(max: 255),             // Maksimal 255 karakter
-        new UniqueValue(                        // Harus unik
-            table: 'examples',
-            column: 'name',
-            ignoreId: $this->data['id'] ?? null, // Exclude current record
-        ),
-        skipOnEmpty: true,                       // Boleh kosong (optional)
+        new StopOnError([
+            new StringValue(skipOnEmpty: true),
+            new Length(min: 3, max: 255, skipOnEmpty: true),
+            new UniqueValue(
+                table: 'example',
+                column: 'name',
+                ignoreId: $this->data['id'] ?? null,
+            ),
+        ]),
     ],
     'status' => [
-        new Integer(min: 1, max: 10),           // Harus integer 1-10
-        skipOnEmpty: true,                       // Boleh kosong (optional)
+        new Integer(skipOnEmpty: true),
+        new In(RecordStatus::searchableStates()),
     ],
-],
-```
-
-#### DELETE Context
-Digunakan saat menghapus entitas:
-```php
-ValidationContext::DELETE => [
-    'id' => [
-        new Required(),                          // Wajib diisi
-        new Integer(min: 1),                   // Harus integer positif
-        new HasNoDependencies(                  // Tidak boleh ada dependencies
-            map: [
-                'other_table' => ['example_id'], // Cek di tabel other_table
-                'another_table' => ['example_id'], // Cek di tabel another_table
-            ],
-            message: 'Data tidak bisa dihapus karena masih digunakan di tabel lain.'
+    'lock_version' => [
+        new Required(
+            when: fn () => $this->shouldValidateOptimisticLock()
         ),
+        new Integer(min: 1, skipOnEmpty: true),
     ],
 ],
 ```
 
-#### SEARCH Context
-Digunakan untuk pencarian dan filtering:
+### SEARCH
+
 ```php
 ValidationContext::SEARCH => [
-    'page' => [
-        new Integer(min: 1),                   // Minimal 1
-        default: 1,                            // Default value
+    'id' => [new Integer(skipOnEmpty: true)],
+    'name' => [
+        new StringValue(skipOnEmpty: true),
+        new Length(min: 1, max: 100, skipOnEmpty: true),
     ],
-    'per_page' => [
-        new Integer(min: 1, max: 100),         // 1-100 items per page
-        default: 20,                           // Default value
-    ],
-    'search' => [
-        new StringLength(max: 100),            // Maksimal 100 karakter
-        skipOnEmpty: true,                      // Boleh kosong
-    ],
-    'status' => [
-        new In([1, 2, 3]),                     // Harus salah satu dari nilai ini
-        skipOnEmpty: true,                      // Boleh kosong
-    ],
-    'sort_by' => [
-        new In(['name', 'status', 'created_at']), // Boleh sort by field ini
-        skipOnEmpty: true,                      // Boleh kosong
-    ],
-    'sort_dir' => [
-        new In(['asc', 'desc']),                // asc atau desc
-        skipOnEmpty: true,                      // Boleh kosong
-    ],
+    'status' => [new Integer(skipOnEmpty: true)],
+    'page' => [new Integer(min: 1, skipOnEmpty: true)],
+    'page_size' => [new Integer(min: 1, max: 200, skipOnEmpty: true)],
+    'sort_by' => [new StringValue(skipOnEmpty: true)],
+    'sort_dir' => [new In(['asc', 'desc'], skipOnEmpty: true)],
 ],
 ```
 
-## Validation Rules yang Tersedia
+### Field Sinkronisasi
 
-### 1. Basic Rules
-- `Required()` - Field wajib diisi
-- `Integer(min?, max?)` - Harus integer dengan batasan min/max
-- `StringLength(max?)` - String dengan panjang maksimal
-- `In(array $values)` - Harus salah satu dari nilai yang diberikan
-- `ArrayType()` - Harus bertipe array
-- `StringValue()` - Harus bertipe string
+Untuk modul yang memakai `origin_id` dan `sync_flag`, contoh pada `AnotherExampleInputValidator` adalah:
 
-### 2. Advanced Rules
-- `UniqueValue()` - Cek keunikan nilai di database
-- `HasNoDependencies()` - Cek apakah record memiliki dependencies
-- `StopOnError()` - Stop validation jika error ditemukan
-
-### 3. Rule Options
-- `skipOnEmpty: true` - Lewati validasi jika field kosong
-- `default: value` - Nilai default jika tidak diisi
-- `message: string` - Custom error message
-
-## Custom Error Messages
-
-### Bahasa Indonesia
 ```php
-new UniqueValue(
-    table: 'examples',
-    column: 'name',
-    message: 'Nama example sudah digunakan.'
-),
-
-new HasNoDependencies(
-    map: [
-        'other_table' => ['example_id'],
-    ],
-    message: 'Data tidak bisa dihapus karena masih digunakan di tabel lain.'
-),
-
-new Required(
-    message: 'Field {field} wajib diisi.'
-),
-
-new StringLength(
-    max: 255,
-    message: 'Field {field} maksimal {max} karakter.'
-),
-```
-
-## Best Practices
-
-### 1. Gunakan Validation Context
-Selalu gunakan context yang sesuai dengan operasi:
-- `CREATE` untuk pembuatan baru
-- `UPDATE` untuk perubahan data
-- `DELETE` untuk penghapusan
-- `SEARCH` untuk pencarian
-
-### 2. Optional Fields
-Gunakan `skipOnEmpty: true` untuk field yang tidak wajib:
-```php
-'name' => [
-    new StringLength(max: 255),
-    skipOnEmpty: true,  // Boleh kosong untuk update
+'origin_id' => [
+    new Integer(min: 1, skipOnEmpty: true),
+],
+'sync_flag' => [
+    new Integer(skipOnEmpty: true),
+    new In([1], skipOnEmpty: true),
 ],
 ```
 
-### 3. Default Values
-Berikan default value untuk field pencarian:
-```php
-'page' => [
-    new Integer(min: 1),
-    default: 1,  // Default page 1
-],
-```
+Dalam model saat ini, `sync_flag = null` berarti sudah tersinkron dan `sync_flag = 1` berarti belum tersinkron. Nilai `null` tetap dapat dipakai untuk record yang datang dari master/cloud dan tidak perlu dikirim ulang.
 
-### 4. Error Handling
-Selalu cek hasil validasi sebelum melanjutkan:
-```php
-$validator = $this->inputValidator->validate($data, $context);
+## Contoh Lengkap di Create Action
 
-if ($validator->fails()) {
-    return $this->responseFactory->fail(
-        translate: Message::create(
-            key: 'validation.failed',
-            params: ['errors' => $validator->errors()]
-        )
-    );
-}
-
-// Lanjutkan dengan data yang valid
-```
-
-### 5. Custom Validation Rules
-Untuk validasi yang kompleks, buat custom rule:
-```php
-// Di dalam validator class
-protected function customRule(string $value): bool
-{
-    // Logic validasi kustom
-    return strlen($value) > 5 && preg_match('/^[a-zA-Z0-9]+$/', $value);
-}
-```
-
-## Contoh Lengkap
-
-### Create Action dengan Validasi Lengkap
 ```php
 final class ExampleCreateAction
 {
+    private const ALLOWED_KEYS = ['name', 'status', 'sync_mdb'];
+
+    public function __construct(
+        private ExampleInputValidator $inputValidator,
+        private ExampleApplicationService $applicationService,
+        private ResponseFactory $responseFactory,
+    ) {
+    }
+
     public function __invoke(ServerRequestInterface $request): ResponseInterface
     {
-        $params = $request->getParsedBody();
-        
-        // Validasi input
-        $validator = $this->inputValidator->validate(
+        /** @var \App\Shared\Core\Request\RequestParams $payload */
+        $payload = $request->getAttribute('payload');
+
+        $params = $payload->getRawParams()
+            ->onlyAllowed(allowedKeys: self::ALLOWED_KEYS)
+            ->with('status', RecordStatus::DRAFT->value)
+            ->sanitize();
+
+        $this->inputValidator->validate(
             data: $params,
-            context: ValidationContext::CREATE
+            context: ValidationContext::CREATE,
         );
-        
-        // Handle validation errors
-        if ($validator->fails()) {
-            return $this->responseFactory->fail(
-                translate: Message::create(
-                    key: 'validation.failed',
-                    params: [
-                        'errors' => $validator->errors(),
-                        'message' => 'Data yang dikirim tidak valid. Silakan periksa kembali.'
-                    ]
-                )
-            );
-        }
-        
-        // Buat command dengan data yang valid
+
         $command = CreateExampleCommand::create(
-            name: $params['name'],
-            status: (int) $params['status'],
-            detailInfo: $params['detail_info'] ?? []
+            name: (string) $params->get('name'),
+            status: $params->get('status'),
+            detailInfo: $params->get('detail_info'),
         );
-        
-        // Eksekusi business logic
-        $result = $this->applicationService->create($command);
-        
+
+        $response = $this->applicationService->create(command: $command);
+
         return $this->responseFactory->success(
-            data: $result->toArray(),
+            data: $response->toArray(),
             translate: Message::create(
                 key: 'resource.created',
-                params: ['resource' => 'Example']
-            )
+                params: [
+                    'resource' => $this->applicationService->getResource(),
+                ],
+            ),
         );
     }
 }
 ```
 
-Dengan menggunakan Input Validator ini, data input yang masuk ke sistem akan selalu valid dan konsisten sesuai dengan business rules yang didefinisikan.
+## Best Practices
+
+- Validasi dilakukan setelah `onlyAllowed()` agar parameter tidak dikenal ditolak lebih dulu.
+- Gunakan `sanitize()` sebelum validasi untuk input user.
+- Gunakan `StopOnError` untuk rangkaian rules yang mahal, misalnya sebelum `UniqueValue`.
+- Gunakan `skipOnEmpty: true` untuk field optional pada update/search.
+- Gunakan `ignoreId` pada `UniqueValue` saat update.
+- Jangan membuat method `fails()`, `errors()`, atau `validated()` kecuali API `AbstractValidator` diubah; exception adalah mekanisme error saat ini.

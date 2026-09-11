@@ -2,7 +2,7 @@
 
 ## 📋 Overview
 
-Security utilities provide essential security functions for the Yii3 API application, including input sanitization, data validation, and protection against common security vulnerabilities.
+Security utilities provide essential security functions for the Yii3 API application, including input sanitization, JWT authentication, permission-based authorization, and protection against common security vulnerabilities.
 
 ---
 
@@ -12,30 +12,58 @@ Security utilities provide essential security functions for the Yii3 API applica
 
 ```
 src/Shared/Core/Security/
-└── InputSanitizer.php    # Input sanitization and validation
+└── InputSanitizer.php              # Static input sanitization (XSS / SQLi / DoS guards)
+
+src/Shared/Core/Middleware/
+├── AccessMiddleware.php            # Per-route permission enforcement
+├── CorsMiddleware.php              # CORS handling, rejects disallowed origins
+├── JwtMiddleware.php               # JWT bearer-token authentication
+├── RateLimitMiddleware.php         # In-memory rate limiting
+├── RequestParamsMiddleware.php     # Parses filter/sort/pagination params
+├── SecureHeadersMiddleware.php     # CSP, X-Frame-Options, etc.
+└── TrustedHostMiddleware.php       # Host header validation
+
+src/Infrastructure/Core/Security/
+├── AccessChecker.php               # Yiisoft AccessCheckerInterface implementation
+├── Actor.php                       # Authenticated user value (implements ActorInterface)
+├── ActorProvider.php               # Builds an Actor from JWT claims
+├── CurrentUser.php                 # Holds the current Actor (implements CurrentUserInterface)
+├── CurrentUserAwareInterface.php   # Marks classes that need CurrentUser injected
+├── HstsMiddleware.php              # Strict-Transport-Security header
+├── JwtService.php                  # firebase/jwt decode + iss/aud validation
+├── PermissionChecker.php           # Evaluates rules from config/common/access.php
+├── RbacAuthorizer.php              # AuthorizerInterface implementation
+└── Rule/PermissionMapRule.php      # Yiisoft Access rule backed by the access map
+
+src/Domain/Shared/Core/Contract/
+├── ActorInterface.php              # getId(), getUsername(), getDept(), hasRole(), isAdmin(), isSuperAdmin()
+├── CurrentUserInterface.php        # getActor(): ActorInterface
+└── DateTimeProviderInterface.php
+
+src/Domain/Shared/Core/Security/
+└── AuthorizerInterface.php         # can(string $permission): bool
 ```
 
 ### Design Principles
 
-#### **1. **Defense in Depth**
-- Multiple layers of security validation
-- Comprehensive input sanitization
-- Protection against various attack vectors
+#### **1. Defense in Depth**
+- Input sanitization (`InputSanitizer`) at the request boundary
+- JWT authentication (`JwtMiddleware`) before actions run
+- Permission checks (`AccessMiddleware` + `config/common/access.php`) per route
+- Trusted host, CORS, secure headers, and rate-limit middleware
 
-#### **2. **Fail-Safe Defaults**
-- Secure by default configuration
-- Conservative validation rules
-- Safe fallback behavior
+#### **2. Fail-Safe Defaults**
+- Unknown routes' permissions default to **deny** (`PermissionChecker::can()` returns `false` for unregistered permissions)
+- `JwtMiddleware` throws `UnauthorizedException` when the `Authorization` header is missing or the token is invalid
+- `TrustedHostMiddleware` throws `UnauthorizedException` for disallowed hosts
 
-#### **3. **Performance Optimization**
-- Efficient sanitization algorithms
-- Minimal overhead for security checks
-- Cached validation results where appropriate
+#### **3. Sanitize Input, Escape Output**
+- `InputSanitizer` removes suspicious content but **does not HTML-encode** — escape on output instead
+- Empty strings are normalized to `null`; depth/size limits prevent DoS via crafted payloads
 
-#### **4. **Extensibility**
-- Configurable security rules
-- Custom sanitization filters
-- Pluginable validation system
+#### **4. Configuration over Code**
+- Permission map lives in `config/common/access.php`
+- JWT secrets/paths, CORS, rate limit, HSTS, and trusted hosts are env-driven via `config/common/params.php`
 
 ---
 
@@ -43,820 +71,227 @@ src/Shared/Core/Security/
 
 ### 1. InputSanitizer
 
-**Purpose**: Comprehensive input sanitization and validation
+**Location**: `src/Shared/Core/Security/InputSanitizer.php`
+
+**Purpose**: Static, recursive input sanitization to prevent XSS, SQL-injection patterns, and DoS (deep nesting, oversized arrays/strings).
 
 ```php
-<?php
-
-declare(strict_types=1);
-
-namespace App\Shared\Core\Security;
-
-use App\Shared\Core\Exception\BadRequestException;
-use Yiisoft\Translator\TranslatorInterface;
-
-/**
- * Input Sanitizer
- */
 final class InputSanitizer
 {
-    public function __construct(
-        private TranslatorInterface $translator,
-        private array $config = []
-    ) {}
-
-    /**
-     * Sanitize input data
-     */
-    public function sanitize(array $data, array $rules = []): array
-    {
-        $sanitized = [];
-        
-        foreach ($data as $key => $value) {
-            $fieldRules = $rules[$key] ?? $this->getDefaultRules($key);
-            $sanitized[$key] = $this->sanitizeValue($value, $fieldRules, $key);
-        }
-        
-        return $sanitized;
-    }
-
-    /**
-     * Sanitize single value
-     */
-    public function sanitizeValue(mixed $value, array $rules, string $fieldName = ''): mixed
-    {
-        // Handle null values
-        if ($value === null) {
-            return $this->handleNullValue($rules, $fieldName);
-        }
-
-        // Handle arrays
-        if (is_array($value)) {
-            return $this->sanitizeArray($value, $rules, $fieldName);
-        }
-
-        // Handle strings
-        if (is_string($value)) {
-            return $this->sanitizeString($value, $rules, $fieldName);
-        }
-
-        // Handle numbers
-        if (is_numeric($value)) {
-            return $this->sanitizeNumber($value, $rules, $fieldName);
-        }
-
-        // Handle booleans
-        if (is_bool($value)) {
-            return $this->sanitizeBoolean($value, $rules, $fieldName);
-        }
-
-        // Unknown type - apply strict validation
-        return $this->sanitizeUnknown($value, $rules, $fieldName);
-    }
-
-    /**
-     * Sanitize string value
-     */
-    private function sanitizeString(string $value, array $rules, string $fieldName): string
-    {
-        // Apply encoding rules
-        $value = $this->applyEncoding($value, $rules);
-
-        // Apply filtering rules
-        $value = $this->applyFilters($value, $rules);
-
-        // Apply validation rules
-        $this->validateString($value, $rules, $fieldName);
-
-        return $value;
-    }
-
-    /**
-     * Apply encoding rules
-     */
-    private function applyEncoding(string $value, array $rules): string
-    {
-        // HTML encoding
-        if ($rules['encode_html'] ?? true) {
-            $value = htmlspecialchars($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        }
-
-        // URL encoding
-        if ($rules['encode_url'] ?? false) {
-            $value = urlencode($value);
-        }
-
-        // Base64 encoding (for specific use cases)
-        if ($rules['encode_base64'] ?? false) {
-            $value = base64_encode($value);
-        }
-
-        return $value;
-    }
-
-    /**
-     * Apply filtering rules
-     */
-    private function applyFilters(string $value, array $rules): string
-    {
-        // Trim whitespace
-        if ($rules['trim'] ?? true) {
-            $value = trim($value);
-        }
-
-        // Remove control characters
-        if ($rules['remove_control_chars'] ?? true) {
-            $value = $this->removeControlCharacters($value);
-        }
-
-        // Remove HTML tags
-        if ($rules['strip_tags'] ?? false) {
-            $value = strip_tags($value);
-        }
-
-        // Normalize whitespace
-        if ($rules['normalize_whitespace'] ?? false) {
-            $value = preg_replace('/\s+/', ' ', $value);
-        }
-
-        // Remove special characters
-        if (isset($rules['allowed_chars'])) {
-            $value = $this->filterCharacters($value, $rules['allowed_chars']);
-        }
-
-        // Apply custom regex filters
-        if (isset($rules['regex_filters'])) {
-            $value = $this->applyRegexFilters($value, $rules['regex_filters']);
-        }
-
-        return $value;
-    }
-
-    /**
-     * Validate string value
-     */
-    private function validateString(string $value, array $rules, string $fieldName): void
-    {
-        // Length validation
-        if (isset($rules['min_length']) && strlen($value) < $rules['min_length']) {
-            throw BadRequestException::invalidParameter(
-                $fieldName,
-                "Minimum length is {$rules['min_length']} characters"
-            );
-        }
-
-        if (isset($rules['max_length']) && strlen($value) > $rules['max_length']) {
-            throw BadRequestException::invalidParameter(
-                $fieldName,
-                "Maximum length is {$rules['max_length']} characters"
-            );
-        }
-
-        // Pattern validation
-        if (isset($rules['pattern']) && !preg_match($rules['pattern'], $value)) {
-            throw BadRequestException::invalidParameter(
-                $fieldName,
-                'Invalid format'
-            );
-        }
-
-        // Email validation
-        if (($rules['email'] ?? false) && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
-            throw BadRequestException::invalidParameter(
-                $fieldName,
-                'Invalid email format'
-            );
-        }
-
-        // URL validation
-        if (($rules['url'] ?? false) && !filter_var($value, FILTER_VALIDATE_URL)) {
-            throw BadRequestException::invalidParameter(
-                $fieldName,
-                'Invalid URL format'
-            );
-        }
-
-        // IP validation
-        if (($rules['ip'] ?? false) && !filter_var($value, FILTER_VALIDATE_IP)) {
-            throw BadRequestException::invalidParameter(
-                $fieldName,
-                'Invalid IP address'
-            );
-        }
-
-        // SQL injection detection
-        if ($rules['detect_sql_injection'] ?? true) {
-            $this->detectSqlInjection($value, $fieldName);
-        }
-
-        // XSS detection
-        if ($rules['detect_xss'] ?? true) {
-            $this->detectXss($value, $fieldName);
-        }
-    }
-
-    /**
-     * Sanitize array value
-     */
-    private function sanitizeArray(array $value, array $rules, string $fieldName): array
-    {
-        $sanitized = [];
-        $maxItems = $rules['max_array_items'] ?? 100;
-
-        if (count($value) > $maxItems) {
-            throw BadRequestException::invalidParameter(
-                $fieldName,
-                "Maximum {$maxItems} items allowed"
-            );
-        }
-
-        foreach ($value as $index => $item) {
-            $sanitized[$index] = $this->sanitizeValue($item, $rules, "{$fieldName}[{$index}]");
-        }
-
-        return $sanitized;
-    }
-
-    /**
-     * Sanitize number value
-     */
-    private function sanitizeNumber(mixed $value, array $rules, string $fieldName): int|float
-    {
-        // Convert to appropriate type
-        $number = is_string($value) && is_numeric($value) 
-            ? (str_contains($value, '.') ? (float) $value : (int) $value)
-            : $value;
-
-        // Range validation
-        if (isset($rules['min']) && $number < $rules['min']) {
-            throw BadRequestException::invalidParameter(
-                $fieldName,
-                "Minimum value is {$rules['min']}"
-            );
-        }
-
-        if (isset($rules['max']) && $number > $rules['max']) {
-            throw BadRequestException::invalidParameter(
-                $fieldName,
-                "Maximum value is {$rules['max']}"
-            );
-        }
-
-        // Integer validation
-        if (($rules['integer'] ?? false) && !is_int($number)) {
-            throw BadRequestException::invalidParameter(
-                $fieldName,
-                'Value must be an integer'
-            );
-        }
-
-        // Positive validation
-        if (($rules['positive'] ?? false) && $number <= 0) {
-            throw BadRequestException::invalidParameter(
-                $fieldName,
-                'Value must be positive'
-            );
-        }
-
-        return $number;
-    }
-
-    /**
-     * Sanitize boolean value
-     */
-    private function sanitizeBoolean(bool $value, array $rules, string $fieldName): bool
-    {
-        // Boolean values are generally safe
-        return $value;
-    }
-
-    /**
-     * Sanitize unknown type
-     */
-    private function sanitizeUnknown(mixed $value, array $rules, string $fieldName): mixed
-    {
-        // Strict validation for unknown types
-        if ($rules['strict'] ?? true) {
-            throw BadRequestException::invalidParameter(
-                $fieldName,
-                'Invalid data type'
-            );
-        }
-
-        return $value;
-    }
-
-    /**
-     * Handle null value
-     */
-    private function handleNullValue(array $rules, string $fieldName): mixed
-    {
-        if ($rules['required'] ?? false) {
-            throw BadRequestException::invalidParameter(
-                $fieldName,
-                'This field is required'
-            );
-        }
-
-        return null;
-    }
-
-    /**
-     * Remove control characters
-     */
-    private function removeControlCharacters(string $value): string
-    {
-        // Remove all control characters except newlines and tabs
-        return preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $value);
-    }
-
-    /**
-     * Filter characters
-     */
-    private function filterCharacters(string $value, string $allowedChars): string
-    {
-        $pattern = '/[^' . preg_quote($allowedChars, '/') . ']/';
-        return preg_replace($pattern, '', $value);
-    }
-
-    /**
-     * Apply regex filters
-     */
-    private function applyRegexFilters(string $value, array $filters): string
-    {
-        foreach ($filters as $pattern => $replacement) {
-            $value = preg_replace($pattern, $replacement, $value);
-        }
-
-        return $value;
-    }
-
-    /**
-     * Detect SQL injection
-     */
-    private function detectSqlInjection(string $value, string $fieldName): void
-    {
-        $patterns = [
-            '/(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)/i',
-            '/(\b(OR|AND)\s+\d+\s*=\s*\d+)/i',
-            '/(\b(OR|AND)\s+\'\w+\'\s*=\s*\'\w+\')/i',
-            '/(\-\-|\#|\/\*|\*\/)/',
-            '/(\b(LOAD_FILE|INTO\s+OUTFILE|DUMPFILE)\b)/i',
-            '/(\b(HEX|CHAR|CONCAT|CONCAT_WS)\s*\()/i',
-            '/(\b(BENCHMARK|SLEEP|WAITFOR)\s*\()/i',
-            '/(\b(INFORMATION_SCHEMA|SYS|MASTER|MSDB)\b)/i',
-        ];
-
-        foreach ($patterns as $pattern) {
-            if (preg_match($pattern, $value)) {
-                throw BadRequestException::invalidParameter(
-                    $fieldName,
-                    'Potentially dangerous content detected'
-                );
-            }
-        }
-    }
-
-    /**
-     * Detect XSS
-     */
-    private function detectXss(string $value, string $fieldName): void
-    {
-        $patterns = [
-            '/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/mi',
-            '/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/mi',
-            '/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/mi',
-            '/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/mi',
-            '/javascript:/i',
-            '/vbscript:/i',
-            '/onload\s*=/i',
-            '/onerror\s*=/i',
-            '/onclick\s*=/i',
-            '/onmouseover\s*=/i',
-            '/onfocus\s*=/i',
-            '/onblur\s*=/i',
-            '/onchange\s*=/i',
-            '/onsubmit\s*=/i',
-            '/<\s*img[^>]*src\s*=\s*["\']?(?:javascript|vbscript):/i',
-            '/<\s*a[^>]*href\s*=\s*["\']?(?:javascript|vbscript):/i',
-            '/<\s*meta[^>]*http-equiv\s*=\s*["\']?refresh/i',
-            '/<\s*meta[^>]*content\s*=\s*["\']?\d+;\s*url/i',
-        ];
-
-        foreach ($patterns as $pattern) {
-            if (preg_match($pattern, $value)) {
-                throw BadRequestException::invalidParameter(
-                    $fieldName,
-                    'Potentially dangerous content detected'
-                );
-            }
-        }
-    }
-
-    /**
-     * Get default rules for field
-     */
-    private function getDefaultRules(string $fieldName): array
-    {
-        // Field-specific default rules
-        if (str_contains($fieldName, 'email')) {
-            return [
-                'trim' => true,
-                'max_length' => 255,
-                'email' => true,
-                'encode_html' => true,
-            ];
-        }
-
-        if (str_contains($fieldName, 'url')) {
-            return [
-                'trim' => true,
-                'max_length' => 2048,
-                'url' => true,
-                'encode_html' => true,
-            ];
-        }
-
-        if (str_contains($fieldName, 'password')) {
-            return [
-                'min_length' => 8,
-                'max_length' => 128,
-                'encode_html' => false, // Don't encode passwords
-            ];
-        }
-
-        if (str_contains($fieldName, 'id') || str_contains($fieldName, '_id')) {
-            return [
-                'integer' => true,
-                'positive' => true,
-                'max' => PHP_INT_MAX,
-            ];
-        }
-
-        if (str_contains($fieldName, 'status')) {
-            return [
-                'trim' => true,
-                'max_length' => 50,
-                'allowed_chars' => 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_',
-                'encode_html' => true,
-            ];
-        }
-
-        // Default rules
-        return [
-            'trim' => true,
-            'max_length' => 255,
-            'encode_html' => true,
-            'detect_sql_injection' => true,
-            'detect_xss' => true,
-        ];
-    }
-
-    /**
-     * Sanitize file upload
-     */
-    public function sanitizeFileUpload(array $file, array $rules = []): array
-    {
-        $defaultRules = [
-            'max_size' => 10 * 1024 * 1024, // 10MB
-            'allowed_types' => ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx'],
-            'allowed_mime_types' => [
-                'image/jpeg',
-                'image/png',
-                'image/gif',
-                'application/pdf',
-                'application/msword',
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-            ],
-            'scan_content' => true,
-        ];
-
-        $rules = array_merge($defaultRules, $rules);
-
-        // Validate file size
-        if ($file['size'] > $rules['max_size']) {
-            throw BadRequestException::invalidParameter(
-                'file',
-                'File size exceeds maximum allowed size'
-            );
-        }
-
-        // Validate file extension
-        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        if (!in_array($extension, $rules['allowed_types'], true)) {
-            throw BadRequestException::invalidParameter(
-                'file',
-                'File type not allowed'
-            );
-        }
-
-        // Validate MIME type
-        if (isset($file['type']) && !in_array($file['type'], $rules['allowed_mime_types'], true)) {
-            throw BadRequestException::invalidParameter(
-                'file',
-                'File MIME type not allowed'
-            );
-        }
-
-        // Scan file content for malicious content
-        if ($rules['scan_content'] && isset($file['tmp_name'])) {
-            $this->scanFileContent($file['tmp_name']);
-        }
-
-        // Sanitize filename
-        $sanitizedName = $this->sanitizeFileName($file['name']);
-
-        return [
-            'name' => $sanitizedName,
-            'type' => $file['type'],
-            'size' => $file['size'],
-            'tmp_name' => $file['tmp_name'],
-            'extension' => $extension,
-        ];
-    }
-
-    /**
-     * Scan file content
-     */
-    private function scanFileContent(string $filePath): void
-    {
-        // Check if file exists
-        if (!file_exists($filePath)) {
-            return;
-        }
-
-        // Read file content
-        $content = file_get_contents($filePath);
-        if ($content === false) {
-            return;
-        }
-
-        // Check for malicious patterns
-        $maliciousPatterns = [
-            '/<\?php/i',
-            '/<script/i',
-            '/javascript:/i',
-            '/vbscript:/i',
-            '/<%\s*=/i',
-            '/<%\s*@/i',
-            '/eval\s*\(/i',
-            '/exec\s*\(/i',
-            '/system\s*\(/i',
-            '/shell_exec\s*\(/i',
-            '/passthru\s*\(/i',
-        ];
-
-        foreach ($maliciousPatterns as $pattern) {
-            if (preg_match($pattern, $content)) {
-                throw BadRequestException::invalidParameter(
-                    'file',
-                    'File contains potentially malicious content'
-                );
-            }
-        }
-    }
-
-    /**
-     * Sanitize filename
-     */
-    private function sanitizeFileName(string $filename): string
-    {
-        // Remove path information
-        $filename = basename($filename);
-
-        // Remove dangerous characters
-        $filename = preg_replace('/[^a-zA-Z0-9._-]/', '', $filename);
-
-        // Limit length
-        $filename = substr($filename, 0, 255);
-
-        // Ensure filename is not empty
-        if (empty($filename)) {
-            $filename = 'upload_' . uniqid();
-        }
-
-        return $filename;
-    }
-
-    /**
-     * Generate secure token
-     */
-    public function generateToken(int $length = 32): string
-    {
-        return bin2hex(random_bytes($length));
-    }
-
-    /**
-     * Hash password
-     */
-    public function hashPassword(string $password): string
-    {
-        return password_hash($password, PASSWORD_ARGON2ID, [
-            'memory_cost' => 65536,
-            'time_cost' => 4,
-            'threads' => 3,
-        ]);
-    }
-
-    /**
-     * Verify password
-     */
-    public function verifyPassword(string $password, string $hash): bool
-    {
-        return password_verify($password, $hash);
-    }
-
-    /**
-     * Generate secure hash
-     */
-    public function generateHash(string $data, string $salt = ''): string
-    {
-        return hash_hmac('sha256', $data . $salt, $this->getSecretKey());
-    }
-
-    /**
-     * Get secret key
-     */
-    private function getSecretKey(): string
-    {
-        return $this->config['secret_key'] ?? 'default-secret-key-change-in-production';
-    }
+    private const MAX_STRING_LENGTH = 65535; // 64KB
+    private const MAX_ARRAY_DEPTH   = 10;
+    private const MAX_ARRAY_SIZE    = 1000;
+
+    public static function process(array $input): array;
 }
 ```
+
+**What it does**:
+- Trims strings, strips null bytes/control/invisible characters, converts `''` to `null`
+- Validates UTF-8 encoding; throws `BadRequestException` on invalid encoding
+- Detects XSS and SQL-injection patterns, logs a warning, and removes the suspicious content
+- Enforces `MAX_STRING_LENGTH`, `MAX_ARRAY_DEPTH`, `MAX_ARRAY_SIZE` and validates array keys — violations throw `BadRequestException` with localized `Message` objects (`domain: 'validation'`, keys `input_sanitizer.*`)
 
 **Usage Example**:
 ```php
-// In controller
-final class ExampleController
+use App\Shared\Core\Security\InputSanitizer;
+
+// Direct usage
+$sanitized = InputSanitizer::process($request->getParsedBody() ?? []);
+
+// Via RawParams (preferred for request data)
+use App\Shared\Core\Request\RawParams;
+
+$params = new RawParams($request->getParsedBody() ?? []);
+$clean  = $params->sanitize()->all();
+```
+
+```php
+// Example: dangerous input is cleaned, not escaped
+$sanitized = InputSanitizer::process([
+    'name' => 'John<script>alert("xss")</script>',
+    'bio'  => '',
+]);
+// ['name' => 'John', 'bio' => null]
+```
+
+### 2. JWT Authentication
+
+**Components**:
+- `App\Infrastructure\Core\Security\JwtService` — wraps `firebase/jwt`, validates `iss`/`aud` when configured
+- `App\Infrastructure\Core\Security\ActorProvider` — builds an `Actor` from token claims (supports a nested `user` claim object or `preferred_username`)
+- `App\Shared\Core\Middleware\JwtMiddleware` — PSR-15 middleware that enforces the bearer token
+- `App\Infrastructure\Core\Security\CurrentUser` — holds the resolved `Actor` for the request
+
+```php
+// JwtMiddleware is wired in config/common/di/jwt.php:
+JwtMiddleware::class => static fn (
+    JwtService $jwtService,
+    ActorProvider $actorProvider,
+    CurrentUser $currentUser
+) => new JwtMiddleware(
+    jwtService: $jwtService,
+    actorProvider: $actorProvider,
+    currentUser: $currentUser,
+    publicPaths: $params['app/jwt']['publicPaths'] ?? [],
+);
+```
+
+**Flow**:
+1. Paths listed in `app/jwt.publicPaths` (env `app.jwt.publicPaths`, JSON array) skip validation.
+2. Missing `Authorization` header → `UnauthorizedException` (`auth.header_missing`), unless god mode allows bypass.
+3. `Bearer <token>` is decoded by `JwtService`; invalid tokens → `UnauthorizedException` (`auth.invalid_token`).
+4. `ActorProvider::fromToken()` maps claims to an `Actor`, stored in `CurrentUser` and as the `actor` request attribute.
+
+**JWT params** (`config/common/params.php`, from `.env`):
+```php
+'app/jwt' => [
+    'secret'      => $_ENV['app.jwt.secret'],
+    'algorithm'   => $_ENV['app.jwt.algorithm'] ?? 'HS256',
+    'issuer'      => $_ENV['app.jwt.issuer'] ?? null,
+    'audience'    => $_ENV['app.jwt.audience'] ?? null,
+    'publicPaths' => $publicPaths, // JSON array, e.g. ["/", "/auth/login"]
+],
+```
+
+### 3. Actor & CurrentUser
+
+```php
+// src/Domain/Shared/Core/Contract/ActorInterface.php
+interface ActorInterface
 {
-    public function __construct(
-        private InputSanitizer $sanitizer,
-        private ExampleApplicationService $service
-    ) {}
-
-    public function actionCreate(): array
-    {
-        $data = $this->request->getParsedBody();
-        
-        // Define custom rules
-        $rules = [
-            'name' => [
-                'required' => true,
-                'min_length' => 2,
-                'max_length' => 100,
-                'pattern' => '/^[a-zA-Z\s]+$/',
-            ],
-            'email' => [
-                'required' => true,
-                'email' => true,
-                'max_length' => 255,
-            ],
-            'age' => [
-                'integer' => true,
-                'positive' => true,
-                'min' => 0,
-                'max' => 120,
-            ],
-            'bio' => [
-                'max_length' => 1000,
-                'encode_html' => true,
-                'detect_xss' => true,
-            ],
-        ];
-
-        // Sanitize input
-        $sanitizedData = $this->sanitizer->sanitize($data, $rules);
-
-        // Create resource
-        $result = $this->service->create($sanitizedData);
-        
-        return $result->toArray();
-    }
-
-    public function actionUpload(): array
-    {
-        $files = $this->request->getUploadedFiles();
-        $file = $files['file'] ?? null;
-
-        if ($file === null) {
-            throw BadRequestException::missingParameter('file');
-        }
-
-        // Sanitize file upload
-        $sanitizedFile = $this->sanitizer->sanitizeFileUpload($file->toArray());
-        
-        // Process file
-        $result = $this->service->uploadFile($sanitizedFile);
-        
-        return $result->toArray();
-    }
+    public function getId(): int;
+    public function getUsername(): string;
+    public function getDept(): string;
+    public function hasRole(string $app, string $role): bool;
+    public function isAdmin(string $app): bool;
+    public function isSuperAdmin(string $app): bool;
 }
 ```
+
+- `Actor` (`src/Infrastructure/Core/Security/Actor.php`) — concrete implementation; roles are a per-app map (`$roles[$app]['roles']`, `['admin']`, `['superadmin']`).
+- `CurrentUser` — `getActor()` returns the set actor or a `system` actor fallback; `setActor()` re-wraps `Actor` instances preserving `allowGodMode`.
+- `CurrentUserAwareInterface` — implement `setCurrentUser(CurrentUser $currentUser)` on classes (e.g. repositories using `HasCoreFeatures`) that need the actor injected.
+
+### 4. Authorization (Permissions)
+
+**Permission map** — `config/common/access.php` (project-owned):
+
+```php
+$appCode = $params['app/config']['code'] ?? 'default';
+
+$isKasir      = static fn (Actor $actor): bool => $actor->hasRole($appCode, 'kasir');
+$isAdmin      = static fn (Actor $actor): bool => $actor->isAdmin($appCode);
+$isSuperAdmin = static fn (Actor $actor): bool => $actor->isSuperAdmin($appCode);
+
+return [
+    '*' => $allowGodMode,                    // wildcard rule (god mode)
+    'example.index'   => static fn (Actor $actor): bool => true, // public
+    'example.view'    => $isKasir,           // single rule
+    'example.data'    => [$isSuperAdmin, $isKasir], // OR logic
+    'example.restore' => $isSuperAdmin,
+];
+```
+
+Rules may be a boolean, a `callable(Actor): bool`, or an array of callables (OR logic). Unregistered permissions are denied by `PermissionChecker`.
+
+**Enforcement**:
+- `AccessMiddleware` reads the `permission` from the matched route (`$route->getArgument('permission')` or route `defaults.permission`) and calls `AccessChecker::userHasPermission()`; denied → `ForbiddenException` (`access.insufficient_permissions`).
+- `AccessChecker` evaluates the `'*'` wildcard first (god mode), then the named permission rule.
+- `AuthorizerInterface` (`can(string $permission): bool`) is bound to `RbacAuthorizer` in `config/common/di/security-di.php` for use in domain/application services.
+
+**God mode**:
+- `app/config.allow_god_mode` (env `app.config.allow_god_mode`) is injected into `CurrentUser` via `security-di.php`.
+- When enabled, `Actor::isSuperAdmin()` returns `true` for every actor, and `JwtMiddleware` lets requests through even without a token.
+- ⚠️ Development/testing only — set `app.config.allow_god_mode=false` in production.
+
+### 5. Security Middleware
+
+| Middleware | Location | Purpose |
+|---|---|---|
+| `JwtMiddleware` | `src/Shared/Core/Middleware/` | Bearer-token auth, public path bypass |
+| `AccessMiddleware` | `src/Shared/Core/Middleware/` | Route `permission` enforcement |
+| `TrustedHostMiddleware` | `src/Shared/Core/Middleware/` | Host allowlist incl. `*.example.com` wildcards (`app/trusted_hosts.allowedHosts`) |
+| `CorsMiddleware` | `src/Shared/Core/Middleware/` | CORS headers; `ForbiddenException` (`request.origin_not_allowed`) for bad origins (`app/cors`) |
+| `RateLimitMiddleware` | `src/Shared/Core/Middleware/` | `TooManyRequestsException` (`rate_limit.exceeded`) past `app/rateLimit` limits |
+| `SecureHeadersMiddleware` | `src/Shared/Core/Middleware/` | CSP, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` (`app/secureHeaders`) |
+| `HstsMiddleware` | `src/Infrastructure/Core/Security/` | `Strict-Transport-Security` (`app/hsts`) |
+| `RequestParamsMiddleware` | `src/Shared/Core/Middleware/` | Normalizes filter/sort/pagination params (`app/pagination`) |
+
+DI definitions for these live in `config/common/di/middleware-di.php` and `config/common/di/jwt.php`. Add middleware classes to `config/common/middleware.php` to actually execute them on every request.
 
 ---
 
 ## 🔧 Security Configuration
 
-### 1. **DI Configuration**
-```php
-// config/web/di/security.php
-return [
-    InputSanitizer::class => [
-        '__construct()' => [
-            'translator' => Reference::to(TranslatorInterface::class),
-            'config' => [
-                'secret_key' => getenv('APP_SECRET_KEY'),
-                'max_file_size' => 10 * 1024 * 1024, // 10MB
-                'allowed_file_types' => ['jpg', 'jpeg', 'png', 'gif', 'pdf'],
-            ],
-        ],
-    ],
-];
+### 1. **Environment Variables** (`.env`)
+
+```env
+app.config.allow_god_mode=false          # NEVER true in production
+app.jwt.secret=change-me
+app.jwt.algorithm=HS256
+app.jwt.issuer=your-issuer
+app.jwt.audience=your-audience
+app.jwt.publicPaths=["/","/auth/login","/auth/refresh"]
+app.trusted_hosts.allowedHosts=["example.com","*.example.com"]
+app.cors.allowedOrigins=["https://app.example.com"]
+app.rateLimit.maxRequests=100
+app.rateLimit.windowSize=60
 ```
 
-### 2. **Security Rules Configuration**
+### 2. **DI Configuration**
+
 ```php
-// config/security/rules.php
-return [
-    'user' => [
-        'name' => [
-            'required' => true,
-            'min_length' => 2,
-            'max_length' => 100,
-            'pattern' => '/^[a-zA-Z\s]+$/',
-            'encode_html' => true,
-        ],
-        'email' => [
-            'required' => true,
-            'email' => true,
-            'max_length' => 255,
-            'encode_html' => true,
-        ],
-        'password' => [
-            'required' => true,
-            'min_length' => 8,
-            'max_length' => 128,
-            'pattern' => '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/',
+// config/common/di/security-di.php (excerpt)
+return array_merge([
+    CurrentUser::class => [
+        '__construct()' => [
+            'allowGodMode' => $params['app/config']['allow_god_mode'] ?? false,
         ],
     ],
-    'content' => [
-        'title' => [
-            'required' => true,
-            'min_length' => 5,
-            'max_length' => 255,
-            'encode_html' => true,
-            'detect_xss' => true,
-        ],
-        'body' => [
-            'required' => true,
-            'min_length' => 10,
-            'max_length' => 10000,
-            'encode_html' => false, // Allow HTML in content
-            'detect_xss' => true,
-            'strip_tags' => false,
-        ],
+    Actor::class         => static fn (CurrentUser $currentUser) => $currentUser->getActor(),
+    AccessChecker::class => static function (CurrentUser $currentUser) {
+        $accessMap = require \dirname(__DIR__) . '/access.php';
+        return new AccessChecker($currentUser, $accessMap);
+    },
+    PermissionChecker::class => [
+        '__construct()' => [require __DIR__ . '/../access.php'],
     ],
-];
+    AuthorizerInterface::class => RbacAuthorizer::class,
+], /* project overrides from config/common/security.php */);
 ```
 
 ---
 
 ## 🚀 Best Practices
 
-### 1. **Input Validation**
+### 1. **Sanitize Input**
 ```php
-// ✅ Validate all inputs
-$sanitizedData = $this->sanitizer->sanitize($data, $rules);
+// ✅ Sanitize request data
+$clean = InputSanitizer::process($request->getParsedBody() ?? []);
+// or
+$clean = (new RawParams($request->getParsedBody() ?? []))->sanitize()->all();
 
 // ❌ Trust user input
 $name = $_POST['name'];
 ```
 
-### 2. **File Upload Security**
+### 2. **Protect Routes with Permissions**
 ```php
-// ✅ Validate file uploads
-$sanitizedFile = $this->sanitizer->sanitizeFileUpload($file);
-
-// ❌ Accept any file
-move_uploaded_file($file['tmp_name'], $destination);
+// ✅ Declare a permission on the route and add a rule in config/common/access.php
+// ❌ Check roles manually inside every action
 ```
 
-### 3. **Password Security**
+### 3. **Check Authorization in Services**
 ```php
-// ✅ Use secure password hashing
-$hash = $this->sanitizer->hashPassword($password);
-
-// ❌ Use weak hashing
-$hash = md5($password);
+// ✅ Inject AuthorizerInterface and call can('example.delete')
+// ❌ Trust that the middleware already checked everything
 ```
 
-### 4. **Token Generation**
+### 4. **Keep God Mode Off in Production**
 ```php
-// ✅ Use cryptographically secure tokens
-$token = $this->sanitizer->generateToken(32);
-
-// ❌ Use predictable tokens
-$token = uniqid();
+// ✅ app.config.allow_god_mode=false in production .env
+// ❌ Ship with god mode enabled — it bypasses JWT and all permission checks
 ```
 
 ---
@@ -864,34 +299,30 @@ $token = uniqid();
 ## 📊 Security Considerations
 
 ### 1. **Common Vulnerabilities**
-- **SQL Injection**: Detected and blocked
-- **XSS**: Detected and prevented
-- **CSRF**: Use CSRF tokens
-- **File Upload**: Comprehensive validation
-- **Path Traversal**: Filename sanitization
+- **SQL Injection**: `InputSanitizer` detects and strips suspicious patterns; always use parameterized queries via `Query`/`QueryConditionApplier`
+- **XSS**: detected and stripped on input; still escape on output
+- **Host Header Injection**: `TrustedHostMiddleware` allowlist
+- **Rate Limiting / DoS**: `RateLimitMiddleware` + sanitizer depth/size limits
+- **File Upload**: no built-in upload sanitizer — validate type/size in your action before storage
 
 ### 2. **Data Protection**
-- **Encryption**: Sensitive data encryption
-- **Hashing**: Secure password hashing
-- **Sanitization**: Input data cleaning
-- **Validation**: Comprehensive data validation
+- **Sanitization**: `InputSanitizer::process()` / `RawParams::sanitize()`
+- **Validation**: `AbstractValidator` + rules in `src/Shared/Core/Validation/`
+- **Localization of errors**: `Message` value objects resolved via `resources/messages/{locale}/`
 
 ### 3. **Monitoring**
-- **Logging**: Security event logging
-- **Alerting**: Suspicious activity detection
-- **Auditing**: Security audit trails
+- `RequestIdMiddleware`, `StructuredLoggingMiddleware`, `MetricsMiddleware`, `ErrorMonitoringMiddleware` under `src/Infrastructure/Core/Monitoring/` (configured via `app/monitoring` params)
 
 ---
 
 ## 🎯 Summary
 
-Security utilities provide comprehensive protection for the Yii3 API application. Key benefits include:
+Security in this boilerplate is layered: sanitize input at the boundary, authenticate with JWT, authorize per route via the `access.php` permission map, and harden responses with host/CORS/headers/rate-limit middleware. Key benefits include:
 
 - **🛡️ Protection**: Defense against common attacks
-- **🔍 Validation**: Comprehensive input validation
-- **🧹 Sanitization**: Data cleaning and normalization
-- **🔐 Encryption**: Secure data handling
-- **📁 File Security**: Safe file upload handling
-- **🚀 Performance**: Efficient security processing
+- **🔍 Validation**: Comprehensive input validation and sanitization limits
+- **🔑 Authentication**: JWT with issuer/audience validation
+- **🚦 Authorization**: Config-driven permission map with god-mode override for dev
+- **🚀 Performance**: Efficient, static security processing
 
 By following the patterns and best practices outlined in this guide, you can build secure, robust applications with the Yii3 API framework! 🚀

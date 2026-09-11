@@ -2,7 +2,7 @@
 
 ## 📋 Overview
 
-Validation utilities provide a structured way to validate data throughout the Yii3 API application. These components ensure data integrity and provide meaningful error messages for invalid input.
+Input validation in this application is built on top of [`yiisoft/validator`](https://github.com/yiisoft/validator). Each API module defines an `*InputValidator` that extends `App\Shared\Core\Validation\AbstractValidator` and declares per-context rule sets (`CREATE`, `UPDATE`, `DELETE`, `SEARCH`, ...) using Yiisoft rule objects. On failure a `ValidationException` (HTTP 422) with a normalized error list is thrown.
 
 ---
 
@@ -12,31 +12,41 @@ Validation utilities provide a structured way to validate data throughout the Yi
 
 ```
 src/Shared/Core/Validation/
-├── AbstractValidator.php    # Base validator class
-└── ValidationContext.php    # Validation context and state
+├── AbstractValidator.php              # Base validator wrapping Yiisoft\Validator
+├── ValidationContextInterface.php     # Context constants (CREATE/UPDATE/DELETE/SEARCH/APPROVE/REJECT)
+└── Rules/
+    ├── HasNoDependencies.php          # Custom rule: record must not be referenced elsewhere
+    ├── HasNoDependenciesHandler.php   # Rule handler (DB check)
+    ├── UniqueValue.php                # Custom rule: value must be unique in a table column
+    └── UniqueValueHandler.php         # Rule handler (DB check)
+
+src/Shared/Common/Context/
+└── ValidationContext.php              # Concrete context class (implements the interface constants)
+
+src/Api/V1/{Module}/Validation/
+└── {Module}InputValidator.php         # Per-module validators, e.g. ExampleInputValidator
 ```
 
 ### Design Principles
 
-#### **1. **Extensibility**
-- Base validator for custom implementations
-- Flexible validation rules
-- Composable validation logic
+#### **1. **Context Awareness**
+- Validation rules are selected by `ValidationContext` constant
+- Different rules per operation (create vs update vs search)
+- Custom contexts can be added per module
 
-#### **2. **Context Awareness**
-- Validation context for additional information
-- Conditional validation based on context
-- Stateful validation processing
+#### **2. **Fail-Fast**
+- `validate()` throws `ValidationException` on the first invalid payload
+- `StopOnError` rule group stops a field's rules at the first error
 
 #### **3. **Error Handling**
-- Detailed error messages
-- Error aggregation
-- Localization support
+- Errors are normalized to `[['field' => ..., 'message' => ...], ...]`
+- `ValidationException` maps to HTTP 422 automatically
+- `Message` value objects provide localization keys
 
 #### **4. **Performance**
-- Efficient validation algorithms
-- Minimal overhead
-- Early termination on failures
+- Rules are plain objects — cheap to build per request
+- `skipOnEmpty` skips expensive rules for absent values
+- `StopOnError` avoids running heavy rules (e.g. DB lookups) when cheap checks already failed
 
 ---
 
@@ -44,7 +54,9 @@ src/Shared/Core/Validation/
 
 ### 1. AbstractValidator
 
-**Purpose**: Base class for creating custom validators
+**Purpose**: Base class for all input validators. Wraps `Yiisoft\Validator\ValidatorInterface`, exposes a `validate()` entry point and normalizes errors.
+
+**Location**: `src/Shared/Core/Validation/AbstractValidator.php`
 
 ```php
 <?php
@@ -54,586 +66,261 @@ declare(strict_types=1);
 namespace App\Shared\Core\Validation;
 
 use App\Shared\Core\Exception\ValidationException;
-use Yiisoft\Translator\TranslatorInterface;
+use App\Shared\Core\Request\RawParams;
+use App\Shared\Core\ValueObject\LockVersionConfig;
+use Yiisoft\Validator\Result;
+use Yiisoft\Validator\ValidatorInterface;
 
-/**
- * Abstract Validator Base Class
- */
 abstract class AbstractValidator
 {
+    protected array $data = [];
+    protected mixed $id   = null;
+
     public function __construct(
-        protected ?TranslatorInterface $translator = null,
-        protected array $options = []
-    ) {}
-
-    /**
-     * Validate value
-     */
-    abstract public function validate(mixed $value, ValidationContext $context = null): ValidationResult;
-
-    /**
-     * Check if validator supports the given value type
-     */
-    abstract public function supports(mixed $value): bool;
-
-    /**
-     * Get validator name
-     */
-    public function getName(): string
-    {
-        return (new \ReflectionClass($this))->getShortName();
+        protected LockVersionConfig $lockVersionConfig,
+        protected ValidatorInterface $validator
+    ) {
     }
 
     /**
-     * Create validation exception
+     * Validate $data against the rule set for $context.
+     * Throws ValidationException (HTTP 422) when invalid.
      */
-    protected function createException(string $message, array $params = []): ValidationException
+    final public function validate(string $context, RawParams $data): void
     {
-        if ($this->translator) {
-            $message = $this->translator->translate($message, $params, 'validation');
+        $this->data = $data->toArray();
+        $this->id   = $this->data['id'] ?? null;
+
+        $result = $this->validator->validate($this->data, $this->rules($context));
+
+        if (!$result->isValid()) {
+            throw new ValidationException($this->formatErrors($result));
         }
-
-        return new ValidationException($message);
     }
 
-    /**
-     * Create validation result
-     */
-    protected function createResult(bool $isValid, array $errors = []): ValidationResult
-    {
-        return new ValidationResult($isValid, $errors);
-    }
+    /** Normalizes Yiisoft errors to [['field' => 'a.b', 'message' => '...'], ...] */
+    private function formatErrors(Result $result): array { /* ... */ }
 
-    /**
-     * Check if option exists
-     */
-    protected function hasOption(string $key): bool
-    {
-        return array_key_exists($key, $this->options);
-    }
+    /** Whether optimistic locking is enabled for this validator (via LockVersionConfig). */
+    protected function isOptimisticLockEnabled(): bool { /* ... */ }
+    protected function shouldValidateOptimisticLock(): bool { /* ... */ }
 
-    /**
-     * Get option value
-     */
-    protected function getOption(string $key, mixed $default = null): mixed
-    {
-        return $this->options[$key] ?? $default;
-    }
-
-    /**
-     * Set option value
-     */
-    protected function setOption(string $key, mixed $value): void
-    {
-        $this->options[$key] = $value;
-    }
-
-    /**
-     * Get all options
-     */
-    protected function getOptions(): array
-    {
-        return $this->options;
-    }
-
-    /**
-     * Merge options
-     */
-    protected function mergeOptions(array $options): void
-    {
-        $this->options = array_merge($this->options, $options);
-    }
-}
-
-/**
- * Validation Result
- */
-final class ValidationResult
-{
-    public function __construct(
-        public readonly bool $isValid,
-        public readonly array $errors = []
-    ) {}
-
-    /**
-     * Check if validation passed
-     */
-    public function passes(): bool
-    {
-        return $this->isValid;
-    }
-
-    /**
-     * Check if validation failed
-     */
-    public function fails(): bool
-    {
-        return !$this->isValid;
-    }
-
-    /**
-     * Get errors
-     */
-    public function getErrors(): array
-    {
-        return $this->errors;
-    }
-
-    /**
-     * Get first error
-     */
-    public function getFirstError(): ?string
-    {
-        return $this->errors[0] ?? null;
-    }
-
-    /**
-     * Check if has errors
-     */
-    public function hasErrors(): bool
-    {
-        return !empty($this->errors);
-    }
-
-    /**
-     * Get error count
-     */
-    public function getErrorCount(): int
-    {
-        return count($this->errors);
-    }
-
-    /**
-     * Create successful result
-     */
-    public static function success(): self
-    {
-        return new self(true);
-    }
-
-    /**
-     * Create failed result
-     */
-    public static function failure(array $errors): self
-    {
-        return new self(false, $errors);
-    }
-
-    /**
-     * Merge with another result
-     */
-    public function merge(ValidationResult $other): self
-    {
-        $isValid = $this->isValid && $other->isValid;
-        $errors = array_merge($this->errors, $other->errors);
-
-        return new self($isValid, $errors);
-    }
-}
-
-/**
- * String Validator Example
- */
-final class StringValidator extends AbstractValidator
-{
-    public function validate(mixed $value, ValidationContext $context = null): ValidationResult
-    {
-        if (!$this->supports($value)) {
-            return ValidationResult::failure(['Value must be a string']);
-        }
-
-        $errors = [];
-        $string = (string) $value;
-
-        // Length validation
-        if ($this->hasOption('min_length') && strlen($string) < $this->getOption('min_length')) {
-            $errors[] = $this->translator
-                ? $this->translator->translate('string.min', [
-                    'field' => $context?->getField() ?? 'value',
-                    'min' => $this->getOption('min_length')
-                ], 'validation')
-                : "Minimum length is {$this->getOption('min_length')} characters";
-        }
-
-        if ($this->hasOption('max_length') && strlen($string) > $this->getOption('max_length')) {
-            $errors[] = $this->translator
-                ? $this->translator->translate('string.max', [
-                    'field' => $context?->getField() ?? 'value',
-                    'max' => $this->getOption('max_length')
-                ], 'validation')
-                : "Maximum length is {$this->getOption('max_length')} characters";
-        }
-
-        // Pattern validation
-        if ($this->hasOption('pattern') && !preg_match($this->getOption('pattern'), $string)) {
-            $errors[] = $this->translator
-                ? $this->translator->translate('format.invalid', [
-                    'field' => $context?->getField() ?? 'value'
-                ], 'validation')
-                : 'Invalid format';
-        }
-
-        // Email validation
-        if ($this->getOption('email', false) && !filter_var($string, FILTER_VALIDATE_EMAIL)) {
-            $errors[] = $this->translator
-                ? $this->translator->translate('format.email', [
-                    'field' => $context?->getField() ?? 'value'
-                ], 'validation')
-                : 'Invalid email format';
-        }
-
-        // URL validation
-        if ($this->getOption('url', false) && !filter_var($string, FILTER_VALIDATE_URL)) {
-            $errors[] = $this->translator
-                ? $this->translator->translate('format.url', [
-                    'field' => $context?->getField() ?? 'value'
-                ], 'validation')
-                : 'Invalid URL format';
-        }
-
-        return ValidationResult::failure($errors);
-    }
-
-    public function supports(mixed $value): bool
-    {
-        return is_string($value) || is_numeric($value) || (is_object($value) && method_exists($value, '__toString'));
-    }
-}
-
-/**
- * Number Validator Example
- */
-final class NumberValidator extends AbstractValidator
-{
-    public function validate(mixed $value, ValidationContext $context = null): ValidationResult
-    {
-        if (!$this->supports($value)) {
-            return ValidationResult::failure(['Value must be a number']);
-        }
-
-        $errors = [];
-        $number = is_numeric($value) ? (float) $value : 0;
-
-        // Type validation
-        if ($this->getOption('integer', false) && !is_int($value) && $value !== (int) $value) {
-            $errors[] = $this->translator
-                ? $this->translator->translate('number.integer', [
-                    'field' => $context?->getField() ?? 'value'
-                ], 'validation')
-                : 'Value must be an integer';
-        }
-
-        // Range validation
-        if ($this->hasOption('min') && $number < $this->getOption('min')) {
-            $errors[] = $this->translator
-                ? $this->translator->translate('number.min', [
-                    'field' => $context?->getField() ?? 'value',
-                    'min' => $this->getOption('min')
-                ], 'validation')
-                : "Minimum value is {$this->getOption('min')}";
-        }
-
-        if ($this->hasOption('max') && $number > $this->getOption('max')) {
-            $errors[] = $this->translator
-                ? $this->translator->translate('number.max', [
-                    'field' => $context?->getField() ?? 'value',
-                    'max' => $this->getOption('max')
-                ], 'validation')
-                : "Maximum value is {$this->getOption('max')}";
-        }
-
-        // Positive validation
-        if ($this->getOption('positive', false) && $number <= 0) {
-            $errors[] = $this->translator
-                ? $this->translator->translate('number.positive', [
-                    'field' => $context?->getField() ?? 'value'
-                ], 'validation')
-                : 'Value must be positive';
-        }
-
-        // Negative validation
-        if ($this->getOption('negative', false) && $number >= 0) {
-            $errors[] = $this->translator
-                ? $this->translator->translate('number.negative', [
-                    'field' => $context?->getField() ?? 'value'
-                ], 'validation')
-                : 'Value must be negative';
-        }
-
-        // Divisible by validation
-        if ($this->hasOption('divisible_by') && $number % $this->getOption('divisible_by') !== 0) {
-            $errors[] = $this->translator
-                ? $this->translator->translate('number.divisible_by', [
-                    'field' => $context?->getField() ?? 'value',
-                    'divisor' => $this->getOption('divisible_by')
-                ], 'validation')
-                : "Value must be divisible by {$this->getOption('divisible_by')}";
-        }
-
-        return ValidationResult::failure($errors);
-    }
-
-    public function supports(mixed $value): bool
-    {
-        return is_numeric($value);
-    }
-}
-
-/**
- * Array Validator Example
- */
-final class ArrayValidator extends AbstractValidator
-{
-    public function validate(mixed $value, ValidationContext $context = null): ValidationResult
-    {
-        if (!$this->supports($value)) {
-            return ValidationResult::failure(['Value must be an array']);
-        }
-
-        $errors = [];
-        $array = (array) $value;
-
-        // Count validation
-        if ($this->hasOption('min_items') && count($array) < $this->getOption('min_items')) {
-            $errors[] = $this->translator
-                ? $this->translator->translate('array.min_items', [
-                    'field' => $context?->getField() ?? 'value',
-                    'min' => $this->getOption('min_items')
-                ], 'validation')
-                : "Array must have at least {$this->getOption('min_items')} items";
-        }
-
-        if ($this->hasOption('max_items') && count($array) > $this->getOption('max_items')) {
-            $errors[] = $this->translator
-                ? $this->translator->translate('array.max_items', [
-                    'field' => $context?->getField() ?? 'value',
-                    'max' => $this->getOption('max_items')
-                ], 'validation')
-                : "Array must have at most {$this->getOption('max_items')} items";
-        }
-
-        // Required keys validation
-        if ($this->hasOption('required_keys')) {
-            $requiredKeys = $this->getOption('required_keys');
-            $missingKeys = array_diff($requiredKeys, array_keys($array));
-            
-            if (!empty($missingKeys)) {
-                $errors[] = $this->translator
-                    ? $this->translator->translate('array.required_keys', [
-                        'field' => $context?->getField() ?? 'value',
-                        'keys' => implode(', ', $missingKeys)
-                    ], 'validation')
-                    : "Array must contain keys: " . implode(', ', $missingKeys);
-            }
-        }
-
-        // Nested validation
-        if ($this->hasOption('nested_validator') && $this->hasOption('nested_rules')) {
-            $nestedValidator = $this->getOption('nested_validator');
-            $nestedRules = $this->getOption('nested_rules');
-            
-            foreach ($array as $index => $item) {
-                $nestedContext = new ValidationContext(
-                    field: $context?->getField() ?? 'value',
-                    index: $index,
-                    parent: $context
-                );
-                
-                $result = $nestedValidator->validate($item, $nestedContext);
-                if ($result->fails()) {
-                    foreach ($result->getErrors() as $error) {
-                        $errors[] = "[{$index}] {$error}";
-                    }
-                }
-            }
-        }
-
-        return ValidationResult::failure($errors);
-    }
-
-    public function supports(mixed $value): bool
-    {
-        return is_array($value);
-    }
+    abstract protected function rules(string $context): array;
 }
 ```
+
+**Key points**:
+
+- `validate()` signature: `validate(string $context, RawParams $data): void` — note the argument order: **context first, then a `RawParams` object** (actions pass the filtered `RawParams`, e.g. `$params` from `RequestParams`).
+- `$this->data` holds the payload array; `$this->id` is `$data['id'] ?? null` — use it in rules such as `UniqueValue(ignoreId: $this->data['id'] ?? null)` to exclude the record being updated.
+- `shouldValidateOptimisticLock()` consults `LockVersionConfig` (params `app/optimisticLock`: `enabled` + `disabledValues`) — use it with `new Required(when: fn () => $this->shouldValidateOptimisticLock())` for `lock_version`.
 
 ---
 
 ### 2. ValidationContext
 
-**Purpose**: Validation context and state management
+**Purpose**: Constants that select which rule set a validator applies.
+
+**Locations**: `src/Shared/Core/Validation/ValidationContextInterface.php` and `src/Shared/Common/Context/ValidationContext.php`
+
+```php
+namespace App\Shared\Core\Validation;
+
+interface ValidationContextInterface
+{
+    public const SEARCH  = 'search';
+    public const CREATE  = 'create';
+    public const UPDATE  = 'update';
+    public const DELETE  = 'delete';
+    public const APPROVE = 'approve';
+    public const REJECT  = 'reject';
+}
+```
+
+```php
+namespace App\Shared\Common\Context;
+
+use App\Shared\Core\Validation\ValidationContextInterface;
+
+final class ValidationContext implements ValidationContextInterface
+{
+    // Constants are inherited from the interface.
+    // Add module-specific contexts here when needed, e.g.:
+    // public const CREATE_DO = 'create_do';
+}
+```
+
+Use `App\Shared\Common\Context\ValidationContext` in validators and actions:
+
+```php
+$this->inputValidator->validate(
+    data: $params,
+    context: ValidationContext::CREATE,
+);
+```
+
+---
+
+### 3. Custom Rules
+
+Two custom `Yiisoft\Validator\RuleInterface` rules ship in `src/Shared/Core/Validation/Rules/`:
+
+#### UniqueValue
+
+Checks that a column value does not already exist in a table.
+
+```php
+final class UniqueValue implements RuleInterface
+{
+    public function __construct(
+        public string $table,
+        public string $column,
+        public mixed $ignoreId = null,     // exclude this id (for updates)
+        public string $idColumn = 'id',
+        public string $message = 'Data ini sudah ada di database.',
+    ) {}
+
+    public function getName(): string    { return 'uniqueValue'; }
+    public function getHandler(): string { return UniqueValueHandler::class; }
+}
+```
+
+#### HasNoDependencies
+
+Checks (on delete) that no other table rows reference the record. `map` is `table => [fk columns]`.
+
+```php
+#[\Attribute(\Attribute::TARGET_PROPERTY)]
+final class HasNoDependencies implements RuleInterface
+{
+    public function __construct(
+        public array $map,
+        public string $message = 'Data sedang digunakan di modul lain.',
+    ) {}
+
+    public function getName(): string    { return 'hasNoDependencies'; }
+    public function getHandler(): string { return HasNoDependenciesHandler::class; }
+}
+```
+
+**Handler registration** (`config/common/di/validator.php`):
+
+```php
+return [
+    RuleHandlerResolverInterface::class => static fn (ContainerInterface $container) =>
+        new SimpleRuleHandlerContainer([
+            UniqueValueHandler::class => $container->get(UniqueValueHandler::class),
+        ]),
+
+    UniqueValueHandler::class => [
+        '__construct()' => [
+            'db'         => Reference::to(ConnectionInterface::class),
+            'translator' => Reference::to(TranslatorInterface::class),
+        ],
+    ],
+
+    ValidatorInterface::class => Validator::class,
+];
+```
+
+---
+
+### 4. Module Input Validator
+
+**Purpose**: Concrete per-module validator declaring rules per context.
+
+**Example** (condensed from `src/Api/V1/Example/Validation/ExampleInputValidator.php`):
 
 ```php
 <?php
 
 declare(strict_types=1);
 
-namespace App\Shared\Core\Validation;
+namespace App\Api\V1\Example\Validation;
 
-/**
- * Validation Context
- */
-final readonly class ValidationContext
+use App\Shared\Common\Context\ValidationContext;
+use App\Shared\Core\Enums\RecordStatus;
+use App\Shared\Core\Validation\AbstractValidator;
+use App\Shared\Core\Validation\Rules\UniqueValue;
+use Yiisoft\Validator\Rule\In;
+use Yiisoft\Validator\Rule\Integer;
+use Yiisoft\Validator\Rule\Length;
+use Yiisoft\Validator\Rule\Required;
+use Yiisoft\Validator\Rule\StopOnError;
+use Yiisoft\Validator\Rule\StringValue;
+
+final class ExampleInputValidator extends AbstractValidator
 {
-    public function __construct(
-        public readonly ?string $field = null,
-        public readonly mixed $index = null,
-        public readonly ?ValidationContext $parent = null,
-        public readonly array $data = [],
-        public readonly array $options = []
-    ) {}
-
-    /**
-     * Get field name with full path
-     */
-    public function getFullPath(): string
+    protected function rules(string $context): array
     {
-        $parts = [];
-        
-        if ($this->parent) {
-            $parts[] = $this->parent->getFullPath();
-        }
-        
-        if ($this->field) {
-            $parts[] = $this->field;
-        }
-        
-        if ($this->index !== null) {
-            $parts[] = "[{$this->index}]";
-        }
-        
-        return implode('', $parts);
-    }
-
-    /**
-     * Get data value
-     */
-    public function getData(string $key, mixed $default = null): mixed
-    {
-        return $this->data[$key] ?? $default;
-    }
-
-    /**
-     * Get option value
-     */
-    public function getOption(string $key, mixed $default = null): mixed
-    {
-        return $this->options[$key] ?? $default;
-    }
-
-    /**
-     * Check if has data
-     */
-    public function hasData(string $key): bool
-    {
-        return array_key_exists($key, $this->data);
-    }
-
-    /**
-     * Check if has option
-     */
-    public function hasOption(string $key): bool
-    {
-        return array_key_exists($key, $this->options);
-    }
-
-    /**
-     * Create child context
-     */
-    public function createChild(string $field, mixed $index = null, array $data = []): self
-    {
-        return new self(
-            field: $field,
-            index: $index,
-            parent: $this,
-            data: array_merge($this->data, $data),
-            options: $this->options
-        );
-    }
-
-    /**
-     * Create with additional data
-     */
-    public function withData(array $data): self
-    {
-        return new self(
-            field: $this->field,
-            index: $this->index,
-            parent: $this->parent,
-            data: array_merge($this->data, $data),
-            options: $this->options
-        );
-    }
-
-    /**
-     * Create with additional options
-     */
-    public function withOptions(array $options): self
-    {
-        return new self(
-            field: $this->field,
-            index: $this->index,
-            parent: $this->parent,
-            data: $this->data,
-            options: array_merge($this->options, $options)
-        );
-    }
-
-    /**
-     * Get root context
-     */
-    public function getRoot(): self
-    {
-        return $this->parent?->getRoot() ?? $this;
-    }
-
-    /**
-     * Get all parent contexts
-     */
-    public function getParents(): array
-    {
-        $parents = [];
-        $current = $this->parent;
-        
-        while ($current) {
-            $parents[] = $current;
-            $current = $current->parent;
-        }
-        
-        return $parents;
-    }
-
-    /**
-     * Get depth level
-     */
-    public function getDepth(): int
-    {
-        return count($this->getParents());
-    }
-
-    /**
-     * Check if is root context
-     */
-    public function isRoot(): bool
-    {
-        return $this->parent === null;
-    }
-
-    /**
-     * Convert to array
-     */
-    public function toArray(): array
-    {
-        return [
-            'field' => $this->field,
-            'index' => $this->index,
-            'full_path' => $this->getFullPath(),
-            'data' => $this->data,
-            'options' => $this->options,
-            'depth' => $this->getDepth(),
-            'is_root' => $this->isRoot(),
-        ];
+        return match ($context) {
+            ValidationContext::CREATE => [
+                'name' => [
+                    new StopOnError([
+                        new Required(),
+                        new StringValue(),
+                        new Length(min: 3, max: 255),
+                        new UniqueValue(
+                            table: 'example',
+                            column: 'name',
+                            ignoreId: null
+                        ),
+                    ]),
+                ],
+                'status' => [
+                    new Required(),
+                    new Integer(),
+                    new In(RecordStatus::draftOnlyStates()),
+                ],
+            ],
+            ValidationContext::UPDATE => [
+                'id' => [
+                    new Required(),
+                    new Integer(min: 1),
+                ],
+                'name' => [
+                    new StopOnError([
+                        new StringValue(skipOnEmpty: true),
+                        new Length(min: 3, max: 255, skipOnEmpty: true),
+                        new UniqueValue(
+                            table: 'example',
+                            column: 'name',
+                            ignoreId: $this->data['id'] ?? null // exclude current record
+                        ),
+                    ]),
+                ],
+                'status' => [
+                    new Integer(skipOnEmpty: true),
+                    new In(RecordStatus::searchableStates()),
+                ],
+                'lock_version' => [
+                    new Required(when: fn () => $this->shouldValidateOptimisticLock()),
+                    new Integer(min: 1, skipOnEmpty: true),
+                ],
+            ],
+            ValidationContext::DELETE => [
+                'id' => [
+                    new Required(),
+                    new Integer(min: 1),
+                    // Optionally guard the delete:
+                    // new HasNoDependencies(map: ['other_table' => ['example_id']]),
+                ],
+            ],
+            ValidationContext::SEARCH => [
+                'id'        => [new Integer(skipOnEmpty: true)],
+                'name'      => [
+                    new StringValue(skipOnEmpty: true),
+                    new Length(min: 1, max: 100, skipOnEmpty: true),
+                ],
+                'status'    => [new Integer(skipOnEmpty: true)],
+                'sync_mdb'  => [new Integer(skipOnEmpty: true)],
+                'page'      => [new Integer(min: 1, skipOnEmpty: true)],
+                'page_size' => [new Integer(min: 1, max: 200, skipOnEmpty: true)],
+                'sort_by'   => [new StringValue(skipOnEmpty: true)],
+                'sort_dir'  => [new In(['asc', 'desc'], skipOnEmpty: true)],
+            ],
+            default => [],
+        };
     }
 }
 ```
@@ -642,177 +329,106 @@ final readonly class ValidationContext
 
 ## 🔧 Integration Patterns
 
-### 1. **Controller Validation**
-```php
-final class ExampleController
-{
-    public function __construct(
-        private ValidatorFactory $validatorFactory,
-        private TranslatorInterface $translator
-    ) {}
+### 1. **Action Validation**
 
-    public function actionCreate(): array
+Actions receive a `RequestParams` object from the `payload` request attribute (set by `RequestParamsMiddleware`), narrow it with `onlyAllowed()`, then validate.
+
+**Create** (`src/Api/V1/Example/Action/ExampleCreateAction.php`):
+
+```php
+final class ExampleCreateAction
+{
+    private const ALLOWED_KEYS = ['name', 'status', 'sync_mdb'];
+
+    public function __invoke(ServerRequestInterface $request): ResponseInterface
     {
-        $data = $this->request->getParsedBody();
-        
-        // Create validation context
-        $context = new ValidationContext(
-            field: 'user',
-            data: $data,
-            options: ['locale' => $this->request->getHeaderLine('Accept-Language')]
+        /** @var RequestParams $payload */
+        $payload = $request->getAttribute('payload');
+
+        $params = $payload->getRawParams()
+            ->onlyAllowed(allowedKeys: self::ALLOWED_KEYS)
+            ->with('status', RecordStatus::DRAFT->value)
+            ->sanitize();
+
+        // Throws ValidationException (HTTP 422) on failure
+        $this->inputValidator->validate(
+            data: $params,
+            context: ValidationContext::CREATE,
         );
-        
-        // Create validators
-        $validators = [
-            'name' => new StringValidator($this->translator, [
-                'min_length' => 2,
-                'max_length' => 100,
-                'pattern' => '/^[a-zA-Z\s]+$/'
-            ]),
-            'email' => new StringValidator($this->translator, [
-                'email' => true,
-                'max_length' => 255
-            ]),
-            'age' => new NumberValidator($this->translator, [
-                'integer' => true,
-                'min' => 0,
-                'max' => 120
-            ]),
-        ];
-        
-        // Validate
-        $result = ValidationResult::success();
-        
-        foreach ($validators as $field => $validator) {
-            $fieldContext = $context->createChild($field);
-            $fieldResult = $validator->validate($data[$field] ?? null, $fieldContext);
-            $result = $result->merge($fieldResult);
-        }
-        
-        if ($result->fails()) {
-            throw ValidationException::fromValidationResult([
-                $context->getFullPath() => $result->getErrors()
-            ]);
-        }
-        
-        // Process valid data
-        $command = new CreateExampleCommand(
-            name: $data['name'],
-            email: $data['email'],
-            age: $data['age']
+
+        $command = CreateExampleCommand::create(
+            name: (string) $params->get('name'),
+            status: $params->get('status'),
+            detailInfo: $params->get('detail_info')
         );
-        
-        return $this->service->create($command)->toArray();
+
+        $response = $this->applicationService->create(command: $command);
+        // ...
     }
 }
 ```
 
-### 2. **Service Validation**
-```php
-final class ExampleApplicationService
-{
-    public function __construct(
-        private ExampleRepositoryInterface $repository,
-        private ValidatorFactory $validatorFactory
-    ) {}
+**Update** (`ExampleUpdateAction.php`) — merges the route `id` into the payload so `UniqueValue` can exclude the current record:
 
-    public function create(CreateExampleCommand $command): ExampleResponse
-    {
-        // Business validation
-        $context = new ValidationContext(
-            field: 'example',
-            data: ['email' => $command->email]
-        );
-        
-        $emailValidator = new StringValidator(
-            options: ['email' => true]
-        );
-        
-        $result = $emailValidator->validate($command->email, $context);
-        
-        if ($result->fails()) {
-            throw ValidationException::fromValidationResult([
-                'email' => $result->getErrors()
-            ]);
-        }
-        
-        // Check for existing email
-        if ($this->repository->findByEmail($command->email) !== null) {
-            throw ConflictException::duplicateResource('Example', 'email', $command->email);
-        }
-        
-        // Create entity
-        $example = new Example(
-            name: $command->name,
-            email: $command->email,
-            age: $command->age
-        );
-        
-        $this->repository->save($example);
-        
-        return ExampleResponse::fromEntity($example);
-    }
-}
+```php
+$id      = $currentRoute->getArgument('id');
+$payload = $request->getAttribute('payload');
+
+$payload->ensureExists(resource: $resource); // 400 when payload is empty
+
+$params = $payload->getRawParams()
+    ->onlyAllowed(allowedKeys: ['name', 'status', 'lock_version'])
+    ->with('id', $id)
+    ->sanitize();
+
+$this->inputValidator->validate(
+    data: $params,
+    context: ValidationContext::UPDATE,
+);
 ```
 
-### 3. **Custom Validator Example**
+**Search** (`ExampleDataAction.php`) — validates the `filter` block, not the raw params:
+
 ```php
-final class PasswordValidator extends AbstractValidator
-{
-    public function validate(mixed $value, ValidationContext $context = null): ValidationResult
-    {
-        if (!$this->supports($value)) {
-            return ValidationResult::failure(['Password must be a string']);
-        }
+$filter = $payload->getFilter()
+    ->onlyAllowed(allowedKeys: ['id', 'name', 'status'])
+    ->with('status', RecordStatus::DRAFT->value);
 
-        $password = (string) $value;
-        $errors = [];
+$this->inputValidator->validate(
+    data: $filter,
+    context: ValidationContext::SEARCH,
+);
+```
 
-        // Length validation
-        if (strlen($password) < ($this->getOption('min_length', 8))) {
-            $errors[] = 'Password must be at least 8 characters long';
-        }
+### 2. **Optimistic Lock Validation**
 
-        // Complexity validation
-        if ($this->getOption('require_uppercase', true) && !preg_match('/[A-Z]/', $password)) {
-            $errors[] = 'Password must contain at least one uppercase letter';
-        }
+`lock_version` is only required when optimistic locking is enabled for the validator (`LockVersionConfig`, params `app/optimisticLock`):
 
-        if ($this->getOption('require_lowercase', true) && !preg_match('/[a-z]/', $password)) {
-            $errors[] = 'Password must contain at least one lowercase letter';
-        }
+```php
+'lock_version' => [
+    new Required(when: fn () => $this->shouldValidateOptimisticLock()),
+    new Integer(min: 1, skipOnEmpty: true),
+],
+```
 
-        if ($this->getOption('require_numbers', true) && !preg_match('/[0-9]/', $password)) {
-            $errors[] = 'Password must contain at least one number';
-        }
+### 3. **Delete Guard**
 
-        if ($this->getOption('require_symbols', true) && !preg_match('/[!@#$%^&*(),.?":{}|<>]/', $password)) {
-            $errors[] = 'Password must contain at least one special character';
-        }
+Prevent deleting a record that is still referenced:
 
-        // Common passwords check
-        if ($this->getOption('check_common', true) && $this->isCommonPassword($password)) {
-            $errors[] = 'Password is too common, please choose a different one';
-        }
-
-        return ValidationResult::failure($errors);
-    }
-
-    public function supports(mixed $value): bool
-    {
-        return is_string($value);
-    }
-
-    private function isCommonPassword(string $password): bool
-    {
-        $commonPasswords = [
-            'password', '123456', '123456789', 'qwerty', 'abc123',
-            'password123', 'admin', 'letmein', 'welcome', 'monkey'
-        ];
-
-        return in_array(strtolower($password), $commonPasswords, true);
-    }
-}
+```php
+ValidationContext::DELETE => [
+    'id' => [
+        new Required(),
+        new Integer(min: 1),
+        new HasNoDependencies(
+            map: [
+                'other_table'   => ['example_id'],
+                'another_table' => ['example_id'],
+            ],
+            message: 'Data tidak bisa dihapus karena masih digunakan di tabel lain.'
+        ),
+    ],
+],
 ```
 
 ---
@@ -821,43 +437,51 @@ final class PasswordValidator extends AbstractValidator
 
 ### 1. **Validator Design**
 ```php
-// ✅ Extend AbstractValidator
-final class CustomValidator extends AbstractValidator
+// ✅ Extend AbstractValidator and declare rules per context
+final class ProductInputValidator extends AbstractValidator
 {
-    public function validate(mixed $value, ValidationContext $context = null): ValidationResult
+    protected function rules(string $context): array
     {
-        // Validation logic
+        return match ($context) {
+            ValidationContext::CREATE => [/* ... */],
+            default => [],
+        };
     }
 }
 
-// ❌ Standalone function
-function validate($value) {
-    // Validation logic
-}
+// ❌ Ad-hoc validation scattered in actions
+if (strlen($data['name']) < 3) { /* ... */ }
 ```
 
-### 2. **Error Handling**
+### 2. **Optional Fields**
 ```php
-// ✅ Use ValidationResult
-$result = $validator->validate($value);
-if ($result->fails()) {
-    throw ValidationException::fromValidationResult($result->getErrors());
-}
-
-// ❌ Throw exceptions directly
-if (!isValid($value)) {
-    throw new ValidationException('Invalid value');
-}
+// ✅ Use skipOnEmpty for optional fields
+'name' => [
+    new StringValue(skipOnEmpty: true),
+    new Length(min: 3, max: 255, skipOnEmpty: true),
+],
 ```
 
-### 3. **Context Usage**
+### 3. **Stop On Error**
 ```php
-// ✅ Use context for field information
-$context = new ValidationContext(field: 'user.email');
-$result = $validator->validate($value, $context);
+// ✅ Wrap a field's rules in StopOnError to fail fast
+//    (avoids hitting the DB in UniqueValue when Required already failed)
+'name' => [
+    new StopOnError([
+        new Required(),
+        new StringValue(),
+        new UniqueValue(table: 'example', column: 'name'),
+    ]),
+],
+```
 
-// ❌ Ignore context
-$result = $validator->validate($value);
+### 4. **Error Handling**
+```php
+// ✅ Let validate() throw — the exception responder renders HTTP 422
+$this->inputValidator->validate(data: $params, context: ValidationContext::CREATE);
+
+// ❌ Catching and re-wrapping validation errors manually
+try { /* validate */ } catch (ValidationException $e) { /* wrap */ }
 ```
 
 ---
@@ -865,31 +489,28 @@ $result = $validator->validate($value);
 ## 📊 Performance Considerations
 
 ### 1. **Validation Overhead**
-- Use early termination for failed validations
-- Cache validation rules when possible
-- Avoid expensive regex patterns
+- Use `StopOnError` so `UniqueValue`/`HasNoDependencies` DB checks only run when cheap rules pass
+- Use `skipOnEmpty` to skip rules for absent optional fields
 
 ### 2. **Memory Usage**
-- Use readonly properties
-- Avoid creating unnecessary objects
-- Reuse validator instances
+- Rule objects are created per `rules()` call — keep them lightweight
+- `validate()` stores only the payload array in `$this->data`
 
 ### 3. **Processing Speed**
-- Use built-in PHP functions
-- Optimize regex patterns
-- Batch validations when possible
+- Put cheap rules (`Required`, `Integer`, `Length`) before expensive ones inside `StopOnError`
+- Restrict `SEARCH` filters with `onlyAllowed()` before validating
 
 ---
 
 ## 🎯 Summary
 
-Validation utilities provide a structured, extensible way to validate data in the Yii3 API application. Key benefits include:
+Validation in this application is context-driven and built on `yiisoft/validator`. Key points:
 
-- **🔍 Extensibility**: Easy to create custom validators
-- **📝 Context Awareness**: Rich validation context information
-- **🌐 Localization**: Built-in translation support
-- **🧪 Testability**: Easy to unit test validators
-- **📦 Composability**: Combine multiple validators
-- **⚡ Performance**: Efficient validation processing
+- **🔍 Extensibility**: New modules add an `*InputValidator` extending `AbstractValidator`
+- **📝 Context Awareness**: Rule sets are keyed by `ValidationContext` constants
+- **🌐 Localization**: Errors flow through `ValidationException`/`Message` translation keys
+- **🧪 Testability**: Rules are declarative arrays — easy to assert per context
+- **📦 Composability**: Mix built-in Yiisoft rules with custom `UniqueValue`/`HasNoDependencies`
+- **⚡ Performance**: `StopOnError` + `skipOnEmpty` keep validation cheap
 
 By following the patterns and best practices outlined in this guide, you can build robust, maintainable validation for your Yii3 API application! 🚀

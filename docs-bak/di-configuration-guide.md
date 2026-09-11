@@ -13,21 +13,41 @@ This guide covers the Dependency Injection (DI) configuration files in `config/c
 ```
 config/common/di/
 ├── access-di.php           # Access control and RBAC configuration
-├── audit.php               # Audit trail and logging configuration
-├── db-mongodb.php          # MongoDB database configuration
-├── db-pgsql.php            # PostgreSQL database configuration
-├── db-redis.php            # Redis cache configuration
-├── infrastructure.php      # Infrastructure services configuration
-├── json.php                # JSON serialization and parsing configuration
-├── jwt.php                 # JWT authentication configuration
-├── middleware.php          # HTTP middleware stack configuration
-├── monitoring.php          # Application monitoring configuration
-├── repository.php          # Repository pattern configuration
-├── security.php            # Security and encryption configuration
-├── seed.php                # Database seeding configuration
-├── service.php             # Application services configuration
-└── translator.php          # Translation and localization configuration
+├── application.php         # App\Shared\ApplicationParams service
+├── audit.php               # Audit trail (AuditServiceInterface → DatabaseAuditService)
+├── db-mongodb.php          # MongoDB client + MongoDBService
+├── db-mysql.php            # MySQL/MariaDB connection (when db.default.driver=mysql|mariadb)
+├── db-pgsql.php            # PostgreSQL connection (when db.default.driver=pgsql)
+├── db-redis.php            # RedisService + project Redis bindings
+├── error-handler.php       # HtmlRenderer traceLink configuration
+├── hydrator.php            # yiisoft/hydrator container factories
+├── infrastructure-di.php   # ClockInterface, DateTimeProviderInterface + project bindings
+├── json.php                # JsonHandler binding
+├── jwt.php                 # JwtService + JwtMiddleware configuration
+├── logger.php              # PSR-3 LoggerInterface (file/stream/security targets)
+├── middleware-di.php       # Middleware definitions (CORS, rate limit, headers, ...)
+├── monitoring.php          # MonitoringServiceInterface → CustomMonitoringService
+├── optimistic-lock.php     # LockVersionConfig from app/optimisticLock params
+├── repository-di.php       # Delegates to config/common/repository.php
+├── router.php              # RouteCollectionInterface from common/routes.php
+├── security-di.php         # CurrentUser, Actor, AccessChecker, AuthorizerInterface, ...
+├── service-di.php          # Core service bindings + project overrides
+├── translator-di.php       # TranslatorInterface (app/validation/error/success categories)
+└── validator.php           # ValidatorInterface + rule handler resolver
 ```
+
+All `config/common/di/*.php` files are merged into the `di` group by `config/configuration.php` (which also merges `common/repository.php` first). `config/web/di/*.php` files (`application.php`, `psr17.php`) extend `di` for the web application.
+
+Several `*-di.php` files additionally merge **project-owned override files** from `config/common/`:
+
+| DI file | Project override file |
+|---------|----------------------|
+| `infrastructure-di.php` | `config/common/infrastructure.php` |
+| `security-di.php` | `config/common/security.php` |
+| `service-di.php` | `config/common/service.php` |
+| `translator-di.php` | `config/common/translator.php` |
+| `db-redis.php` | `config/common/redis.php` |
+| `repository-di.php` | `config/common/repository.php` (full definition lives there) |
 
 ---
 
@@ -48,8 +68,8 @@ use Yiisoft\Access\Assignment\Assignment;
 use Yiisoft\Access\Permission\Permission;
 use Yiisoft\Access\Rule\RuleFactory;
 
-// Shared Layer
-use App\Infrastructure\Security\Rule\PermissionMapRule;
+// Infrastructure Layer
+use App\Infrastructure\Core\Security\Rule\PermissionMapRule;
 
 $permissionMap = require __DIR__ . '/../access.php';
 
@@ -73,17 +93,18 @@ return [
 ```
 
 **Key Components**:
-- `AccessChecker`: Main access control service
+- `AccessChecker` (`Yiisoft\Access\AccessChecker`): Package access checker built from `Assignment` + `RuleFactory`
 - `Assignment`: Role and permission assignment
 - `RuleFactory`: Rule factory for access control
-- `PermissionMapRule`: Permission mapping rule
+- `PermissionMapRule` (`App\Infrastructure\Core\Security\Rule\PermissionMapRule`): Permission mapping rule backed by `config/common/access.php`
 
 **Usage Example**:
 ```php
-// In controller or service
+// The project also provides App\Infrastructure\Core\Security\AccessChecker,
+// used by AccessMiddleware / AuthorizerInterface (RbacAuthorizer):
 public function can(string $permission): bool
 {
-    return $this->accessChecker->can($this->actor, $permission);
+    return $this->authorizer->can('example.create');   // AuthorizerInterface
 }
 ```
 
@@ -99,52 +120,61 @@ public function can(string $permission): bool
 declare(strict_types=1);
 
 // Infrastructure Layer
-use App\Infrastructure\Security\JwtService;
+use App\Infrastructure\Core\Security\ActorProvider;
+use App\Infrastructure\Core\Security\CurrentUser;
+use App\Infrastructure\Core\Security\JwtService;
+use App\Shared\Core\Middleware\JwtMiddleware;
 
 // @var array $params
 
 return [
     JwtService::class => [
         '__construct()' => [
-            'secret'   => $params['app/jwt']['secret'],
+            'secret'   => $params['app/jwt']['secret'] ?? '',
             'algo'     => $params['app/jwt']['algorithm'] ?? 'HS256',
             'issuer'   => $params['app/jwt']['issuer'] ?? null,
             'audience' => $params['app/jwt']['audience'] ?? null,
         ],
     ],
+
+    JwtMiddleware::class => static fn (
+        JwtService $jwtService,
+        ActorProvider $actorProvider,
+        CurrentUser $currentUser
+    ) => new JwtMiddleware(
+        jwtService: $jwtService,
+        actorProvider: $actorProvider,
+        currentUser: $currentUser,
+        publicPaths: $params['app/jwt']['publicPaths'] ?? [],
+    ),
 ];
 ```
 
 **Key Components**:
-- `JwtService`: JWT token generation and validation
+- `JwtService` (`App\Infrastructure\Core\Security\JwtService`): JWT token generation and validation
+- `JwtMiddleware` (`App\Shared\Core\Middleware\JwtMiddleware`): request authentication middleware (part of the web middleware stack in `config/web/di/application.php`)
 
 **Configuration Parameters**:
 ```bash
 # In .env file
-app/jwt/secret=secret-key-harus-panjang-256-bit
-app/jwt/algorithm=HS256
-app/jwt/issuer=https://sso.dev-enterkomputer.com
-app/jwt/audience=https://sso.dev-enterkomputer.com
+app.jwt.secret=secret-key-harus-panjang-256-bit
+app.jwt.algorithm=HS256
+app.jwt.issuer=https://sso.example.com
+app.jwt.audience=https://sso.example.com
+app.jwt.publicPaths=["/","/auth/login","/auth/refresh"]
 ```
 
 **Usage Example**:
 ```php
-// Generating JWT token
-$token = $this->jwtService->generateToken([
-    'user_id' => $user->getId(),
-    'username' => $user->getUsername(),
-    'roles' => $user->getRoles(),
-]);
-
-// Validating JWT token
-$payload = $this->jwtService->validateToken($token);
+// Decoding and validating a JWT token (throws UnauthorizedException on failure)
+$payload = $this->jwtService->decode($token);
 ```
 
 ---
 
-### middleware.php
+### middleware-di.php
 
-**Purpose**: HTTP middleware stack configuration for request processing pipeline
+**Purpose**: DI definitions for the HTTP middleware used by the request processing pipeline
 
 ```php
 <?php
@@ -152,30 +182,32 @@ $payload = $this->jwtService->validateToken($token);
 declare(strict_types=1);
 
 // Infrastructure Layer
-use App\Infrastructure\Monitoring\ErrorMonitoringMiddleware;
-use App\Infrastructure\Monitoring\MetricsMiddleware;
-use App\Infrastructure\Monitoring\RequestIdMiddleware;
-use App\Infrastructure\Monitoring\StructuredLoggingMiddleware;
-use App\Infrastructure\Security\AccessChecker;
-use App\Infrastructure\Security\CurrentUser;
-use App\Infrastructure\Security\HstsMiddleware;
-
+use App\Infrastructure\Core\Monitoring\ErrorMonitoringMiddleware;
+use App\Infrastructure\Core\Monitoring\MetricsMiddleware;
+use App\Infrastructure\Core\Monitoring\RequestIdMiddleware;
+use App\Infrastructure\Core\Monitoring\StructuredLoggingMiddleware;
+use App\Infrastructure\Core\Security\AccessChecker;
+use App\Infrastructure\Core\Security\CurrentUser;
+use App\Infrastructure\Core\Security\HstsMiddleware;
 // Shared Layer
 use App\Shared\Core\Middleware\AccessMiddleware;
 use App\Shared\Core\Middleware\CorsMiddleware;
 use App\Shared\Core\Middleware\RateLimitMiddleware;
 use App\Shared\Core\Middleware\RequestParamsMiddleware;
 use App\Shared\Core\Middleware\SecureHeadersMiddleware;
-
 // PSR Interfaces
 use Psr\Http\Message\ResponseFactoryInterface;
-
 // Vendor Layer
 use Yiisoft\Router\FastRoute\UrlMatcher;
+use Yiisoft\Security\TrustedHosts\TrustedHostsMiddleware;
 
 // @var array $params
 
 return [
+    // Always available through DI; add to the middleware stack in
+    // config/common/middleware.php if needed for a project.
+    TrustedHostsMiddleware::class => TrustedHostsMiddleware::class,
+
     // Middleware global untuk semua route
     RequestParamsMiddleware::class => static function () use ($params) {
         $pagination = $params['app/pagination'] ?? [];
@@ -258,23 +290,28 @@ return [
 - `AccessMiddleware`: Access control
 
 **Middleware Stack**:
-1. `RequestIdMiddleware`: Request ID generation
-2. `StructuredLoggingMiddleware`: Structured logging setup
-3. `ErrorMonitoringMiddleware`: Error monitoring setup
-4. `MetricsMiddleware`: Metrics collection
-5. `RequestParamsMiddleware`: Request parameter processing
-6. `CorsMiddleware`: CORS handling
-7. `RateLimitMiddleware`: Rate limiting
-8. `SecureHeadersMiddleware`: Security headers
-9. `HstsMiddleware`: HSTS enforcement
-10. `AccessMiddleware`: Access control
+
+These are only DI definitions — the actual execution order is assembled in `config/web/di/application.php` (`Application::class` → `MiddlewareDispatcher::withMiddlewares()`):
+
+1. `FormatDataResponseAsJson` + `ContentNegotiator`: JSON (and optional XML) responses
+2. `ErrorCatcher` + `ExceptionResponderFactory`: error catching and API error responses
+3. `TrustedHostMiddleware` (`App\Shared\Core\Middleware\TrustedHostMiddleware`): host allowlist
+4. `CorsMiddleware`: CORS handling
+5. `JwtMiddleware`: JWT authentication
+6. `RequestIdMiddleware`, `StructuredLoggingMiddleware`, `MetricsMiddleware`: observability
+7. `RateLimitMiddleware`, `SecureHeadersMiddleware`, `ErrorMonitoringMiddleware`
+8. `RequestBodyParser`, `AccessMiddleware`, `Router`, `NotFoundMiddleware`
+
+Extra middleware can be listed in `config/common/middleware.php` (project-owned stack).
 
 **Usage Example**:
 ```php
-// Middleware registration
-$app->addMiddleware(new RequestParamsMiddleware($defaultPageSize, $maxPageSize));
-$app->addMiddleware(new CorsMiddleware($corsConfig, $responseFactory));
-$app->addMiddleware(new RateLimitMiddleware($maxRequests, $windowSize));
+// Middleware are resolved through the container — e.g. AccessMiddleware gets:
+AccessMiddleware::class => static fn (
+    AccessChecker $accessChecker,
+    CurrentUser $currentUser,
+    UrlMatcher $urlMatcher,
+) => new AccessMiddleware($accessChecker, $currentUser, $urlMatcher),
 ```
 
 ---
@@ -288,186 +325,164 @@ $app->addMiddleware(new RateLimitMiddleware($maxRequests, $windowSize));
 
 declare(strict_types=1);
 
-// Domain Layer
-use App\Domain\Shared\Contract\MonitoringServiceInterface;
-
 // Infrastructure Layer
-use App\Infrastructure\Monitoring\MonitoringService;
-
-// PSR Interfaces
-use Psr\Log\LoggerInterface;
+use App\Infrastructure\Core\Monitoring\CustomMonitoringService;
+use App\Infrastructure\Core\Monitoring\MonitoringServiceInterface;
+// Vendor Layer
+use Yiisoft\Di\Container;
 
 return [
-    MonitoringServiceInterface::class => [
-        'class' => MonitoringService::class,
-        '__construct()' => [
-            Reference::to(LoggerInterface::class),
-        ],
-    ],
+    MonitoringServiceInterface::class => static function (Container $container) use ($params) {
+        $monitoringConfig = $params['app/monitoring'] ?? [];
+
+        return new CustomMonitoringService([
+            'log_file' => $monitoringConfig['log_file'] ?? 'runtime/logs/api.log',
+        ]);
+    },
 ];
 ```
 
 **Key Components**:
-- `MonitoringService`: Application monitoring implementation
-- `MonitoringServiceInterface`: Monitoring service contract
+- `CustomMonitoringService` (`App\Infrastructure\Core\Monitoring\CustomMonitoringService`): monitoring implementation
+- `MonitoringServiceInterface` (`App\Infrastructure\Core\Monitoring\MonitoringServiceInterface`): monitoring contract
 
 **Features**:
-- Performance metrics tracking
-- Error monitoring
-- Request logging
-- Resource usage monitoring
-
-**Usage Example**:
-```php
-// Monitoring application performance
-$this->monitoringService->trackMetric('request_duration', $duration);
-$this->monitoringService->trackError($exception);
-$this->monitoringService->trackResourceUsage($memory, $cpu);
-```
+- Performance metrics tracking (`MetricsMiddleware`, `app/monitoring` params)
+- Error monitoring (`ErrorMonitoringMiddleware`)
+- Request logging (`StructuredLoggingMiddleware`, `RequestIdMiddleware`)
 
 ---
 
-### repository.php
+### repository-di.php
 
 **Purpose**: Repository pattern configuration for data access layer
+
+`repository-di.php` simply delegates to the project-owned `config/common/repository.php`:
 
 ```php
 <?php
 
 declare(strict_types=1);
 
-// Domain Layer
+/** @var array $params */
+
+return require \dirname(__DIR__) . '/repository.php';
+```
+
+The actual bindings live in `config/common/repository.php`:
+
+```php
+use App\Domain\AnotherExample\Repository\AnotherExampleRepositoryInterface;
 use App\Domain\Example\Repository\ExampleRepositoryInterface;
-
-// Infrastructure Layer
-use App\Infrastructure\Persistence\Example\ExampleRepository;
-
-// PSR Interfaces
-use Yiisoft\Db\Connection\ConnectionInterface;
+use App\Infrastructure\Common\Persistence\AnotherExample\AnotherExampleRepository;
+use App\Infrastructure\Common\Persistence\Example\ExampleRepository;
+use App\Infrastructure\Core\Security\CurrentUser;
+use App\Shared\Core\ValueObject\LockVersionConfig;
+use Yiisoft\Definitions\Reference;
 
 return [
     ExampleRepositoryInterface::class => [
-        'class' => ExampleRepository::class,
-        '__construct()' => [
-            Reference::to(ConnectionInterface::class),
+        'class'                  => ExampleRepository::class,
+        'setLockVersionConfig()' => [Reference::to(LockVersionConfig::class)],
+        'setCurrentUser()'       => [Reference::to(CurrentUser::class)],
+        '__construct()'          => [
+            'params' => $params['app/optimisticLock'] ?? [],
+        ],
+    ],
+    AnotherExampleRepositoryInterface::class => [
+        'class'                  => AnotherExampleRepository::class,
+        'setLockVersionConfig()' => [Reference::to(LockVersionConfig::class)],
+        'setCurrentUser()'       => [Reference::to(CurrentUser::class)],
+        '__construct()'          => [
+            'params' => $params['app/optimisticLock'] ?? [],
         ],
     ],
 ];
 ```
 
 **Key Components**:
-- `ExampleRepository`: Repository implementation
-- `ExampleRepositoryInterface`: Repository contract
+- `ExampleRepository` / `AnotherExampleRepository` (`App\Infrastructure\Common\Persistence\...`): Repository implementations
+- `ExampleRepositoryInterface` / `AnotherExampleRepositoryInterface` (`App\Domain\...\Repository\...`): Repository contracts
+- `LockVersionConfig` + `CurrentUser` are injected via setters for optimistic locking and audit fields
 
 **Features**:
 - Data access abstraction
-- Transaction management
-- Query optimization
-- Caching integration
+- Optimistic locking via `LockVersionConfig` (`app/optimisticLock` params)
+- MongoDB sync support
 
 **Usage Example**:
 ```php
 // Using repository in application service
-$example = $this->repository->findById($id);
-$examples = $this->repository->list($criteria);
-$this->repository->insert($example);
-$this->repository->update($example);
+$example = $this->repository->findById(id: $id);
+$examples = $this->repository->list(criteria: $criteria); // PaginatedResult
+$this->repository->insert(entity: $example);
+$this->repository->update(entity: $example);
+$this->repository->delete(entity: $example);
+$this->repository->restore(id: $id);
 ```
 
 ---
 
-### security.php
+### security-di.php
 
-**Purpose**: Security and encryption configuration for data protection
+**Purpose**: Security bindings — current user, actor, access checker and authorizer
 
 ```php
 <?php
 
 declare(strict_types=1);
 
-// Infrastructure Layer
-use App\Infrastructure\Security\EncryptionService;
-use App\Infrastructure\Security\EncryptionServiceInterface;
+use App\Domain\Shared\Core\Security\AuthorizerInterface;
+use App\Infrastructure\Core\Security\AccessChecker;
+use App\Infrastructure\Core\Security\Actor;
+use App\Infrastructure\Core\Security\CurrentUser;
+use App\Infrastructure\Core\Security\PermissionChecker;
+use App\Infrastructure\Core\Security\RbacAuthorizer;
 
-// @var array $params
+/** @var array $params */
 
-return [
-    EncryptionServiceInterface::class => [
-        'class' => EncryptionService::class,
+// Core security bindings. Project-owned bindings may be merged from
+// config/common/security.php and can override these defaults.
+$projectBindings = \dirname(__DIR__) . '/security.php';
+
+return array_merge([
+    CurrentUser::class => [
         '__construct()' => [
-            'key' => $params['app.security.encryption_key'],
-            'cipher' => $params['app.security.cipher'] ?? 'aes-256-gcm',
+            'allowGodMode' => $params['app/config']['allow_god_mode'] ?? false,
         ],
     ],
-];
+    Actor::class         => static fn (CurrentUser $currentUser) => $currentUser->getActor(),
+    AccessChecker::class => static function (CurrentUser $currentUser) {
+        $accessMap = require \dirname(__DIR__) . '/access.php';
+
+        return new AccessChecker($currentUser, $accessMap);
+    },
+    PermissionChecker::class => [
+        '__construct()' => [
+            require __DIR__ . '/../access.php',
+        ],
+    ],
+    AuthorizerInterface::class => RbacAuthorizer::class,
+], file_exists($projectBindings) ? require $projectBindings : []);
 ```
 
 **Key Components**:
-- `EncryptionService`: Data encryption service
-- `EncryptionServiceInterface`: Encryption service contract
-
-**Configuration Parameters**:
-```bash
-# In .env file
-app.security.encryption_key=your-encryption-key-here
-app.security.cipher=aes-256-gcm
-```
+- `CurrentUser`: current user context; `allow_god_mode` comes from `app.config.allow_god_mode`
+- `Actor`: the actor derived from `CurrentUser`
+- `AccessChecker` / `PermissionChecker`: check permissions against `config/common/access.php`
+- `AuthorizerInterface → RbacAuthorizer`: domain-facing authorization contract
 
 **Usage Example**:
 ```php
-// Encrypting sensitive data
-$encrypted = $this->encryptionService->encrypt($sensitiveData);
-$decrypted = $this->encryptionService->decrypt($encrypted);
+// In an application service / domain service
+if (!$this->auth->can('example.delete')) {
+    throw new ForbiddenException(/* ... */);
+}
 ```
 
 ---
 
-### seed.php
-
-**Purpose**: Database seeding configuration for development and testing
-
-```php
-<?php
-
-declare(strict_types=1);
-
-// Console Layer
-use App\Console\SeedExampleCommand;
-
-// PSR Interfaces
-use Psr\Clock\ClockInterface;
-use Yiisoft\Db\Connection\ConnectionInterface;
-
-return [
-    SeedExampleCommand::class => [
-        'class' => SeedExampleCommand::class,
-        '__construct()' => [
-            Reference::to(ClockInterface::class),
-            Reference::to(ConnectionInterface::class),
-        ],
-    ],
-];
-```
-
-**Key Components**:
-- `SeedExampleCommand`: Database seeding command
-- Dependencies for seeding operations
-
-**Features**:
-- Environment-restricted seeding
-- Flexible data generation
-- Transaction-based operations
-
-**Usage Example**:
-```bash
-# Run seeding command
-./yii seed:example
-./yii seed:example --count=20 --truncate
-```
-
----
-
-### service.php
+### service-di.php
 
 **Purpose**: Application services configuration placeholder
 
@@ -476,29 +491,30 @@ return [
 
 declare(strict_types=1);
 
-return [
+/** @var array $params */
+
+// Core service DI configuration. Add project-wide service bindings here.
+// Project-owned bindings may be merged from config/common/service.php and
+// can override these defaults.
+$projectBindings = \dirname(__DIR__) . '/service.php';
+
+return array_merge([
     // Service DI configuration
     // Add your service definitions here
-];
+], file_exists($projectBindings) ? require $projectBindings : []);
 ```
 
 **Usage Example**:
 ```php
-// Add application services
+// config/common/service.php — add application services here
 return [
-    UserService::class => [
-        'class' => UserService::class,
-        '__construct()' => [
-            Reference::to(UserRepositoryInterface::class),
-            Reference::to(PasswordEncoderInterface::class),
-        ],
-    ],
+    ExampleServiceInterface::class => ExampleService::class,
 ];
 ```
 
 ---
 
-### translator.php
+### translator-di.php
 
 **Purpose**: Translation and localization configuration for multi-language support
 
@@ -508,40 +524,68 @@ return [
 declare(strict_types=1);
 
 // Vendor Layer
+use Yiisoft\Translator\CategorySource;
+use Yiisoft\Translator\IntlMessageFormatter;
+use Yiisoft\Translator\Message\Php\MessageSource;
 use Yiisoft\Translator\Translator;
 use Yiisoft\Translator\TranslatorInterface;
-use Yiisoft\Translator\MessageSourceInterface;
-use Yiisoft\Translator\Message\Php\MessageSource;
 
-return [
-    TranslatorInterface::class => Translator::class,
-    MessageSourceInterface::class => [
-        'class' => MessageSource::class,
-        '__construct()' => [
-            'basePath' => '@resources/messages',
-            'category' => 'app',
-        ],
-    ],
-];
+/** @var array $params */
+
+// Core translator binding. Project-owned bindings may be merged from
+// config/common/translator.php and can override these defaults.
+$projectBindings = \dirname(__DIR__) . '/translator.php';
+
+return array_merge([
+    TranslatorInterface::class => static function () {
+        $translator = new Translator('en');
+
+        $messageSource = new MessageSource(__DIR__ . '/../../../resources/messages');
+        $formatter     = new IntlMessageFormatter();
+
+        $translator->addCategorySources(
+            new CategorySource('app', $messageSource, $formatter),
+            new CategorySource('validation', $messageSource, $formatter),
+            new CategorySource('error', $messageSource, $formatter),
+            new CategorySource('success', $messageSource, $formatter),
+        );
+
+        return $translator;
+    },
+], file_exists($projectBindings) ? require $projectBindings : []);
 ```
 
 **Key Components**:
-- `Translator`: Translation service
-- `MessageSource`: Message source implementation
-
-**Configuration**:
-```php
-// Message source paths
-'basePath' => '@resources/messages',
-'category' => 'app',
-```
+- `TranslatorInterface → Translator`: Translation service (default locale `en`)
+- `MessageSource`: PHP message source reading `resources/messages/{locale}/{category}.php`
+- `IntlMessageFormatter`: intl-based message formatting
+- Categories: `app`, `validation`, `error`, `success`
 
 **Usage Example**:
 ```php
 // Translating messages
-$translated = $this->translator->translate('Welcome!', 'app', 'en');
-$translated = $this->translator->translate('Welcome!', 'app', 'id');
+$translated = $this->translator->translate('Welcome!', [], 'app', 'en');
+$translated = $this->translator->translate('Welcome!', [], 'app', 'id');
 ```
+
+---
+
+### Other DI Files
+
+Brief reference for the remaining files in `config/common/di/`:
+
+- **`application.php`**: binds `App\Shared\ApplicationParams` (name/version/language/environment) from `$params['application']` (`config/common/application.php`).
+- **`audit.php`**: `CurrentUserInterface → CurrentUser`; `AuditServiceInterface → DatabaseAuditService` (writes to the `audit_logs` table).
+- **`db-mysql.php` / `db-pgsql.php`**: `ConnectionInterface` bound to `Yiisoft\Db\Mysql\Connection` or `Yiisoft\Db\Pgsql\Connection` depending on `$params['yiisoft/db']['driver']`; both register `FileCache` (`@runtime/cache`) and an enabled `SchemaCache`. Inactive driver file returns `[]`.
+- **`db-mongodb.php`**: `MongoDB\Client` + `MongoDBService` from `mongodb/mongodb` params; when MongoDB is disabled (or the extension missing) a disabled `MongoDBService` is bound instead.
+- **`db-redis.php`**: `RedisService` (host/port from `redis.default.*` env) merged with project bindings from `config/common/redis.php`, which are loaded *after* `common/repository.php` and can override repository bindings.
+- **`error-handler.php`**: `HtmlRenderer` `traceLink` closure (uses `$params['traceLink']`, e.g. `phpstorm://open?...` set in `environments/dev/params.php`, and `APP_HOST_PATH` path remapping).
+- **`hydrator.php`**: `AttributeResolverFactoryInterface → ContainerAttributeResolverFactory`, `ObjectFactoryInterface → ContainerObjectFactory`.
+- **`json.php`**: `App\Shared\Core\Utility\JsonHandler` binding.
+- **`logger.php`**: `LoggerInterface → Yiisoft\Log\Logger` with `FileTarget`, `StreamTarget` and a `log.target.security` `FileTarget` (`@runtime/logs/security/security.log`, category `security`).
+- **`optimistic-lock.php`**: `LockVersionConfig` from `app/optimisticLock` (`enabled`, `disabledValues`).
+- **`router.php`**: `RouteCollectionInterface` built from `$config->get('routes')` (`config/common/routes.php`).
+- **`validator.php`**: `RuleHandlerResolverInterface → SimpleRuleHandlerContainer` (with `UniqueValueHandler`), `UniqueValueHandler` gets `ConnectionInterface` + `TranslatorInterface`, `ValidatorInterface → Validator`.
 
 ---
 
@@ -573,12 +617,12 @@ interface CacheableRepositoryInterface { /* ... */ }
 
 #### **Environment-Specific Configuration**
 ```php
-// ✅ Use environment variables
+// ✅ Use params groups populated from .env (config/common/params.php)
 return [
     JwtService::class => [
         '__construct()' => [
-            'secret' => $params['app.jwt.secret'],
-            'algorithm' => $params['app.jwt.algorithm'],
+            'secret' => $params['app/jwt']['secret'] ?? '',
+            'algo'   => $params['app/jwt']['algorithm'] ?? 'HS256',
         ],
     ],
 ];
@@ -595,16 +639,14 @@ Reference::to(LoggerInterface::class)
 
 #### **Sensitive Data**
 ```php
-// ✅ Store secrets in environment variables
-'secret' => $params['app.jwt.secret'],
-'encryption_key' => $params['app.security.encryption_key'],
+// ✅ Store secrets in environment variables, surfaced via params groups
+'secret' => $params['app/jwt']['secret'],
 ```
 
 #### **Access Control**
 ```php
 // ✅ Configure RBAC properly
-AccessCheckerInterface::class => AccessChecker::class,
-RoleCollectorInterface::class => RoleCollector::class,
+AuthorizerInterface::class => RbacAuthorizer::class,
 ```
 
 ---
@@ -654,13 +696,16 @@ RoleCollectorInterface::class => RoleCollector::class,
 ### 1. **Service Registration**
 
 ```php
-// In application service
+// In application service (real constructor)
 final class ExampleApplicationService
 {
     public function __construct(
+        private AuthorizerInterface $auth,
+        private DetailInfoFactory $detailInfoFactory,
         private ExampleRepositoryInterface $repository,
-        private DomainValidator $domainService
-    ) {}
+        private ExampleDomainService $domainService
+    ) {
+    }
 }
 ```
 
@@ -668,31 +713,36 @@ final class ExampleApplicationService
 
 ```php
 // In application service
-$example = $this->repository->findById($id);
+$example = $this->repository->findById(id: $id);
 if ($example === null) {
-    throw new NotFoundException('Example not found');
+    throw new NotFoundException(translate: Message::create(
+        key: 'resource.not_found',
+        params: ['resource' => Example::RESOURCE, 'field' => 'id', 'value' => $id]
+    ));
 }
 ```
 
 ### 3. **Security Integration**
 
 ```php
-// In controller
-if (!$this->authorizer->can('example.create')) {
-    throw new ForbiddenException('Access denied');
+// In application service (AuthorizerInterface → RbacAuthorizer)
+if (!$this->auth->can('example.create')) {
+    throw new ForbiddenException(translate: Message::create(key: 'error.forbidden'));
 }
 ```
 
 ### 4. **Audit Logging**
 
 ```php
-// In repository
+// In repository (AuditServiceInterface → DatabaseAuditService)
 $this->auditService->log(
     tableName: 'example',
     recordId: $example->getId(),
     action: 'create',
     newValues: $example->toArray(),
-    actor: $this->actor
+    actor: $this->currentUser->getActor(),
+    ipAddress: $ipAddress,
+    userAgent: $userAgent,
 );
 ```
 
@@ -744,7 +794,7 @@ $service = $container->get(ServiceInterface::class);
 #### **2. **Configuration Validation**
 ```php
 // Validate configuration
-$config = require 'config/common/di/service.php';
+$config = require 'config/common/di/service-di.php';
 if (!is_array($config)) {
     throw new \RuntimeException('Invalid configuration');
 }
@@ -755,7 +805,8 @@ if (!is_array($config)) {
 ## 📚 References
 
 ### Documentation
-- **[Yii3 DI Documentation](https://www.yiiframework.com/doc/guide/2.0/en/concept-di-container.html)**: Dependency injection container
+- **[yiisoft/di](https://github.com/yiisoft/di)**: Dependency injection container
+- **[yiisoft/definitions](https://github.com/yiisoft/definitions)**: Definition format (`Reference`, `DynamicReference`, `ReferencesArray`)
 - **[PSR-11 Documentation](https://www.php-fig.org/psr/psr-11/)**: Container interface
 - **[PSR-20 Documentation](https://www.php-fig.org/psr/psr-20/)**: Clock interface
 

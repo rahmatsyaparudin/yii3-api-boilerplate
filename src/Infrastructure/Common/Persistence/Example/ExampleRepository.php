@@ -79,6 +79,7 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
             name: $row['name'],
             status: ResourceStatus::from((int) $row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
+            syncMdb: isset($row[SyncMdb::field()]) ? SyncMdb::fromInt((int) $row[SyncMdb::field()]) : null,
             lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
         );
     }
@@ -102,8 +103,9 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
             name: $row['name'],
             status: ResourceStatus::from((int) $row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
+            syncMdb: isset($row[SyncMdb::field()]) ? SyncMdb::fromInt((int) $row[SyncMdb::field()]) : null,
             lockVersion: LockVersion::fromInt($row[LockVersion::field()]),
-        )->updateSyncMdb($row[SyncMdb::field()] ?? null);
+        );
     }
 
     public function existsByName(string $name, ?int $status = null): bool
@@ -194,6 +196,7 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
                 name: $entity->getName(),
                 status: $entity->getStatus(),
                 detailInfo: $entity->getDetailInfo(),
+                syncMdb: $entity->getSyncMdb(),
                 lockVersion: LockVersion::create(),
             );
 
@@ -284,6 +287,7 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
             name: $row['name'],
             status: ResourceStatus::from((int) $row['status']),
             detailInfo: DetailInfo::fromJson($row['detail_info']),
+            syncMdb: isset($row[SyncMdb::field()]) ? SyncMdb::fromInt((int) $row[SyncMdb::field()]) : null,
             lockVersion: LockVersion::fromInt($row[LockVersion::field()])
         );
 
