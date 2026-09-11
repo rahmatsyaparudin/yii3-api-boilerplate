@@ -80,9 +80,9 @@ class SkeletonInstaller
         echo "🌐 API Shared classes copied to src/Api/Shared/\n";
         echo "📁 Directories created: Presenter, ExceptionResponderFactory.php, ResponseFactory.php\n";
         echo "⚙️  Config files copied to config/\n";
-        echo "📁 Files copied: common/middleware.php, all shared config/common/di/*.php, web/di/application.php, web/di/psr17.php\n";
+        echo "📁 Files copied: config/common/di/*, config/web/di/*, config/console/*\n";
         echo "💬 Message files copied to resources/messages/\n";
-        echo "📁 Files copied: en/error.php, en/success.php, en/validation.php, id/error.php, id/success.php, id/validation.php\n";
+        echo "📁 Message files copied to resources/messages/ for all languages (app.php skipped)\n";
         echo "🌐 API files copied to src/Api/\n";
         echo "📁 Files copied: IndexAction.php\n";
         echo "🔧 Autoload file copied to src/\n";
@@ -409,59 +409,43 @@ class SkeletonInstaller
             mkdir($targetConfigPath, 0755, true);
         }
         
-        // Specific config files to copy
-        $configFiles = [
-            'common/middleware.php',
-            'common/di/access-di.php',
-            'common/di/application.php',
-            'common/di/audit.php',
-            'common/di/db-mongodb.php',
-            'common/di/db-mysql.php',
-            'common/di/db-pgsql.php',
-            'common/di/db-redis.php',
-            'common/di/error-handler.php',
-            'common/di/hydrator.php',
-            'common/di/infrastructure-di.php',
-            'common/di/json.php',
-            'common/di/jwt.php',
-            'common/di/logger.php',
-            'common/di/middleware.php',
-            'common/di/monitoring.php',
-            'common/di/optimistic-lock.php',
-            'common/di/repository-di.php',
-            'common/di/router.php',
-            'common/di/service-di.php',
-            'common/di/security.php',
-            'common/di/translator-di.php',
-            'common/di/validator.php',
-            'web/di/application.php',
-            'web/di/psr17.php'
-        ];
-        
-        foreach ($configFiles as $file) {
-            $sourceFile = $vendorConfigPath . '/' . $file;
-            $targetFile = $targetConfigPath . '/' . $file;
-            
-            // Ensure target directory exists
-            $targetDir = dirname($targetFile);
-            if (!is_dir($targetDir)) {
-                mkdir($targetDir, 0755, true);
-                echo "✅ Created directory: config/common/" . basename($targetDir) . "\n";
-            }
-            
-            if (file_exists($sourceFile)) {
-                $content = file_get_contents($sourceFile);
-                file_put_contents($targetFile, $content);
-                echo "✅ Copied config file: config/{$file}\n";
-            } else {
-                // Fallback: copy from current location (for testing in boilerplate)
-                $currentSourceFile = $this->projectRoot . '/config/' . $file;
-                if (file_exists($currentSourceFile)) {
-                    $content = file_get_contents($currentSourceFile);
-                    file_put_contents($targetFile, $content);
-                    echo "✅ Copied existing config file: config/{$file}\n";
-                }
-            }
+        // Copy all common/di files at once
+        $commonDiSource = $vendorConfigPath . '/common/di';
+        $commonDiFallback = $this->projectRoot . '/config/common/di';
+        $commonDiTarget = $targetConfigPath . '/common/di';
+
+        if (is_dir($commonDiSource)) {
+            $this->copyDirectory($commonDiSource, $commonDiTarget);
+            echo "✅ Copied config/common/di directory from vendor\n";
+        } elseif (is_dir($commonDiFallback)) {
+            $this->copyDirectory($commonDiFallback, $commonDiTarget);
+            echo "✅ Copied config/common/di directory from current project\n";
+        }
+
+        // Copy all web/di files at once
+        $webDiSource = $vendorConfigPath . '/web/di';
+        $webDiFallback = $this->projectRoot . '/config/web/di';
+        $webDiTarget = $targetConfigPath . '/web/di';
+
+        if (is_dir($webDiSource)) {
+            $this->copyDirectory($webDiSource, $webDiTarget);
+            echo "✅ Copied config/web/di directory from vendor\n";
+        } elseif (is_dir($webDiFallback)) {
+            $this->copyDirectory($webDiFallback, $webDiTarget);
+            echo "✅ Copied config/web/di directory from current project\n";
+        }
+
+        // Copy all console config files at once
+        $consoleSource = $vendorConfigPath . '/console';
+        $consoleFallback = $this->projectRoot . '/config/console';
+        $consoleTarget = $targetConfigPath . '/console';
+
+        if (is_dir($consoleSource)) {
+            $this->copyDirectory($consoleSource, $consoleTarget);
+            echo "✅ Copied config/console directory from vendor\n";
+        } elseif (is_dir($consoleFallback)) {
+            $this->copyDirectory($consoleFallback, $consoleTarget);
+            echo "✅ Copied config/console directory from current project\n";
         }
     }
 
@@ -470,45 +454,55 @@ class SkeletonInstaller
         // In actual vendor package usage, copy from vendor to project
         $vendorMessagesPath = $this->vendorPath . '/resources/messages';
         $targetMessagesPath = $this->projectRoot . '/resources/messages';
-        
+
         // Ensure resources/messages directory exists
         if (!is_dir($targetMessagesPath)) {
             mkdir($targetMessagesPath, 0755, true);
         }
-        
-        // Message files to copy for each language
-        $messageFiles = [
-            'error.php',
-            'success.php',
-            'validation.php'
-        ];
-        
-        $languages = ['en', 'id'];
-        
-        foreach ($languages as $lang) {
-            // Create language directory
+
+        $sourcePath = is_dir($vendorMessagesPath) ? $vendorMessagesPath : $targetMessagesPath;
+
+        if (!is_dir($sourcePath)) {
+            return;
+        }
+
+        $languages = new DirectoryIterator($sourcePath);
+        foreach ($languages as $langInfo) {
+            if ($langInfo->isDot() || !$langInfo->isDir()) {
+                continue;
+            }
+
+            $lang = $langInfo->getFilename();
             $langDir = $targetMessagesPath . '/' . $lang;
             if (!is_dir($langDir)) {
                 mkdir($langDir, 0755, true);
                 echo "✅ Created directory: resources/messages/{$lang}\n";
             }
-            
-            foreach ($messageFiles as $file) {
-                $sourceFile = $vendorMessagesPath . '/' . $lang . '/' . $file;
+
+            $files = new DirectoryIterator($sourcePath . '/' . $lang);
+            foreach ($files as $fileInfo) {
+                if ($fileInfo->isDot() || $fileInfo->isDir()) {
+                    continue;
+                }
+
+                $file = $fileInfo->getFilename();
+
+                // app.php is project-specific, do not overwrite
+                if ($file === 'app.php') {
+                    continue;
+                }
+
+                $sourceFile = $sourcePath . '/' . $lang . '/' . $file;
                 $targetFile = $langDir . '/' . $file;
-                
+
+                if ($sourceFile === $targetFile) {
+                    continue;
+                }
+
                 if (file_exists($sourceFile)) {
                     $content = file_get_contents($sourceFile);
                     file_put_contents($targetFile, $content);
                     echo "✅ Copied message file: resources/messages/{$lang}/{$file}\n";
-                } else {
-                    // Fallback: copy from current location (for testing in boilerplate)
-                    $currentSourceFile = $this->projectRoot . '/resources/messages/' . $lang . '/' . $file;
-                    if (file_exists($currentSourceFile)) {
-                        $content = file_get_contents($currentSourceFile);
-                        file_put_contents($targetFile, $content);
-                        echo "✅ Copied existing message file: resources/messages/{$lang}/{$file}\n";
-                    }
                 }
             }
         }
@@ -756,28 +750,13 @@ class SkeletonInstaller
     private function copyConsoleCommands(): void
     {
         echo "🖥️  Copying console commands...\n";
-        
-        // Define skeleton-owned console commands to copy
-        $commandFiles = [
-            'src/Console/HelloCommand.php' => 'src/Console/HelloCommand.php',
-            'src/Console/MigrateModuleCommand.php' => 'src/Console/MigrateModuleCommand.php',
-            'src/Console/SeederCommand.php' => 'src/Console/SeederCommand.php',
-        ];
-        
-        foreach ($commandFiles as $source => $target) {
-            $sourcePath = $this->vendorPath . '/' . $source;
-            $targetPath = $this->projectRoot . '/' . $target;
-            
-            if (file_exists($sourcePath)) {
-                // Ensure target directory exists
-                $targetDir = dirname($targetPath);
-                if (!is_dir($targetDir)) {
-                    mkdir($targetDir, 0755, true);
-                }
-                
-                copy($sourcePath, $targetPath);
-                echo "✅ Copied: {$target}\n";
-            }
+
+        $sourcePath = $this->vendorPath . '/src/Console';
+        $targetPath = $this->projectRoot . '/src/Console';
+
+        if (is_dir($sourcePath)) {
+            $this->copyDirectory($sourcePath, $targetPath);
+            echo "✅ Copied console commands from vendor\n";
         }
     }
 }

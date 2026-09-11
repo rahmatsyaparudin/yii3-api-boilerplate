@@ -20,10 +20,15 @@ use App\Shared\Core\Middleware\SecureHeadersMiddleware;
 use Psr\Http\Message\ResponseFactoryInterface;
 // Vendor Layer
 use Yiisoft\Router\FastRoute\UrlMatcher;
+use Yiisoft\Security\TrustedHosts\TrustedHostsMiddleware;
 
 // @var array $params
 
 return [
+    // Trusted hosts middleware. Always available through DI; add it to the
+    // middleware stack in config/common/middleware.php if needed for a project.
+    TrustedHostsMiddleware::class => TrustedHostsMiddleware::class,
+
     // Middleware global untuk semua route
     RequestParamsMiddleware::class => static function () use ($params) {
         $pagination = $params['app/pagination'] ?? [];

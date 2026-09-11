@@ -2,27 +2,20 @@
 
 declare(strict_types=1);
 
-// Vendor Layer
-use Yiisoft\Translator\CategorySource;
-use Yiisoft\Translator\IntlMessageFormatter;
-use Yiisoft\Translator\Message\Php\MessageSource;
-use Yiisoft\Translator\Translator;
-use Yiisoft\Translator\TranslatorInterface;
+/**
+ * Optional project-specific translator overrides/additions.
+ *
+ * Definitions here are merged into config/common/di/translator-di.php and
+ * can override the default TranslatorInterface binding.
+ *
+ * Example:
+ *
+ *   use Yiisoft\Translator\TranslatorInterface;
+ *   use Yiisoft\Translator\Translator;
+ *
+ *   return [
+ *       TranslatorInterface::class => static fn () => new Translator('id'),
+ *   ];
+ */
 
-return [
-    TranslatorInterface::class => static function () {
-        $translator = new Translator('en');
-
-        $messageSource = new MessageSource(__DIR__ . '/../../resources/messages');
-        $formatter     = new IntlMessageFormatter();
-
-        $translator->addCategorySources(
-            new CategorySource('app', $messageSource, $formatter),
-            new CategorySource('validation', $messageSource, $formatter),
-            new CategorySource('error', $messageSource, $formatter),
-            new CategorySource('success', $messageSource, $formatter),
-        );
-
-        return $translator;
-    },
-];
+return [];

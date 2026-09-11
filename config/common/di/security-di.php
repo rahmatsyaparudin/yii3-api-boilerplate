@@ -11,11 +11,13 @@ use App\Infrastructure\Core\Security\PermissionChecker;
 // Domain Layer
 use App\Infrastructure\Core\Security\RbacAuthorizer;
 
-// Vendor Layer
+/** @var array $params */
 
-// @var array $params
+// Core security bindings. Project-owned bindings may be merged from
+// config/common/security.php and can override these defaults.
+$projectBindings = \dirname(__DIR__) . '/security.php';
 
-return [
+return array_merge([
     CurrentUser::class => [
         '__construct()' => [
             'allowGodMode' => $params['app/config']['allow_god_mode'] ?? false,
@@ -35,4 +37,4 @@ return [
     ],
 
     AuthorizerInterface::class => RbacAuthorizer::class,
-];
+], file_exists($projectBindings) ? require $projectBindings : []);
