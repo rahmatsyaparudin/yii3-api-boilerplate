@@ -2,9 +2,10 @@
 
 ## Protected paths — DO NOT MODIFY
 
-Any `Core/` directory under `src/` is **frozen core code**. AI agents must
-not create, edit, rename, move, or delete files under these paths — not even
-to fix a bug, apply a refactor, run a codemod, or "improve" style.
+Any `Core/` directory under `src/` plus the skeleton-owned DI wiring are
+**frozen code**. AI agents must not create, edit, rename, move, or delete
+files under these paths — not even to fix a bug, apply a refactor, run a
+codemod, or "improve" style.
 
 Protected paths:
 
@@ -12,6 +13,7 @@ Protected paths:
 - `src/Domain/Shared/Core/`
 - `src/Application/Shared/Core/`
 - `src/Infrastructure/Core/`
+- `config/common/di/` — skeleton-owned DI wiring
 - any future `src/**/Core/` directory
 
 If a change to core seems necessary (bug, security fix, new shared
@@ -27,5 +29,5 @@ Core code is maintained centrally and synced into this project via
 | --- | --- |
 | Shared helpers / utilities | `src/*/Common/` (e.g. `src/Shared/Common/`) |
 | New feature | a module, e.g. `src/Api/V1/<Module>/`, `src/Application/<Module>/` |
-| Configuration / wiring | `config/` |
+| Configuration / DI wiring | `config/web/di/`, `config/console/`, or a new project file — never `config/common/di/` |
 | Database changes | `src/Migration/` |
