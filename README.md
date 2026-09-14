@@ -74,22 +74,22 @@ Open your project's `composer.json` and add the following sections:
 ### Add this to `composer.json` `scripts` 
 ```json
 "skeleton-scripts": [
-    "@php scripts/skeleton-scripts.php"
-],
-"skeleton-update": [
-    "composer update rahmatsyaparudin/yii3-api-boilerplate --ignore-platform-reqs",
-    "@php scripts/skeleton-scripts.php",
-    "@php scripts/skeleton-update.php"
-],
-"skeleton-copy-config": [
-    "@php scripts/skeleton-copy-config.php"
-],
-"skeleton-copy-examples": [
-    "@php scripts/skeleton-copy-examples.php"
-],
-"skeleton-generate-module": [
-    "@php scripts/generate-module.php"
-]
+            "@php scripts/skeleton-scripts.php"
+        ],
+        "skeleton-update": [
+            "composer update rahmatsyaparudin/yii3-api-boilerplate --ignore-platform-reqs",
+            "@php scripts/skeleton-scripts.php",
+            "@php scripts/skeleton-update.php"
+        ],
+        "skeleton-copy-config": [
+            "@php scripts/skeleton-copy-config.php"
+        ],
+        "skeleton-copy-examples": [
+            "@php scripts/skeleton-copy-examples.php"
+        ],
+        "skeleton-generate-module": [
+            "@php scripts/generate-module.php"
+        ]
 ```
 
 ### 3. Update Composer

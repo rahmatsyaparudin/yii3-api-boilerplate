@@ -64,7 +64,10 @@ class SkeletonInstaller
         
         // Copy Quality Assurance script
         $this->copyQualityScript();
-        
+
+        // Copy core protection files (AGENTS.md frozen-core rules)
+        $this->copyProtectionFiles();
+
         // Update composer.json with required packages
         $this->updateComposerJson();
         
@@ -92,6 +95,8 @@ class SkeletonInstaller
         echo "📁 Files copied: HelloCommand.php, MigrateModuleCommand.php, SeederCommand.php\n";
         echo "🔧 Quality Assurance script copied to project root\n";
         echo "📁 Files copied: quality\n";
+        echo "🛡️  Core protection installed (AGENTS.md frozen-core rules)\n";
+        echo "📁 src/**/Core/ is frozen for AI agents — update it only via composer skeleton-update\n";
         echo "📦 Composer packages updated in composer.json\n";
         echo "📁 Packages added: firebase/php-jwt, psr/clock, vlucas/phpdotenv, yiisoft/* packages\n";
 
@@ -638,6 +643,29 @@ class SkeletonInstaller
                 chmod($targetQualityScript, 0755);
                 
                 echo "✅ Copied existing Quality Assurance script\n";
+            }
+        }
+    }
+
+    private function copyProtectionFiles(): void
+    {
+        echo "🛡️  Installing core protection files...\n";
+
+        // AGENTS.md — frozen-core rules for AI agents and contributors.
+        // Appended when the project already maintains its own AGENTS.md.
+        $agentsSource = $this->vendorPath . '/AGENTS.md';
+        $agentsTarget = $this->projectRoot . '/AGENTS.md';
+        if (file_exists($agentsSource)) {
+            if (!file_exists($agentsTarget)) {
+                copy($agentsSource, $agentsTarget);
+                echo "✅ Copied AGENTS.md\n";
+            } elseif (!str_contains((string) file_get_contents($agentsTarget), 'Protected paths')) {
+                file_put_contents(
+                    $agentsTarget,
+                    "\n\n" . (string) file_get_contents($agentsSource),
+                    FILE_APPEND
+                );
+                echo "✅ Appended protected-paths rules to existing AGENTS.md\n";
             }
         }
     }
