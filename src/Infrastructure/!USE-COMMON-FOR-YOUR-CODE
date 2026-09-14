@@ -1,0 +1,4 @@
+Core/ is frozen code synced via `composer skeleton-update`.
+Don't add, edit, rename, move, or delete anything inside Core/.
+Put your shared helpers, base classes, and utilities in Common/ instead.
+See AGENTS.md (this folder and repo root) for the full policy.

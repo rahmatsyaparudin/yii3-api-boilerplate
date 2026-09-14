@@ -33,11 +33,19 @@ Core code is maintained centrally and synced into this project via
 may read them to reference existing message keys, but must not modify
 them.
 
+Every `Shared/` layer (`src/Shared/`, `src/Domain/Shared/`,
+`src/Application/Shared/`) and `src/Infrastructure/` ships with a frozen
+`Core/` directory next to a writable `Common/` directory.
+
+**Don't add your code to `Core/` — use `Common/`.** When a shared helper,
+base class, or utility is needed, always create it inside the
+corresponding `Common/` directory — never inside `Core/`.
+
 ### Where to put code instead
 
 | Need | Location |
 | --- | --- |
-| Shared helpers / utilities | `src/*/Common/` (e.g. `src/Shared/Common/`) |
+| Shared helpers / utilities | the `Common/` dir next to each `Core/` (e.g. `src/Shared/Common/`, `src/Infrastructure/Common/`) |
 | New feature | a module, e.g. `src/Api/V1/<Module>/`, `src/Application/<Module>/` |
 | Configuration / DI wiring | `config/web/di/`, `config/console/`, or a new project file — never `config/common/di/` |
 | Database changes | `src/Migration/` |
