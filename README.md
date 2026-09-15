@@ -73,21 +73,21 @@ Open your project's `composer.json` and add the following sections:
 
 ### Add this to `composer.json` `scripts` 
 ```json
-"skeleton-scripts": [
+"skeleton:scripts": [
             "@php scripts/skeleton-scripts.php"
         ],
-        "skeleton-update": [
+        "skeleton:update": [
             "composer update rahmatsyaparudin/yii3-api-boilerplate --ignore-platform-reqs",
             "@php scripts/skeleton-scripts.php",
             "@php scripts/skeleton-update.php"
         ],
-        "skeleton-copy-config": [
+        "skeleton:copy-config": [
             "@php scripts/skeleton-copy-config.php"
         ],
-        "skeleton-copy-examples": [
+        "skeleton:copy-examples": [
             "@php scripts/skeleton-copy-examples.php"
         ],
-        "skeleton-generate-module": [
+        "skeleton:generate-module": [
             "@php scripts/generate-module.php"
         ]
 ```
@@ -109,7 +109,7 @@ mkdir scripts; cp -r -Force vendor/rahmatsyaparudin/yii3-api-boilerplate/scripts
 ### 5. Install Skeleton
 Install skeleton structure
 ```bash
-composer skeleton-update
+composer skeleton:update
 ```
 
 Copy config files (first time only)
@@ -117,12 +117,12 @@ Copy config files (first time only)
 This copies `.env.example` → `.env`, `.gitignore`, message files (`resources/messages/{en,id}/`), and other skeleton configuration files.
 
 ```bash
-composer skeleton-copy-config
+composer skeleton:copy-config
 ```
 
 Copy example files (first time only)
 ```bash
-composer skeleton-copy-examples
+composer skeleton:copy-examples
 ```
 
 ### 6. Generate New Module
@@ -130,7 +130,7 @@ composer skeleton-copy-examples
 Use the built-in module generator to create new API modules with complete structure:
 Generate a new module (e.g., Product)
 ```bash
-composer skeleton-generate-module -- --module=Product --table=product_management
+composer skeleton:generate-module -- --module=Product --table=product_management
 ```
 
 Or use direct PHP script (alternative):
@@ -245,7 +245,7 @@ The skeleton includes the following modules out of the box:
 #### **🔧 Custom Modules** (Generate as needed)
 - **Product, Category, Brand, Order, User, etc.**
 - **Purpose:** Your business-specific modules
-- **Generation:** Use `composer skeleton-generate-module -- --module=ModuleName --table=table_name` or `php scripts/generate-module.php --module=ModuleName --table=table_name`
+- **Generation:** Use `composer skeleton:generate-module -- --module=ModuleName --table=table_name` or `php scripts/generate-module.php --module=ModuleName --table=table_name`
 - **Custom Table:** Use `--table=table_name` for table names (e.g., `--module=Product --table=product_management`)
 - **Customization:** Modify generated files according to your business logic
 
@@ -637,10 +637,10 @@ Message files in `resources/messages/{en,id}/` are split into **skeleton-managed
 
 | File | Owner | Notes |
 |------|-------|-------|
-| `app.php` | **Project** | Add your custom messages here. Never overwritten by `composer skeleton-update`. |
-| `error.php` | Skeleton | Do not edit or add keys — overwritten by `composer skeleton-update`. |
-| `success.php` | Skeleton | Do not edit or add keys — overwritten by `composer skeleton-update`. |
-| `validation.php` | Skeleton | Do not edit or add keys — overwritten by `composer skeleton-update`. |
+| `app.php` | **Project** | Add your custom messages here. Never overwritten by `composer skeleton:update`. |
+| `error.php` | Skeleton | Do not edit or add keys — overwritten by `composer skeleton:update`. |
+| `success.php` | Skeleton | Do not edit or add keys — overwritten by `composer skeleton:update`. |
+| `validation.php` | Skeleton | Do not edit or add keys — overwritten by `composer skeleton:update`. |
 
 Put project-specific error, success, or validation messages in `app.php` for each locale:
 

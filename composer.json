@@ -113,7 +113,24 @@
             "Composer\\Config::disableProcessTimeout",
             "@php ./yii serve"
         ],
-        "test": "codecept run"
+        "test": "codecept run",
+        "skeleton:scripts": [
+            "@php scripts/skeleton-scripts.php"
+        ],
+        "skeleton:update": [
+            "composer update rahmatsyaparudin/yii3-api-boilerplate --ignore-platform-reqs",
+            "@php scripts/skeleton-scripts.php",
+            "@php scripts/skeleton-update.php"
+        ],
+        "skeleton:copy-config": [
+            "@php scripts/skeleton-copy-config.php"
+        ],
+        "skeleton:copy-examples": [
+            "@php scripts/skeleton-copy-examples.php"
+        ],
+        "skeleton:generate-module": [
+            "@php scripts/generate-module.php"
+        ]
     },
     "extra": {
         "config-plugin-file": "config/configuration.php"

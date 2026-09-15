@@ -69,17 +69,17 @@ To consume the boilerplate as an updatable package, add this to your `composer.j
         "rahmatsyaparudin/yii3-api-boilerplate": "dev-main"
     },
     "scripts": {
-        "skeleton-scripts": [
+        "skeleton:scripts": [
             "php scripts/skeleton-scripts.php"
         ],
-        "skeleton-update": [
+        "skeleton:update": [
             "composer update rahmatsyaparudin/yii3-api-boilerplate --ignore-platform-reqs",
             "php scripts/skeleton-update.php"
         ],
-        "skeleton-copy-config": [
+        "skeleton:copy-config": [
             "php scripts/skeleton-copy-config.php"
         ],
-        "skeleton-copy-examples": [
+        "skeleton:copy-examples": [
             "php scripts/skeleton-copy-examples.php"
         ]
     }
@@ -93,13 +93,13 @@ To consume the boilerplate as an updatable package, add this to your `composer.j
 composer update --ignore-platform-reqs
 
 # Install skeleton structure (shared classes, config, console commands, quality script)
-composer skeleton-update
+composer skeleton:update
 
 # Copy config files (first time only)
-composer skeleton-copy-config
+composer skeleton:copy-config
 
 # Copy example files (first time only)
-composer skeleton-copy-examples
+composer skeleton:copy-examples
 ```
 
 The current skeleton version is tracked in `scripts/skeleton.version` (currently `1.1.0`). A new module can also be generated with `php scripts/generate-module.php --module=Product`.
