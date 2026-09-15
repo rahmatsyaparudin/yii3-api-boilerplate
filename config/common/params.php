@@ -41,6 +41,14 @@ return [
         'newMigrationNamespace' => 'App\\Migration',
         'sourceNamespaces'      => ['App\\Migration'],
     ],
+    'app/migrations' => [
+        // Required mapping: module (src/Migration/<Module>) => connection name
+        // (db.<name>.* env keys). migrate:module fails without an entry.
+        'moduleConnections' => [
+            'Example' => 'default',
+            // 'Auditable' => 'audit',
+        ],
+    ],
     'mongodb/mongodb' => [
         'enabled'          => \filter_var($_ENV['db.mongodb.enabled'] ?? true, FILTER_VALIDATE_BOOLEAN),
         'dsn'              => "mongodb://{$_ENV['db.mongodb.dsn']}",
