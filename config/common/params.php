@@ -12,6 +12,7 @@ $exposedHeaders  = \json_decode($_ENV['app.cors.exposedHeaders'] ?? '[]', true) 
 $trustedHosts    = \json_decode($_ENV['app.trusted_hosts.allowedHosts'] ?? '[]', true) ?? [];
 $disabledValues  = \json_decode($_ENV['app.optimistic_lock.disabled.values'] ?? '[]', true) ?? [];
 $publicPaths     = \json_decode($_ENV['app.jwt.publicPaths'] ?? '[]', true) ?? [];
+$migrationConfig = require __DIR__ . '/migration.php';
 
 return [
     'application'     => require __DIR__ . '/application.php',
@@ -41,14 +42,7 @@ return [
         'newMigrationNamespace' => 'App\\Migration',
         'sourceNamespaces'      => ['App\\Migration'],
     ],
-    'app/migrations' => [
-        // Required mapping: module (src/Migration/<Module>) => connection name
-        // (db.<name>.* env keys). migrate:module fails without an entry.
-        'moduleConnections' => [
-            'Example' => 'default',
-            // 'Auditable' => 'audit',
-        ],
-    ],
+    'app/migrations' => $migrationConfig,
     'mongodb/mongodb' => [
         'enabled'          => \filter_var($_ENV['db.mongodb.enabled'] ?? true, FILTER_VALIDATE_BOOLEAN),
         'dsn'              => "mongodb://{$_ENV['db.mongodb.dsn']}",
