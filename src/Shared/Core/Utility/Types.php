@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace App\Shared\Core\Utility;
 
+use App\Shared\Core\Exception\ServiceException;
+use App\Shared\Core\ValueObject\Message;
 use BackedEnum;
 use DateTimeImmutable;
 use DateTimeInterface;
-use InvalidArgumentException;
 use Stringable;
 use Traversable;
 use TypeError;
+use Yiisoft\Http\Status;
 
 /**
  * Type Utility Functions.
@@ -295,7 +297,13 @@ final class Types
                 : [$spec, []];
 
             if (!\is_string($method) || !\is_callable([self::class, $method])) {
-                throw new InvalidArgumentException("Invalid caster for field '$key' in Types::castFields()");
+                throw new ServiceException(
+                    translate: Message::create(
+                        key: 'service.error',
+                        params: ['reason' => "invalid caster for field '$key'"]
+                    ),
+                    code: Status::INTERNAL_SERVER_ERROR
+                );
             }
 
             $casters[$key] = static fn (mixed $v) => self::{$method}($v, ...$args);
@@ -390,7 +398,13 @@ final class Types
         }
 
         if (!\enum_exists($enumClass) || !\is_subclass_of($enumClass, BackedEnum::class)) {
-            throw new InvalidArgumentException("$enumClass must be a backed enum");
+            throw new ServiceException(
+                translate: Message::create(
+                    key: 'service.error',
+                    params: ['reason' => "$enumClass must be a backed enum"]
+                ),
+                code: Status::INTERNAL_SERVER_ERROR
+            );
         }
 
         if (!\is_int($value) && !\is_string($value)) {
