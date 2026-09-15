@@ -2,10 +2,11 @@
 
 ## Protected paths — DO NOT MODIFY
 
-Any `Core/` directory under `src/`, the skeleton-owned DI wiring, and the
-translation message files listed below are **frozen code**. AI agents must
-not create, edit, rename, move, or delete files under these paths — not
-even to fix a bug, apply a refactor, run a codemod, or "improve" style.
+Any `Core/` directory under `src/`, `src/Api/Shared/Presenter/`, the
+skeleton-owned DI wiring, and the translation message files listed below
+are **frozen code**. AI agents must not create, edit, rename, move, or
+delete files under these paths — not even to fix a bug, apply a refactor,
+run a codemod, or "improve" style.
 
 Protected paths:
 
@@ -13,6 +14,7 @@ Protected paths:
 - `src/Domain/Shared/Core/`
 - `src/Application/Shared/Core/`
 - `src/Infrastructure/Core/`
+- `src/Api/Shared/Presenter/` — frozen presenters
 - `config/common/di/` — skeleton-owned DI wiring
 - `resources/messages/en/error.php`
 - `resources/messages/en/success.php`
@@ -47,6 +49,7 @@ corresponding `Common/` directory — never inside `Core/`.
 | --- | --- |
 | Shared helpers / utilities | the `Common/` dir next to each `Core/` (e.g. `src/Shared/Common/`, `src/Infrastructure/Common/`) |
 | New feature | a module, e.g. `src/Api/V1/<Module>/`, `src/Application/<Module>/` |
+| Custom API presenters | module-level, e.g. `src/Api/V1/<Module>/Presenter/` — never `src/Api/Shared/Presenter/` |
 | Configuration / DI wiring | `config/web/di/`, `config/console/`, or a new project file — never `config/common/di/` |
 | Database changes | `src/Migration/` |
 | New translation keys | `resources/messages/{en,id}/app.php` — never the protected `error`/`success`/`validation` files |
