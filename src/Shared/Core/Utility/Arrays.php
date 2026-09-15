@@ -152,4 +152,130 @@ final class Arrays
 
         return $differences;
     }
+
+    /**
+     * Get a value from an array using dot notation.
+     * get($data, 'user.address.city') reads $data['user']['address']['city'].
+     */
+    public static function get(array $data, string $key, mixed $default = null): mixed
+    {
+        if (\array_key_exists($key, $data)) {
+            return $data[$key];
+        }
+
+        foreach (\explode('.', $key) as $segment) {
+            if (!\is_array($data) || !\array_key_exists($segment, $data)) {
+                return $default;
+            }
+
+            $data = $data[$segment];
+        }
+
+        return $data;
+    }
+
+    /**
+     * Check whether a key exists (supports dot notation).
+     * Distinguishes "missing" from "present but null".
+     */
+    public static function has(array $data, string $key): bool
+    {
+        $sentinel = new \stdClass();
+
+        return self::get($data, $key, $sentinel) !== $sentinel;
+    }
+
+    /**
+     * Set a value using dot notation and return the modified array.
+     * Intermediate segments are created as arrays when missing.
+     */
+    public static function set(array $data, string $key, mixed $value): array
+    {
+        $current = &$data;
+
+        foreach (\explode('.', $key) as $segment) {
+            if (!isset($current[$segment]) || !\is_array($current[$segment])) {
+                $current[$segment] = [];
+            }
+
+            $current = &$current[$segment];
+        }
+
+        $current = $value;
+
+        return $data;
+    }
+
+    /**
+     * Keep only the given keys.
+     */
+    public static function only(array $data, array $keys): array
+    {
+        return \array_intersect_key($data, \array_flip($keys));
+    }
+
+    /**
+     * Remove the given keys.
+     */
+    public static function except(array $data, array $keys): array
+    {
+        return \array_diff_key($data, \array_flip($keys));
+    }
+
+    /**
+     * Pluck a single field from a list of records (supports dot notation).
+     * Records missing the key are skipped.
+     */
+    public static function pluck(array $list, string $key): array
+    {
+        $sentinel = new \stdClass();
+        $result = [];
+
+        foreach ($list as $item) {
+            $value = \is_array($item) ? self::get($item, $key, $sentinel) : $sentinel;
+            if ($value !== $sentinel) {
+                $result[] = $value;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Re-index a list of records by the given field (supports dot notation).
+     * Later records overwrite earlier ones on key collision.
+     */
+    public static function keyBy(array $list, string $key): array
+    {
+        $sentinel = new \stdClass();
+        $result = [];
+
+        foreach ($list as $item) {
+            $index = \is_array($item) ? self::get($item, $key, $sentinel) : $sentinel;
+            if (\is_int($index) || \is_string($index)) {
+                $result[$index] = $item;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Group a list of records by the given field (supports dot notation).
+     * Records whose key is missing or not int|string are skipped.
+     */
+    public static function groupBy(array $list, string $key): array
+    {
+        $sentinel = new \stdClass();
+        $result = [];
+
+        foreach ($list as $item) {
+            $group = \is_array($item) ? self::get($item, $key, $sentinel) : $sentinel;
+            if (\is_int($group) || \is_string($group)) {
+                $result[$group][] = $item;
+            }
+        }
+
+        return $result;
+    }
 }
