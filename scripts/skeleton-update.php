@@ -83,7 +83,7 @@ class SkeletonInstaller
         echo "🌐 API Shared classes copied to src/Api/Shared/\n";
         echo "📁 Directories created: Presenter, ExceptionResponderFactory.php, ResponseFactory.php\n";
         echo "⚙️  Config files copied to config/\n";
-        echo "📁 Files copied: config/common/di/*, config/web/di/*, config/console/*\n";
+        echo "📁 Files copied: config/common/di/*, config/common/params-core.php, config/web/di/*, config/console/*\n";
         echo "💬 Message files copied to resources/messages/\n";
         echo "📁 Message files copied to resources/messages/ for all languages (app.php skipped)\n";
         echo "🌐 API files copied to src/Api/\n";
@@ -459,6 +459,22 @@ class SkeletonInstaller
         } elseif (is_dir($consoleFallback)) {
             $this->copyDirectory($consoleFallback, $consoleTarget);
             echo "✅ Copied config/console directory from current project\n";
+        }
+
+        // Copy skeleton-owned core params (config/common/params-core.php).
+        // params.php stays project-owned and merges over this file.
+        $coreParamsSource = $vendorConfigPath . '/common/params-core.php';
+        $coreParamsFallback = $this->projectRoot . '/config/common/params-core.php';
+        $coreParamsTarget = $targetConfigPath . '/common/params-core.php';
+
+        if (is_file($coreParamsSource)) {
+            if ($coreParamsSource !== $coreParamsTarget) {
+                copy($coreParamsSource, $coreParamsTarget);
+            }
+            echo "✅ Copied config/common/params-core.php from vendor\n";
+        } elseif (is_file($coreParamsFallback) && $coreParamsFallback !== $coreParamsTarget) {
+            copy($coreParamsFallback, $coreParamsTarget);
+            echo "✅ Copied config/common/params-core.php from current project\n";
         }
     }
 
