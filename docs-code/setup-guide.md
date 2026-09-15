@@ -102,7 +102,7 @@ composer skeleton:copy-config
 composer skeleton:copy-examples
 ```
 
-The current skeleton version is tracked in `scripts/skeleton.version` (currently `1.1.0`). A new module can also be generated with `php scripts/generate-module.php --module=Product`.
+The current skeleton version is tracked in `scripts/skeleton.version` (currently `1.1.0`). A new module can also be generated with `php scripts/generate-module.php --module=Product` (optionally `--table=<name>` and `--db=<connection>` to migrate on a non-default database).
 
 ---
 

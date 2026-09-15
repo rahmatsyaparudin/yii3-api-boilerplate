@@ -32,15 +32,17 @@ final class ModuleGenerator
     private string $moduleUpper;
     private string $tableName;
     private string $urlName;
+    private string $connectionName;
 
     /**
      * Module Generator constructor
-     * 
+     *
      * @param string $projectRoot Root directory of the project
      * @param string $moduleName Name of the module to generate
      * @param string $tableName Custom table name (optional, defaults to lowercase module name)
+     * @param string $connectionName Connection name for the module's migrations (db.<name>.* env keys)
      */
-    public function __construct(string $projectRoot, string $moduleName, string $tableName = null)
+    public function __construct(string $projectRoot, string $moduleName, ?string $tableName = null, string $connectionName = 'default')
     {
         $this->projectRoot = $projectRoot;
         $this->moduleName = ucfirst($moduleName);
@@ -48,6 +50,7 @@ final class ModuleGenerator
         $this->moduleUpper = strtoupper($moduleName);
         $this->tableName = $tableName ?? $this->moduleLower;
         $this->urlName = $this->toKebabCase($this->moduleName);
+        $this->connectionName = $connectionName;
     }
 
     /**
@@ -99,12 +102,47 @@ final class ModuleGenerator
     {
         // Update repository DI
         $this->updateRepositoryDi($createdFiles);
-        
+
         // Update access configuration
         $this->updateAccessConfig($createdFiles);
-        
+
         // Update routes configuration
         $this->updateRoutesConfig($createdFiles);
+
+        // Register module -> connection mapping for migrate:module
+        $this->updateMigrationMap($createdFiles);
+    }
+
+    /**
+     * Register the module's migration connection in config/common/migration.php
+     */
+    private function updateMigrationMap(array &$createdFiles): void
+    {
+        $configFile = 'config/common/migration.php';
+
+        if (!file_exists($configFile)) {
+            echo "❌ Migration map config not found: {$configFile}\n";
+            return;
+        }
+
+        $content = file_get_contents($configFile);
+
+        if (str_contains($content, "'{$this->moduleName}' =>")) {
+            echo "📄 Migration mapping already exists for {$this->moduleName}\n";
+            return;
+        }
+
+        $entry = "        '{$this->moduleName}' => '{$this->connectionName}',\n";
+
+        $content = preg_replace(
+            "/('moduleConnections'\s*=>\s*\[\s*\n)/",
+            '$1' . $entry,
+            $content
+        );
+
+        file_put_contents($configFile, $content);
+        $createdFiles[] = $configFile;
+        echo "⚙️ Registered migration connection: {$this->moduleName} => {$this->connectionName}\n";
     }
 
     /**
@@ -494,15 +532,22 @@ final class ModuleGenerator
 
         // Generate timestamp for new migration
         $timestamp = date('YmdHis');
-        $targetMigration = "src/Migration/M{$timestamp}Create{$this->moduleName}Table.php";
-        
+        $targetDir = "src/Migration/{$this->moduleName}";
+
+        if (!is_dir($targetDir)) {
+            mkdir($targetDir, 0755, true);
+            echo "📁 Created directory: {$targetDir}\n";
+        }
+
+        $targetMigration = "{$targetDir}/M{$timestamp}Create{$this->moduleName}Table.php";
+
         $content = file_get_contents($sourceMigration);
-        
+
         // Replace class name with timestamp FIRST (before replacePlaceholders)
         $content = str_replace("M20240101000000CreateExampleTable", "M{$timestamp}Create{$this->moduleName}Table", $content);
 
-        // Generated migrations stay in the root App\Migration namespace
-        $content = str_replace("namespace App\\Migration\\Example;", "namespace App\\Migration;", $content);
+        // Module migrations live in their own namespace for migrate:module
+        $content = str_replace("namespace App\\Migration\\Example;", "namespace App\\Migration\\{$this->moduleName};", $content);
 
         // Then replace other placeholders
         $content = $this->replacePlaceholders($content);
@@ -681,7 +726,7 @@ function main(): void
     $args = array_slice($GLOBALS['argv'], 1);
     
     if (empty($args)) {
-        echo "📖️ Usage: php scripts/generate-module.php --module=<ModuleName> [--table=<TableName>]\n";
+        echo "📖️ Usage: php scripts/generate-module.php --module=<ModuleName> [--table=<TableName>] [--db=<ConnectionName>]\n";
         echo "\n📝 Examples:\n";
         echo "  php scripts/generate-module.php --module=Product\n";
         echo "  php scripts/generate-module.php --module=Product --table=products\n";
@@ -689,12 +734,14 @@ function main(): void
         echo "  php scripts/generate-module.php --module=User --table=users\n";
         echo "  php scripts/generate-module.php --module=Blog --table=blog_posts\n";
         echo "  php scripts/generate-module.php --module=Payment --table=payment_transactions\n";
+        echo "  php scripts/generate-module.php --module=AuditLog --db=audit\n";
         exit(1);
     }
-    
-    // Parse arguments for --module and --table options
+
+    // Parse arguments for --module, --table, and --db options
     $moduleName = null;
     $tableName = null;
+    $connectionName = 'default';
     
     foreach ($args as $arg) {
         if (str_starts_with($arg, '--module=')) {
@@ -725,12 +772,14 @@ function main(): void
                     $tableName = $args[$argIndex + 1];
                 }
             }
+        } elseif (str_starts_with($arg, '--db=')) {
+            $connectionName = substr($arg, 5); // Remove '--db=' prefix
         }
     }
     
     if ($moduleName === null) {
         echo "❌ Error: --module option is required\n";
-        echo "📖️ Usage: php scripts/generate-module.php --module=<ModuleName> [--table=<TableName>]\n";
+        echo "📖️ Usage: php scripts/generate-module.php --module=<ModuleName> [--table=<TableName>] [--db=<ConnectionName>]\n";
         exit(1);
     }
     
@@ -740,7 +789,7 @@ function main(): void
     }
     
     try {
-        $generator = new ModuleGenerator($projectRoot, $moduleName, $tableName);
+        $generator = new ModuleGenerator($projectRoot, $moduleName, $tableName, $connectionName);
         $generator->generate();
     } catch (Exception $e) {
         echo "❌ Error generating module: {$e->getMessage()}\n";

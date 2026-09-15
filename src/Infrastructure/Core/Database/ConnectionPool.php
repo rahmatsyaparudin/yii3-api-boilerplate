@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Core\Database;
 
+use App\Shared\Core\Exception\ServiceException;
+use App\Shared\Core\ValueObject\Message;
 use Yiisoft\Db\Cache\SchemaCache;
 use Yiisoft\Db\Connection\ConnectionInterface;
 use Yiisoft\Db\Mysql\Connection as MysqlConnection;
@@ -12,6 +14,7 @@ use Yiisoft\Db\Mysql\Dsn as MysqlDsn;
 use Yiisoft\Db\Pgsql\Connection as PgsqlConnection;
 use Yiisoft\Db\Pgsql\Driver as PgsqlDriver;
 use Yiisoft\Db\Pgsql\Dsn as PgsqlDsn;
+use Yiisoft\Http\Status;
 
 /**
  * Multi-driver connection pool (MySQL/MariaDB and PostgreSQL). Each named
@@ -42,7 +45,13 @@ final class ConnectionPool
             $charset = $_ENV[$envPrefix . '.charset'] ?? null;
 
             if ($host === null || $dbName === null) {
-                throw new \RuntimeException("Database connection config not found: {$name}");
+                throw new ServiceException(
+                    translate: Message::create(
+                        key: 'service.error',
+                        params: ['reason' => "Database connection config not found: {$name}"]
+                    ),
+                    code: Status::INTERNAL_SERVER_ERROR
+                );
             }
 
             $this->connections[$name] = match ($driverName) {
@@ -52,8 +61,12 @@ final class ConnectionPool
                 'pgsql' => $this->createPgsql(
                     $host, (string)($port ?? '5432'), $dbName, $user, $pass, $charset
                 ),
-                default => throw new \RuntimeException(
-                    "Unsupported database driver '{$driverName}' for connection: {$name}"
+                default => throw new ServiceException(
+                    translate: Message::create(
+                        key: 'service.error',
+                        params: ['reason' => "Unsupported database driver '{$driverName}' for connection: {$name}"]
+                    ),
+                    code: Status::INTERNAL_SERVER_ERROR
                 ),
             };
         }
