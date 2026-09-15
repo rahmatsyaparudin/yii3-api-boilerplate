@@ -164,10 +164,4 @@ return [
             'ignore_error_codes'     => [404, 422],
         ],
     ],
-    'app/enter-md' => [
-        'baseUrl'         => $_ENV['app.md.baseUrl'] ?? 'https://api-md.dev-enterkomputer.com/v1',
-        'secret'          => $_ENV['app.md.secret'] ?? '',
-        'algorithm'       => $_ENV['app.md.algorithm'] ?? 'HS256',
-        'serviceUsername' => $_ENV['app.md.serviceUsername'] ?? 'pos-service',
-    ],
 ];
