@@ -30,7 +30,7 @@ first**. Do not work around the rule by editing protected files
 "temporarily" or reverting afterwards.
 
 Core code is maintained centrally and synced into this project via
-`composer skeleton-update` — never patch it locally. Message files
+`composer skeleton:update` — never patch it locally. Message files
 (`error`, `success`, `validation`) are owned by the maintainer — AI agents
 may read them to reference existing message keys, but must not modify
 them.
