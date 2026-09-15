@@ -142,4 +142,33 @@ final class Strings
 
         return $result;
     }
+
+    /**
+     * Get the keywords that appear in the text (case-insensitive).
+     * Returns the matched keywords in the order given; empty keywords
+     * are skipped.
+     *
+     * @return string[]
+     */
+    public static function matchingKeywords(string $text, array $keywords): array
+    {
+        $found = [];
+
+        foreach ($keywords as $word) {
+            $word = (string) $word;
+            if ($word !== '' && \stripos($text, $word) !== false) {
+                $found[] = $word;
+            }
+        }
+
+        return $found;
+    }
+
+    /**
+     * Same as matchingKeywords() but returns the matches joined into a string.
+     */
+    public static function matchingKeywordsString(string $text, array $keywords, string $separator = ', '): string
+    {
+        return \implode($separator, self::matchingKeywords($text, $keywords));
+    }
 }
