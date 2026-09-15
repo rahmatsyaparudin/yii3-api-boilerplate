@@ -32,7 +32,7 @@ use Yiisoft\Injector\Injector;
  * ```
  *
  * Every module must be mapped to a connection in
- * `app/migrations.moduleConnections` (config/common/params.php);
+ * `moduleConnections` (config/common/migration.php);
  * without a mapping the command fails. `--db` overrides the mapping.
  */
 final class MigrateModuleCommand extends Command
@@ -56,7 +56,7 @@ final class MigrateModuleCommand extends Command
             ->setDescription('Applies new migrations for a specific module.')
             ->addArgument('module', InputArgument::REQUIRED, 'Module name (e.g., example).')
             ->addOption('limit', 'l', InputOption::VALUE_REQUIRED, 'Number of migrations to apply.')
-            ->addOption('db', null, InputOption::VALUE_REQUIRED, 'Connection name (db.<name>.* env keys). Defaults to the module\'s entry in app/migrations.moduleConnections, then "default".')
+            ->addOption('db', null, InputOption::VALUE_REQUIRED, 'Connection name (db.<name>.* env keys). Overrides the module\'s entry in config/common/migration.php moduleConnections.')
             ->addOption('force-yes', 'y', InputOption::VALUE_NONE, 'Force yes to all questions.');
     }
 
@@ -71,7 +71,7 @@ final class MigrateModuleCommand extends Command
         if ($connectionName === null) {
             $io->error(
                 "No database mapping for module '{$module}'. Add '{$module}' => '<connection>' to "
-                . "'app/migrations' -> 'moduleConnections' in config/common/params.php, "
+                . "'moduleConnections' in config/common/migration.php, "
                 . "or pass --db=<name>."
             );
 

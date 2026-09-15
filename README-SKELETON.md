@@ -5,13 +5,13 @@
 After creating a project from this boilerplate, run:
 
 ```bash
-composer skeleton-install
-composer skeleton-copy-examples
+composer skeleton:update
+composer skeleton:copy-examples
 ```
 
 ## What it does
 
-### `composer skeleton-install`
+### `composer skeleton:update`
 1. **Copy Shared classes** - Copy all Shared infrastructure from vendor to project
 2. **Copy Infrastructure classes** - Copy Infrastructure components from vendor to project
 3. **Copy Domain Shared classes** - Copy Domain Shared components from vendor to project
@@ -23,7 +23,7 @@ composer skeleton-copy-examples
 9. **Update composer.json** - Add required packages for Yii3 API functionality
 10. **Create directories** - Set up complete directory structure for all layers
 
-### `composer skeleton-copy-examples`
+### `composer skeleton:copy-examples`
 1. **Copy example files** - Copy example configuration and code files
 2. **Setup environment** - Create .env from .env.example
 3. **Copy example entities** - Copy Example entity across all layers
@@ -252,10 +252,10 @@ php yii simple-generate crud Product
 php yii template:generate my-api /tmp
 
 # Copy example files (if not already copied)
-composer skeleton-copy-examples
+composer skeleton:copy-examples
 
 # Force re-copy examples (remove flag file first)
-rm .skeleton_examples_copied && composer skeleton-copy-examples
+rm .skeleton_examples_copied && composer skeleton:copy-examples
 ```
 
 ## Next Steps
@@ -289,10 +289,10 @@ composer create-project rahmatsyaparudin/yii3-api-boilerplate my-api
 cd my-api
 
 # 2. Install shared infrastructure
-composer skeleton-install
+composer skeleton:update
 
 # 3. Copy example files and entities
-composer skeleton-copy-examples
+composer skeleton:copy-examples
 
 # 4. Install required packages
 composer update

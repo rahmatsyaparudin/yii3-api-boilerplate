@@ -208,7 +208,7 @@ src/
 │           └── 📁 Example/ - Example persistence
 │               ├── 📄 ExampleRepository.php - Example repository with optimistic locking
 │               └── 📄 MdbExampleSchema.php - MongoDB schema for Example
-├── 📁 Migration/ - Database migrations (root files are applied by migrate:up)
+├── 📁 Migration/ - Database migrations (per-module subfolders, mapped in config/common/migration.php)
 │   ├── 📁 Auditable/ - Isolated: audit_logs + rate_limits (migrate:module auditable)
 │   │   ├── 📄 M20240101000000CreateAuditLogsTable.php - Audit logs table
 │   │   └── 📄 M20240101000001CreateRateLimitsTable.php - Rate limits table

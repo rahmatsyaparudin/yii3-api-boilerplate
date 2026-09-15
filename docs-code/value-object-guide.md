@@ -340,7 +340,10 @@ $detailInfo->toJson();
 
 declare(strict_types=1);
 
-namespace App\Shared\Core\ValueObject;
+namespace App\Shared\Common\ValueObject;
+
+use App\Shared\Core\Exception\BadRequestException;
+use App\Shared\Core\ValueObject\Message;
 
 final readonly class Email
 {
@@ -348,11 +351,21 @@ final readonly class Email
         public readonly string $value
     ) {
         if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
-            throw new \InvalidArgumentException('Invalid email address: ' . $value);
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'format.email',
+                    params: ['field' => 'email']
+                )
+            );
         }
-        
+
         if (strlen($value) > 255) {
-            throw new \InvalidArgumentException('Email address too long (max 255 characters)');
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'length.max',
+                    params: ['field' => 'email', 'max' => 255]
+                )
+            );
         }
     }
 
@@ -390,7 +403,10 @@ final readonly class Email
 
 declare(strict_types=1);
 
-namespace App\Shared\Core\ValueObject;
+namespace App\Shared\Common\ValueObject;
+
+use App\Shared\Core\Exception\BadRequestException;
+use App\Shared\Core\ValueObject\Message;
 
 final readonly class Money
 {
@@ -399,11 +415,21 @@ final readonly class Money
         public readonly string $currency = 'USD'
     ) {
         if ($amount < 0) {
-            throw new \InvalidArgumentException('Amount cannot be negative');
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'range.min',
+                    params: ['field' => 'amount', 'min' => 0]
+                )
+            );
         }
-        
+
         if (!in_array($this->currency, ['USD', 'EUR', 'GBP', 'JPY'], true)) {
-            throw new \InvalidArgumentException('Invalid currency: ' . $this->currency);
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'request.invalid_parameter',
+                    params: ['param' => 'currency']
+                )
+            );
         }
     }
 
@@ -414,24 +440,25 @@ final readonly class Money
 
     public function add(Money $other): Money
     {
-        if ($this->currency !== $other->currency) {
-            throw new \InvalidArgumentException('Cannot add different currencies');
-        }
-        
+        $this->assertSameCurrency($other, 'add');
+
         return new Money($this->amount + $other->amount, $this->currency);
     }
 
     public function subtract(Money $other): Money
     {
-        if ($this->currency !== $other->currency) {
-            throw new \InvalidArgumentException('Cannot subtract different currencies');
-        }
-        
+        $this->assertSameCurrency($other, 'subtract');
+
         $newAmount = $this->amount - $other->amount;
         if ($newAmount < 0) {
-            throw new \InvalidArgumentException('Resulting amount cannot be negative');
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'business.violation',
+                    params: ['reason' => 'Resulting amount cannot be negative']
+                )
+            );
         }
-        
+
         return new Money($newAmount, $this->currency);
     }
 
@@ -443,11 +470,21 @@ final readonly class Money
 
     public function isGreaterThan(Money $other): bool
     {
-        if ($this->currency !== $other->currency) {
-            throw new \InvalidArgumentException('Cannot compare different currencies');
-        }
-        
+        $this->assertSameCurrency($other, 'compare');
+
         return $this->amount > $other->amount;
+    }
+
+    private function assertSameCurrency(Money $other, string $operation): void
+    {
+        if ($this->currency !== $other->currency) {
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'business.violation',
+                    params: ['reason' => "Cannot {$operation} different currencies"]
+                )
+            );
+        }
     }
 
     public function equals(Money $other): bool
@@ -464,7 +501,10 @@ final readonly class Money
 
 declare(strict_types=1);
 
-namespace App\Shared\Core\ValueObject;
+namespace App\Shared\Common\ValueObject;
+
+use App\Shared\Core\Exception\BadRequestException;
+use App\Shared\Core\ValueObject\Message;
 
 final readonly class Address
 {
@@ -475,28 +515,24 @@ final readonly class Address
         public readonly string $postalCode,
         public readonly string $country
     ) {
-        if (empty($this->street)) {
-            throw new \InvalidArgumentException('Street is required');
+        foreach (['street', 'city', 'state', 'postalCode', 'country'] as $field) {
+            if (empty($this->{$field})) {
+                throw new BadRequestException(
+                    translate: Message::create(
+                        key: 'request.missing_parameter',
+                        params: ['param' => $field]
+                    )
+                );
+            }
         }
-        
-        if (empty($this->city)) {
-            throw new \InvalidArgumentException('City is required');
-        }
-        
-        if (empty($this->state)) {
-            throw new \InvalidArgumentException('State is required');
-        }
-        
-        if (empty($this->postalCode)) {
-            throw new \InvalidArgumentException('Postal code is required');
-        }
-        
-        if (empty($this->country)) {
-            throw new \InvalidArgumentException('Country is required');
-        }
-        
+
         if (strlen($this->country) !== 2) {
-            throw new \InvalidArgumentException('Country must be 2 characters (ISO 3166-1 alpha-2)');
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'business.violation',
+                    params: ['reason' => 'Country must be 2 characters (ISO 3166-1 alpha-2)']
+                )
+            );
         }
     }
 
@@ -658,14 +694,20 @@ class Email
 
 ### 2. **Validation**
 ```php
-// ✅ Validate in constructor
+// ✅ Validate in constructor — throw the template's HttpException
+//    subclasses with Message::create, never raw \InvalidArgumentException
 final readonly class Email
 {
     public function __construct(
         public readonly string $value
     ) {
         if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
-            throw new \InvalidArgumentException('Invalid email');
+            throw new BadRequestException(
+                translate: Message::create(
+                    key: 'format.email',
+                    params: ['field' => 'email']
+                )
+            );
         }
     }
 }

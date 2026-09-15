@@ -21,7 +21,7 @@ src/
         └── M20260910104729CreateAnotherExampleTable.php   # another_example table
 ```
 
-Migrations are namespaced per module: `App\Migration\Example`, `App\Migration\Auditable`, etc. (see `yiisoft/db-migration` settings in `config/common/params.php`).
+Migrations are namespaced per module: `App\Migration\Example`, `App\Migration\Auditable`, etc. (see `yiisoft/db-migration` settings in `config/common/params-core.php`). Each module is mapped to a database connection in `config/common/migration.php` → `moduleConnections` — `migrate:module` fails without a mapping.
 
 ### Seeding Structure
 
@@ -169,10 +169,16 @@ final class M20240101120000CreateUserTable implements RevertibleMigrationInterfa
 ```
 
 #### 2. **Per-Module Migrations**
+
+Every module folder must be mapped to a connection in `config/common/migration.php` → `moduleConnections` (e.g. `'Auditable' => 'audit'` uses the `db.audit.*` env keys). Without a mapping `migrate:module` fails. History is tracked per database — the `{{%migration}}` table is created in the module's own database.
+
 ```bash
-# Apply pending migrations of one module only (custom command)
+# Apply pending migrations of one module on its mapped connection
 ./yii migrate:module example
 ./yii migrate:module auditable --limit=1 --force-yes
+
+# Override the mapped connection for this run
+./yii migrate:module auditable --db=audit
 ```
 
 #### 3. **Migration Management**
