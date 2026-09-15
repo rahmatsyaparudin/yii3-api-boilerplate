@@ -17,7 +17,6 @@ return [
             'console/params.php',
         ],
         'di'     => [
-            'common/repository.php',
             'common/di/*.php',
         ],
         'di-web' => [
