@@ -123,7 +123,7 @@ declare(strict_types=1);
 use App\Infrastructure\Core\Security\ActorProvider;
 use App\Infrastructure\Core\Security\CurrentUser;
 use App\Infrastructure\Core\Security\JwtService;
-use App\Shared\Core\Middleware\JwtMiddleware;
+use App\Presentation\Core\Http\Middleware\JwtMiddleware;
 
 // @var array $params
 
@@ -152,7 +152,7 @@ return [
 
 **Key Components**:
 - `JwtService` (`App\Infrastructure\Core\Security\JwtService`): JWT token generation and validation
-- `JwtMiddleware` (`App\Shared\Core\Middleware\JwtMiddleware`): request authentication middleware (part of the web middleware stack in `config/web/di/application.php`)
+- `JwtMiddleware` (`App\Presentation\Core\Http\Middleware\JwtMiddleware`): request authentication middleware (part of the web middleware stack in `config/web/di/application.php`)
 
 **Configuration Parameters**:
 ```bash
@@ -190,11 +190,11 @@ use App\Infrastructure\Core\Security\AccessChecker;
 use App\Infrastructure\Core\Security\CurrentUser;
 use App\Infrastructure\Core\Security\HstsMiddleware;
 // Shared Layer
-use App\Shared\Core\Middleware\AccessMiddleware;
-use App\Shared\Core\Middleware\CorsMiddleware;
-use App\Shared\Core\Middleware\RateLimitMiddleware;
-use App\Shared\Core\Middleware\RequestParamsMiddleware;
-use App\Shared\Core\Middleware\SecureHeadersMiddleware;
+use App\Presentation\Core\Http\Middleware\AccessMiddleware;
+use App\Presentation\Core\Http\Middleware\CorsMiddleware;
+use App\Presentation\Core\Http\Middleware\RateLimitMiddleware;
+use App\Presentation\Core\Http\Middleware\RequestParamsMiddleware;
+use App\Presentation\Core\Http\Middleware\SecureHeadersMiddleware;
 // PSR Interfaces
 use Psr\Http\Message\ResponseFactoryInterface;
 // Vendor Layer
@@ -295,7 +295,7 @@ These are only DI definitions — the actual execution order is assembled in `co
 
 1. `FormatDataResponseAsJson` + `ContentNegotiator`: JSON (and optional XML) responses
 2. `ErrorCatcher` + `ExceptionResponderFactory`: error catching and API error responses
-3. `TrustedHostMiddleware` (`App\Shared\Core\Middleware\TrustedHostMiddleware`): host allowlist
+3. `TrustedHostMiddleware` (`App\Presentation\Core\Http\Middleware\TrustedHostMiddleware`): host allowlist
 4. `CorsMiddleware`: CORS handling
 5. `JwtMiddleware`: JWT authentication
 6. `RequestIdMiddleware`, `StructuredLoggingMiddleware`, `MetricsMiddleware`: observability

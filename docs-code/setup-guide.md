@@ -411,9 +411,9 @@ The middleware stack is assembled in `config/web/di/application.php`:
 
 ```php
 // JWT authentication and RBAC access control run as middleware
-JwtMiddleware::class,      // App\Shared\Core\Middleware\JwtMiddleware
+JwtMiddleware::class,      // App\Presentation\Core\Http\Middleware\JwtMiddleware
 // ...
-AccessMiddleware::class,   // App\Shared\Core\Middleware\AccessMiddleware
+AccessMiddleware::class,   // App\Presentation\Core\Http\Middleware\AccessMiddleware
 ```
 
 Authorization checks go through `AuthorizerInterface` (bound to `App\Infrastructure\Core\Security\RbacAuthorizer` in `config/common/di/security-di.php`), with the permission map in `config/common/access.php`.

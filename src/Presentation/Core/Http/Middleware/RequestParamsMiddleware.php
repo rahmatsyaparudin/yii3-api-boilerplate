@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Shared\Core\Middleware;
+namespace App\Presentation\Core\Http\Middleware;
 
 // Application Layer
 use App\Shared\Core\Request\DataParserInterface;

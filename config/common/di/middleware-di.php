@@ -11,11 +11,11 @@ use App\Infrastructure\Core\Security\AccessChecker;
 use App\Infrastructure\Core\Security\CurrentUser;
 use App\Infrastructure\Core\Security\HstsMiddleware;
 // Shared Layer
-use App\Shared\Core\Middleware\AccessMiddleware;
-use App\Shared\Core\Middleware\CorsMiddleware;
-use App\Shared\Core\Middleware\RateLimitMiddleware;
-use App\Shared\Core\Middleware\RequestParamsMiddleware;
-use App\Shared\Core\Middleware\SecureHeadersMiddleware;
+use App\Presentation\Core\Http\Middleware\AccessMiddleware;
+use App\Presentation\Core\Http\Middleware\CorsMiddleware;
+use App\Presentation\Core\Http\Middleware\RateLimitMiddleware;
+use App\Presentation\Core\Http\Middleware\RequestParamsMiddleware;
+use App\Presentation\Core\Http\Middleware\SecureHeadersMiddleware;
 // PSR Interfaces
 use Psr\Http\Message\ResponseFactoryInterface;
 // Vendor Layer

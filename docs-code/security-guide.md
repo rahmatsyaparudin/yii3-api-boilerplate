@@ -120,7 +120,7 @@ $sanitized = InputSanitizer::process([
 **Components**:
 - `App\Infrastructure\Core\Security\JwtService` — wraps `firebase/jwt`, validates `iss`/`aud` when configured
 - `App\Infrastructure\Core\Security\ActorProvider` — builds an `Actor` from token claims (supports a nested `user` claim object or `preferred_username`)
-- `App\Shared\Core\Middleware\JwtMiddleware` — PSR-15 middleware that enforces the bearer token
+- `App\Presentation\Core\Http\Middleware\JwtMiddleware` — PSR-15 middleware that enforces the bearer token
 - `App\Infrastructure\Core\Security\CurrentUser` — holds the resolved `Actor` for the request
 
 ```php
