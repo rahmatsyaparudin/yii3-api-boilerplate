@@ -7,6 +7,6 @@ return [
     // (db.<name>.* env keys). migrate:module fails without an entry.
     'moduleConnections' => [
         'Example' => 'default',
-        // 'Auditable' => 'audit',
+        'Auditable' => 'audit',
     ],
 ];
