@@ -14,6 +14,7 @@ Protected paths:
 - `src/Domain/Shared/Core/`
 - `src/Application/Shared/Core/`
 - `src/Infrastructure/Core/`
+- `src/Presentation/Core/` — frozen presentation layer (HTTP middleware)
 - `src/Api/Shared/Presenter/` — frozen presenters
 - `config/common/di/` — skeleton-owned DI wiring
 - `resources/messages/en/error.php`

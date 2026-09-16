@@ -46,7 +46,7 @@ final class SkeletonScriptsCopier
         
         echo "✅ Scripts copied successfully!\n";
         echo "\n🎯 Next steps:\n";
-        echo "💡 Run 'composer skeleton-update' to update your project\n";
+        echo "💡 Run 'composer skeleton:update' to update your project\n";
     }
 
     private function copyDirectory(string $source, string $target): void
