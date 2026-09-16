@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 // Domain Layer
 use App\Api;
-// Shared Layer
-use App\Presentation\Core\Http\Middleware\RequestParamsMiddleware;
+
 // Vendor Layer
 use Yiisoft\Router\Group;
 use Yiisoft\Router\Route;
+
+// Shared Layer
+use App\Presentation\Core\Http\Middleware\RequestParamsMiddleware;
 
 // Api Layer
 use App\Api\V1\Example\Action as ExampleV1;
