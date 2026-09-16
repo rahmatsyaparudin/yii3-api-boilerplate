@@ -46,7 +46,10 @@ class SkeletonInstaller
         
         // Copy Application Shared classes from vendor
         $this->copyApplicationSharedClasses();
-        
+
+        // Copy Presentation classes from vendor
+        $this->copyPresentationClasses();
+
         // Copy API Shared classes from vendor
         $this->copyApiSharedClasses();
         
@@ -73,9 +76,11 @@ class SkeletonInstaller
         
         echo "✅ Shared classes installation completed!\n";
         echo "\n🎯 Shared classes copied to src/Shared/\n";
-        echo "📁 Directories created: Core/{Dto, Enums, ErrorHandler, Exception, Middleware, Query, Request, Security, Utility, Validation, ValueObject}, Common/Context\n";
+        echo "📁 Directories created: Core/{Dto, Enums, ErrorHandler, Exception, Query, Request, Security, Utility, Validation, ValueObject}, Common/Context\n";
         echo "🏗️  Infrastructure classes copied to src/Infrastructure/\n";
         echo "📁 Directories created: Core/{Audit, Clock, Concerns, Database, Monitoring, RateLimit, Security, Seeder, Time}, Common/Persistence\n";
+        echo "🖼️  Presentation classes copied to src/Presentation/\n";
+        echo "📁 Directories created: Core/Http/Middleware, Common\n";
         echo "🧠 Domain Shared classes copied to src/Domain/Shared/\n";
         echo "📁 Directories created: Core/{Audit, Concerns, Contract, Security, ValueObject}, Common\n";
         echo "⚙️  Application Shared classes copied to src/Application/Shared/\n";
@@ -96,7 +101,7 @@ class SkeletonInstaller
         echo "🔧 Quality Assurance script copied to project root\n";
         echo "📁 Files copied: quality\n";
         echo "🛡️  Core protection installed (AGENTS.md frozen-core rules)\n";
-        echo "📁 src/**/Core/ is frozen for AI agents — update it only via composer skeleton-update\n";
+        echo "📁 src/**/Core/ is frozen for AI agents — update it only via composer skeleton:update\n";
         echo "📦 Composer packages updated in composer.json\n";
         echo "📁 Packages added: firebase/php-jwt, psr/clock, vlucas/phpdotenv, yiisoft/* packages\n";
 
@@ -190,7 +195,6 @@ class SkeletonInstaller
             'Core/Enums',
             'Core/ErrorHandler',
             'Core/Exception',
-            'Core/Middleware',
             'Core/Query',
             'Core/Request',
             'Core/Security',
@@ -353,6 +357,52 @@ class SkeletonInstaller
                 $this->copyDirectory($currentApplicationSharedPath, $targetApplicationSharedPath);
                 echo "✅ Copied existing Application Shared classes\n";
             }
+        }
+    }
+
+    private function copyPresentationClasses(): void
+    {
+        // In actual vendor package usage, copy from vendor to project
+        $vendorPresentationPath = $this->vendorPath . '/src/Presentation';
+        $targetPresentationPath = $this->projectRoot . '/src/Presentation';
+
+        // Ensure Presentation directory exists
+        if (!is_dir($targetPresentationPath)) {
+            mkdir($targetPresentationPath, 0755, true);
+        }
+
+        // Create all required subdirectories
+        $presentationDirs = [
+            'Core/Http/Middleware',
+            'Common',
+        ];
+
+        foreach ($presentationDirs as $dir) {
+            $dirPath = $targetPresentationPath . '/' . $dir;
+            if (!is_dir($dirPath)) {
+                mkdir($dirPath, 0755, true);
+                echo "✅ Created directory: src/Presentation/{$dir}\n";
+            }
+        }
+
+        // Copy Presentation classes from vendor if available
+        if (is_dir($vendorPresentationPath)) {
+            $this->copyDirectory($vendorPresentationPath, $targetPresentationPath);
+            echo "✅ Copied Presentation classes from vendor\n";
+        } else {
+            // Fallback: copy from current location (for testing in boilerplate)
+            $currentPresentationPath = $this->projectRoot . '/src/Presentation';
+            if (is_dir($currentPresentationPath)) {
+                $this->copyDirectory($currentPresentationPath, $targetPresentationPath);
+                echo "✅ Copied existing Presentation classes\n";
+            }
+        }
+
+        // Legacy location: HTTP middleware moved out of src/Shared/Core
+        $legacyMiddlewarePath = $this->projectRoot . '/src/Shared/Core/Middleware';
+        if (is_dir($legacyMiddlewarePath)) {
+            $this->filesystem->remove($legacyMiddlewarePath);
+            echo "🗑️  Removed legacy directory: src/Shared/Core/Middleware\n";
         }
     }
 

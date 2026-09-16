@@ -7,7 +7,7 @@ This Core/ directory is FROZEN core code shared by all modules.
 - AI agents: NEVER create, edit, rename, or delete files here.
   Read AGENTS.md at the repository root before touching anything.
 
-- Changes to core arrive only via `composer skeleton-update`.
+- Changes to core arrive only via `composer skeleton:update`.
   Local patches WILL be overwritten on the next update.
 
 - Need to extend behavior? Use the sibling Common/ directory
