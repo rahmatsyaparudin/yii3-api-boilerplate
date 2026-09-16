@@ -13,7 +13,7 @@ declare(strict_types=1);
  *
  * Example using .env (params.php):
  *
- *   use App\Shared\Core\Middleware\ExampleMiddleware;
+ *   use App\Presentation\Core\Http\Middleware\ExampleMiddleware;
  *
  *   return [
  *       ExampleMiddleware::class => static function () use ($params) {
@@ -25,7 +25,7 @@ declare(strict_types=1);
  *
  * Example using manual/hardcoded values:
  *
- *   use App\Shared\Core\Middleware\ExampleMiddleware;
+ *   use App\Presentation\Core\Http\Middleware\ExampleMiddleware;
  *
  *   return [
  *       ExampleMiddleware::class => static fn () => new ExampleMiddleware(

@@ -6,7 +6,7 @@ declare(strict_types=1);
 use App\Infrastructure\Core\Security\ActorProvider;
 use App\Infrastructure\Core\Security\CurrentUser;
 use App\Infrastructure\Core\Security\JwtService;
-use App\Shared\Core\Middleware\JwtMiddleware;
+use App\Presentation\Core\Http\Middleware\JwtMiddleware;
 
 // @var array $params
 

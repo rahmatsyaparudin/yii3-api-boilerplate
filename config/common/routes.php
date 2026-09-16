@@ -8,7 +8,7 @@ use App\Api;
 use App\Api\V1\AnotherExample\Action as AnotherExampleV1;
 use App\Api\V1\Example\Action as ExampleV1;
 // Shared Layer
-use App\Shared\Core\Middleware\RequestParamsMiddleware;
+use App\Presentation\Core\Http\Middleware\RequestParamsMiddleware;
 // Vendor Layer
 use Yiisoft\Router\Group;
 use Yiisoft\Router\Route;

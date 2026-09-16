@@ -640,7 +640,7 @@ final readonly class ExampleResponse
 ```php
 // Middleware are defined in config/common/di/middleware-di.php and stacked via
 // config/common/middleware.php or per-route group (see config/common/routes.php):
-//   JwtMiddleware            – JWT authentication (App\Shared\Core\Middleware)
+//   JwtMiddleware            – JWT authentication (App\Presentation\Core\Http\Middleware)
 //   AccessMiddleware         – per-route permission check ('permission' route default)
 //   RateLimitMiddleware      – request rate limiting
 //   CorsMiddleware, SecureHeadersMiddleware, TrustedHostMiddleware, HstsMiddleware

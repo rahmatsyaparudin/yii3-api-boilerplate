@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Shared\Core\Middleware;
+namespace App\Presentation\Core\Http\Middleware;
 
 // Infrastructure Layer
 use App\Infrastructure\Core\Security\CurrentUser;
