@@ -23,6 +23,10 @@ composer skeleton:copy-examples
 9. **Update composer.json** - Add required packages for Yii3 API functionality
 10. **Create directories** - Set up complete directory structure for all layers
 
+### `composer skeleton:version`
+1. **Compare versions** - Compare the project's `scripts/skeleton.version` with the version shipped by the package in vendor/
+2. **Report status** - Shows whether the project is up to date or an update is available (`X → Y`), with a hint to run `composer skeleton:update`
+
 ### `composer skeleton:copy-examples`
 1. **Copy example files** - Copy example configuration and code files
 2. **Setup environment** - Create .env from .env.example

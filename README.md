@@ -76,6 +76,9 @@ Open your project's `composer.json` and add the following sections:
 "skeleton:scripts": [
             "@php scripts/skeleton-scripts.php"
         ],
+        "skeleton:version": [
+            "@php scripts/skeleton-version.php"
+        ],
         "skeleton:update": [
             "composer update rahmatsyaparudin/yii3-api-boilerplate --ignore-platform-reqs",
             "@php scripts/skeleton-scripts.php",
@@ -124,6 +127,16 @@ Copy example files (first time only)
 ```bash
 composer skeleton:copy-examples
 ```
+
+### Check for Skeleton Updates
+
+Compare your installed skeleton version (`scripts/skeleton.version`) with the version shipped by the package:
+
+```bash
+composer skeleton:version
+```
+
+It reports whether the project is up to date or an update is available (e.g. `1.2.6 → 1.2.7`), in which case run `composer skeleton:update`.
 
 ### 6. Generate New Module
 
@@ -1135,6 +1148,7 @@ vendor/bin/phpunit tests/Unit/Domain/Example/ExampleTest.php
 
 #### Weekly
 - Update dependencies: `composer update`
+- Check skeleton updates: `composer skeleton:version`
 - Run quality checks: `php quality`
 - Review test coverage trends
 - Check security advisories
