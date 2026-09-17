@@ -96,8 +96,8 @@ class SkeletonInstaller
         echo "🔧 Autoload file copied to src/\n";
         echo "📁 Files copied: autoload.php\n";
         echo "📁 Empty directories created: src/Migration, src/Seed\n";
-        echo "🖥️  Console commands copied to src/Console/\n";
-        echo "📁 Files copied: HelloCommand.php, MigrateModuleCommand.php, SeederCommand.php\n";
+        echo "🖥️  Console commands copied to src/Console/Core/\n";
+        echo "📁 Files copied: Core/{HelloCommand.php, MigrateModuleCommand.php, MigrationGuardCommand.php, SeederCommand.php}, Common/.gitkeep, AGENTS.md\n";
         echo "🔧 Quality Assurance script copied to project root\n";
         echo "📁 Files copied: quality\n";
         echo "🛡️  Core protection installed (AGENTS.md frozen-core rules)\n";
