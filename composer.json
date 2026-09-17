@@ -117,6 +117,9 @@
         "skeleton:scripts": [
             "@php scripts/skeleton-scripts.php"
         ],
+        "skeleton:version": [
+            "@php scripts/skeleton-version.php"
+        ],
         "skeleton:update": [
             "composer update rahmatsyaparudin/yii3-api-boilerplate --ignore-platform-reqs",
             "@php scripts/skeleton-scripts.php",

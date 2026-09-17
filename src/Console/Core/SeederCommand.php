@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Console;
+namespace App\Console\Core;
 
 // PSR Interfaces
 use Psr\Container\ContainerInterface;
@@ -88,7 +88,7 @@ final class SeederCommand extends Command
 
     private function seedAll(int $count, OutputInterface $output): void
     {
-        $seedDir   = __DIR__ . '/../Seeder';
+        $seedDir   = __DIR__ . '/../../Seeder';
         $seedFiles = \glob($seedDir . '/Seed*Data.php');
 
         if (empty($seedFiles)) {

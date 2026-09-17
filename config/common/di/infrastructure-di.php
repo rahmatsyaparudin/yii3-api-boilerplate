@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 // Application Layer
-use App\Console\MigrateModuleCommand;
+use App\Console\Core\MigrateModuleCommand;
 // Domain Layer
 use App\Domain\Shared\Core\Contract\DateTimeProviderInterface;
 // Infrastructure Layer

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Console;
+namespace App\Console\Core;
 
 // Application Layer
 use App\Infrastructure\Core\Database\ConnectionPool;

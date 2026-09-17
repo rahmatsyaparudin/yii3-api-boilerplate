@@ -166,9 +166,12 @@ yii3-api/
 │   │           ├── SearchCriteriaFactory.php # RequestParams → SearchCriteria
 │   │           └── SyncFlagFactory.php # SyncFlag value object factory
 │   ├── Console/            # Console commands
-│   │   ├── HelloCommand.php # Example console command
-│   │   ├── MigrateModuleCommand.php # Module migration helper
-│   │   └── SeederCommand.php # Database seeder command
+│   │   ├── Core/           # Skeleton console commands (frozen)
+│   │   │   ├── HelloCommand.php # Example console command
+│   │   │   ├── MigrateModuleCommand.php # Module migration helper
+│   │   │   ├── MigrationGuardCommand.php # Blocks destructive commands in prod
+│   │   │   └── SeederCommand.php # Database seeder command
+│   │   └── Common/         # Project console commands
 │   ├── Domain/             # Domain layer
 │   │   ├── Example/        # Example domain
 │   │   │   ├── Entity/     # Domain entities

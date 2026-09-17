@@ -28,8 +28,9 @@ Migrations are namespaced per module: `App\Migration\Example`, `App\Migration\Au
 ```
 src/
 ├── Console/                     # Console commands
-│   ├── MigrateModuleCommand.php # Per-module migrations (migrate:module)
-│   └── SeederCommand.php        # Flexible seeding command (seed)
+│   └── Core/                    # Skeleton console commands (frozen)
+│       ├── MigrateModuleCommand.php # Per-module migrations (migrate:module)
+│       └── SeederCommand.php        # Flexible seeding command (seed)
 ├── Seeder/                      # Seed classes
 │   ├── SeedExampleData.php          # Seeds the example table
 │   ├── SeedAnotherExampleData.php   # Seeds the another_example table
@@ -216,7 +217,7 @@ APP_ENV=test ./yii migrate:up
 
 ## 🌱 Data Seeding
 
-Seeding is handled by the `seed` console command (`src/Console/SeederCommand.php`) together with per-module seeder classes in `src/Seeder/` that extend `App\Infrastructure\Core\Seeder\AbstractSeederData`. Fixtures are written in YAML using [nelmio/alice](https://github.com/nelmio/alice) `__factory` syntax.
+Seeding is handled by the `seed` console command (`src/Console/Core/SeederCommand.php`) together with per-module seeder classes in `src/Seeder/` that extend `App\Infrastructure\Core\Seeder\AbstractSeederData`. Fixtures are written in YAML using [nelmio/alice](https://github.com/nelmio/alice) `__factory` syntax.
 
 ### Console Seeding Commands
 
@@ -243,7 +244,7 @@ Seeding is handled by the `seed` console command (`src/Console/SeederCommand.php
 #   --count, -c    Number of records to seed (default: 10)
 ```
 
-#### 3. **Command Implementation** (`src/Console/SeederCommand.php`)
+#### 3. **Command Implementation** (`src/Console/Core/SeederCommand.php`)
 ```php
 final class SeederCommand extends Command
 {

@@ -122,9 +122,12 @@ src/
 │       │       └── 📄 SearchCriteriaFactory.php - Search criteria factory
 │       └── 📁 Common/ - Common shared helpers
 ├── 📁 Console/ - Console commands
-│   ├── 📄 HelloCommand.php - Hello world command
-│   ├── 📄 MigrateModuleCommand.php - Isolated module migrations (migrate:module)
-│   └── 📄 SeederCommand.php - Data seeding command
+│   ├── 📁 Core/ - Skeleton console commands (frozen)
+│   │   ├── 📄 HelloCommand.php - Hello world command
+│   │   ├── 📄 MigrateModuleCommand.php - Isolated module migrations (migrate:module)
+│   │   ├── 📄 MigrationGuardCommand.php - Blocks destructive commands in prod
+│   │   └── 📄 SeederCommand.php - Data seeding command
+│   └── 📁 Common/ - Project console commands
 ├── 📁 Domain/ - Domain layer
 │   ├── 📁 Example/ - Example bounded context
 │   │   ├── 📁 Entity/ - Domain entities
