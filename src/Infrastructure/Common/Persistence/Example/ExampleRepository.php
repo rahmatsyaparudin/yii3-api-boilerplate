@@ -38,9 +38,8 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
     use HasMongoDBSync;
     use ManagesPersistence;
 
-    public const TABLE_NAME     = 'example';
-    public const SEQUENCE_ID    = 'example_id_seq';
-    private const LIKE_OPERATOR = 'ilike';
+    public const TABLE_NAME  = 'example';
+    public const SEQUENCE_ID = 'example_id_seq';
 
     public function __construct(
         private ConnectionInterface $db,
@@ -147,8 +146,7 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
         if (!empty($filter['name'])) {
             $this->queryConditionApplier->orLike(
                 query: $query,
-                operator: self::LIKE_OPERATOR,
-                conditions: ['name' => $filter['name']]
+                conditions: ['name' => $filter['name']],
             );
         }
 
