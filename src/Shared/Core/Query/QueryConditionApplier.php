@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Shared\Core\Query;
 
 // Vendor Layer
+use Yiisoft\Db\Connection\ConnectionInterface;
 use Yiisoft\Db\Query\Query;
 
 /**
@@ -25,7 +26,7 @@ use Yiisoft\Db\Query\Query;
  * // Complex filtering with multiple conditions
  * $query = new Query();
  * QueryConditionApplier::andWhere($query, ['status' => 'active', 'type' => 'premium']);
- * QueryConditionApplier::orLike($query, 'ilike', ['name' => 'john', 'email' => 'example']);
+ * $this->queryConditionApplier->orLike($query, 'ilike', ['name' => 'john', 'email' => 'example']);
  * QueryConditionApplier::andRange($query, [
  *     'price' => ['min' => 100, 'max' => 500],
  *     'created_at' => ['min' => '2024-01-01', 'max' => '2024-12-31']
@@ -62,7 +63,7 @@ use Yiisoft\Db\Query\Query;
  *
  *     // Apply text search
  *     if (!empty($criteria->search)) {
- *         QueryConditionApplier::orLike($query, 'ilike', [
+ *         $this->queryConditionApplier->orLike($query, 'ilike', [
  *             'name' => $criteria->search,
  *             'description' => $criteria->search,
  *             'tags' => $criteria->search
@@ -104,6 +105,15 @@ use Yiisoft\Db\Query\Query;
  */
 final class QueryConditionApplier
 {
+    /**
+     * @param ConnectionInterface|null $db Default connection used to resolve the
+     *                                     LIKE operator. Autowired by the container;
+     *                                     left null when instantiated manually.
+     */
+    public function __construct(
+        private ?ConnectionInterface $db = null,
+    ) {}
+
     /**
      * Filter query by exact match with column whitelist.
      *
@@ -155,18 +165,21 @@ final class QueryConditionApplier
     /**
      * Filter query by LIKE/ILIKE with column whitelist and optional auto-wrapping.
      *
-     * @param Query  $query          The query to modify
-     * @param array  $filters        Key-value pairs of column => search value
-     * @param array  $allowedColumns Whitelisted column names
-     * @param string $operator       The LIKE operator to use ('like' or 'ilike')
-     * @param bool   $autoWrap       Whether to wrap the value with '%' if it does not already contain '%'
+     * @param Query                   $query          The query to modify
+     * @param array                   $filters        Key-value pairs of column => search value
+     * @param array                   $allowedColumns Whitelisted column names
+     * @param string|null             $operator       The LIKE operator ('like' or 'ilike'). When null,
+     *                                                it is resolved from $db ('ilike' for pgsql, 'like' otherwise)
+     * @param bool                    $autoWrap       Whether to wrap the value with '%' if it does not already contain '%'
+     * @param ConnectionInterface|null $db            Connection used to resolve the operator when $operator is null. Defaults to the injected connection; pass another connection for multi-database queries
      */
-    public static function filterByLike(
+    public function filterByLike(
         Query $query,
         array $filters,
         array $allowedColumns,
-        string $operator = 'like',
+        ?string $operator = null,
         bool $autoWrap = true,
+        ?ConnectionInterface $db = null,
     ): Query {
         $whitelisted = \array_intersect_key($filters, \array_flip($allowedColumns));
         $conditions  = [];
@@ -184,7 +197,7 @@ final class QueryConditionApplier
         }
 
         if ($conditions !== []) {
-            self::andLike($query, $operator, $conditions);
+            $this->andLike($query, $operator, $conditions, $db);
         }
 
         return $query;
@@ -293,9 +306,11 @@ final class QueryConditionApplier
      * Adds text search conditions using the specified operator.
      * Commonly used for case-insensitive (ilike) or case-sensitive (like) text search.
      *
-     * @param Query  $query      The query to modify
-     * @param string $operator   The LIKE operator to use ('like' or 'ilike')
-     * @param array  $conditions Key-value pairs of column => search pattern
+     * @param Query                    $query      The query to modify
+     * @param string|null              $operator   The LIKE operator ('like' or 'ilike'). When null,
+     *                                             it is resolved from $db ('ilike' for pgsql, 'like' otherwise)
+     * @param array                    $conditions Key-value pairs of column => search pattern
+     * @param ConnectionInterface|null $db         Connection used to resolve the operator when $operator is null. Defaults to the injected connection; pass another connection for multi-database queries
      *
      * @return Query The modified query
      *
@@ -303,16 +318,16 @@ final class QueryConditionApplier
      * // Case-insensitive text search
      * $query = new Query();
      * $conditions = ['name' => '%john%', 'email' => '%@example%'];
-     * $query = QueryConditionApplier::andLike($query, 'ilike', $conditions);
+     * $query = $this->queryConditionApplier->andLike($query, 'ilike', $conditions);
      * @example
      * // Case-sensitive text search
      * $query = new Query();
      * $conditions = ['title' => 'Exact Match', 'description' => 'Contains Text'];
-     * $query = QueryConditionApplier::andLike($query, 'like', $conditions);
+     * $query = $this->queryConditionApplier->andLike($query, 'like', $conditions);
      * @example
      * In search service
      * $query = $this->createQuery();
-     * $query = QueryConditionApplier::andLike(
+     * $query = $this->queryConditionApplier->andLike(
      *     query: $query,
      *     operator: 'ilike',
      *     conditions: [
@@ -321,11 +336,14 @@ final class QueryConditionApplier
      *     ]
      * );
      */
-    public static function andLike(
+    public function andLike(
         Query $query,
-        string $operator,
-        array $conditions
+        ?string $operator = null,
+        array $conditions = [],
+        ?ConnectionInterface $db = null,
     ): Query {
+        $operator = self::resolveLikeOperator($operator, $db ?? $this->db);
+
         foreach ($conditions as $column => $value) {
             if (self::isFilled($value)) {
                 $query->andWhere([$operator, $column, $value]);
@@ -341,9 +359,11 @@ final class QueryConditionApplier
      * Adds text search conditions using OR logic within an AND clause.
      * The result format is: AND (col1 LIKE x OR col2 LIKE y OR col3 LIKE z).
      *
-     * @param Query  $query      The query to modify
-     * @param string $operator   The LIKE operator to use ('like' or 'ilike')
-     * @param array  $conditions Key-value pairs of column => search pattern
+     * @param Query                    $query      The query to modify
+     * @param string|null              $operator   The LIKE operator ('like' or 'ilike'). When null,
+     *                                             it is resolved from $db ('ilike' for pgsql, 'like' otherwise)
+     * @param array                    $conditions Key-value pairs of column => search pattern
+     * @param ConnectionInterface|null $db         Connection used to resolve the operator when $operator is null. Defaults to the injected connection; pass another connection for multi-database queries
      *
      * @return Query The modified query
      *
@@ -355,7 +375,7 @@ final class QueryConditionApplier
      *     'email' => '%@example%',
      *     'username' => '%john%'
      * ];
-     * $query = QueryConditionApplier::orLike($query, 'ilike', $conditions);
+     * $query = $this->queryConditionApplier->orLike($query, 'ilike', $conditions);
      * // Generates: AND (name LIKE '%john%' OR email LIKE '%@example%' OR username LIKE '%john%')
      * @example
      * In search API endpoint
@@ -365,20 +385,23 @@ final class QueryConditionApplier
      * foreach ($searchTerms as $term) {
      *     $orConditions[$term] = "%$term%";
      * }
-     * $query = QueryConditionApplier::orLike($query, 'ilike', $orConditions);
+     * $query = $this->queryConditionApplier->orLike($query, 'ilike', $orConditions);
      * @example
      * // Advanced search with multiple operators
      * $query = $this->createQuery();
-     * $query = QueryConditionApplier::orLike($query, 'ilike', [
+     * $query = $this->queryConditionApplier->orLike($query, 'ilike', [
      *     'title' => '%search%',
      *     'content' => '%search%'
      * ]);
      */
-    public static function orLike(
+    public function orLike(
         Query $query,
-        string $operator,
-        array $conditions
+        ?string $operator = null,
+        array $conditions = [],
+        ?ConnectionInterface $db = null,
     ): Query {
+        $operator = self::resolveLikeOperator($operator, $db ?? $this->db);
+
         $or = [];
 
         foreach ($conditions as $column => $value) {
@@ -561,6 +584,23 @@ final class QueryConditionApplier
         }
 
         return $query;
+    }
+
+    /**
+     * Resolve the LIKE operator to use.
+     *
+     * An explicit $operator always wins. Otherwise it is derived from the
+     * connection driver: PostgreSQL gets 'ilike' (case-insensitive), every
+     * other driver gets 'like' (MySQL's default *_ci collations are already
+     * case-insensitive). When $db is null, 'like' is used as the safe default.
+     */
+    private static function resolveLikeOperator(?string $operator, ?ConnectionInterface $db): string
+    {
+        if ($operator !== null) {
+            return $operator;
+        }
+
+        return $db !== null && $db->getDriverName() === 'pgsql' ? 'ilike' : 'like';
     }
 
     /**
