@@ -120,7 +120,7 @@ yii3-api/
 │       │   └── validation.php # Validation messages
 │       └── id/             # Indonesian translations (same files)
 ├── scripts/                # Utility and maintenance scripts
-│   ├── generate-module.php # Module scaffolding script
+│   ├── skeleton-generate-module.php # Module scaffolding script
 │   ├── skeleton-copy-config.php # Skeleton config copier
 │   ├── skeleton-copy-examples.php # Example file copier
 │   ├── skeleton-scripts.php # Skeleton composer scripts

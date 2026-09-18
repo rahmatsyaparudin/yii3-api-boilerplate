@@ -11,12 +11,12 @@ declare(strict_types=1);
  * to use the new module name.
  * 
  * Usage:
- * php scripts/generate-module.php --module=<ModuleName>
+ * php scripts/skeleton-generate-module.php --module=<ModuleName>
  * 
  * Examples:
- * php scripts/generate-module.php --module=Product
- * php scripts/generate-module.php --module=Order
- * php scripts/generate-module.php --module=User
+ * php scripts/skeleton-generate-module.php --module=Product
+ * php scripts/skeleton-generate-module.php --module=Order
+ * php scripts/skeleton-generate-module.php --module=User
  */
 
 /**
@@ -726,15 +726,15 @@ function main(): void
     $args = array_slice($GLOBALS['argv'], 1);
     
     if (empty($args)) {
-        echo "📖️ Usage: php scripts/generate-module.php --module=<ModuleName> [--table=<TableName>] [--db=<ConnectionName>]\n";
+        echo "📖️ Usage: php scripts/skeleton-generate-module.php --module=<ModuleName> [--table=<TableName>] [--db=<ConnectionName>]\n";
         echo "\n📝 Examples:\n";
-        echo "  php scripts/generate-module.php --module=Product\n";
-        echo "  php scripts/generate-module.php --module=Product --table=products\n";
-        echo "  php scripts/generate-module.php --module=Order --table=logistic_service\n";
-        echo "  php scripts/generate-module.php --module=User --table=users\n";
-        echo "  php scripts/generate-module.php --module=Blog --table=blog_posts\n";
-        echo "  php scripts/generate-module.php --module=Payment --table=payment_transactions\n";
-        echo "  php scripts/generate-module.php --module=AuditLog --db=audit\n";
+        echo "  php scripts/skeleton-generate-module.php --module=Product\n";
+        echo "  php scripts/skeleton-generate-module.php --module=Product --table=products\n";
+        echo "  php scripts/skeleton-generate-module.php --module=Order --table=logistic_service\n";
+        echo "  php scripts/skeleton-generate-module.php --module=User --table=users\n";
+        echo "  php scripts/skeleton-generate-module.php --module=Blog --table=blog_posts\n";
+        echo "  php scripts/skeleton-generate-module.php --module=Payment --table=payment_transactions\n";
+        echo "  php scripts/skeleton-generate-module.php --module=AuditLog --db=audit\n";
         exit(1);
     }
 
@@ -779,7 +779,7 @@ function main(): void
     
     if ($moduleName === null) {
         echo "❌ Error: --module option is required\n";
-        echo "📖️ Usage: php scripts/generate-module.php --module=<ModuleName> [--table=<TableName>] [--db=<ConnectionName>]\n";
+        echo "📖️ Usage: php scripts/skeleton-generate-module.php --module=<ModuleName> [--table=<TableName>] [--db=<ConnectionName>]\n";
         exit(1);
     }
     
