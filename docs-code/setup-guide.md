@@ -1,6 +1,6 @@
 # Yii3 API Skeleton Setup Guide
 
-**Yii3 API Boilerplate** (`rahmatsyaparudin/yii3-api-boilerplate`) is a starter project for building RESTful APIs using Yii3 with Domain-Driven Design (DDD) architecture. It provides a ready-to-use structure, helper scripts (`scripts/skeleton-*.php`, `generate-module.php`), and example configurations to accelerate your API development with clean architecture principles.
+**Yii3 API Boilerplate** (`rahmatsyaparudin/yii3-api-boilerplate`) is a starter project for building RESTful APIs using Yii3 with Domain-Driven Design (DDD) architecture. It provides a ready-to-use structure, helper scripts (`scripts/skeleton-*.php`), and example configurations to accelerate your API development with clean architecture principles.
 
 ---
 
@@ -102,7 +102,7 @@ composer skeleton:copy-config
 composer skeleton:copy-examples
 ```
 
-The current skeleton version is tracked in `scripts/skeleton.version` (currently `1.1.0`). A new module can also be generated with `php scripts/generate-module.php --module=Product` (optionally `--table=<name>` and `--db=<connection>` to migrate on a non-default database).
+The current skeleton version is tracked in `scripts/skeleton.version` (currently `1.1.0`). A new module can also be generated with `php scripts/skeleton-generate-module.php --module=Product` (optionally `--table=<name>` and `--db=<connection>` to migrate on a non-default database).
 
 ---
 
@@ -129,7 +129,7 @@ yii3-api/
 │   ├── skeleton-update.php
 │   ├── skeleton-copy-config.php
 │   ├── skeleton-copy-examples.php
-│   ├── generate-module.php
+│   ├── skeleton-generate-module.php
 │   └── skeleton.version    # Current skeleton version
 ├── src/                    # Source code
 │   ├── Api/                # API layer

@@ -132,7 +132,7 @@
             "@php scripts/skeleton-copy-examples.php"
         ],
         "skeleton:generate-module": [
-            "@php scripts/generate-module.php"
+            "@php scripts/skeleton-generate-module.php"
         ]
     },
     "extra": {

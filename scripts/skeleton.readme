@@ -65,7 +65,7 @@
 ### Changed
 - `src/Infrastructure/Core/Database/ConnectionPool.php` — MySQL/PostgreSQL
   connection pool fixes.
-- `scripts/generate-module.php` — module generator improvements.
+- `scripts/skeleton-generate-module.php` — module generator improvements.
 - `src/Console/MigrateModuleCommand.php` — command fixes.
 - Documentation refresh across `docs-code/` (value object, migration &
   seeding, setup, localization guides).
