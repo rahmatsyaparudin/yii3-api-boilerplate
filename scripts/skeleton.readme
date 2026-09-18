@@ -6,8 +6,17 @@
 > installed version, so users always see which files changed and what
 > changed — without anyone having to edit `skeleton-update.php`.
 
-## Unreleased
+## 1.2.8
 
+### Added
+- `scripts/skeleton.readme` — this changelog. `composer skeleton:update`
+  prints the sections newer than the previously installed version.
+- `scripts/skeleton-update.php` — release-notes display after update
+  (`displayReleaseNotes()`, `extractReleaseNotes()`); the restarted
+  installer receives the previous version via `SKELETON_PREV_VERSION`
+  and `skeleton.readme` is re-synced even when the version is unchanged.
+
+### Changed
 - `src/Shared/Core/Query/QueryConditionApplier.php` — `filterByLike()` and
   `orLike()` are now instance methods (no longer static). The `$operator`
   argument is now nullable and auto-resolved from the DB connection
@@ -16,6 +25,12 @@
 - `src/Infrastructure/Common/Persistence/Example/ExampleRepository.php`,
   `.../AnotherExample/AnotherExampleRepository.php` — repository examples
   updated to call `QueryConditionApplier` as an injected instance.
+
+### Renamed
+- `scripts/generate-module.php` → `scripts/skeleton-generate-module.php`
+  — consistent `skeleton-*` naming for skeleton-owned scripts; the
+  `composer skeleton:generate-module` command is unchanged. Update any
+  direct calls (`php scripts/generate-module.php ...`) to the new path.
 
 ## 1.2.7
 
