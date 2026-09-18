@@ -105,6 +105,9 @@ class SkeletonInstaller
         echo "📦 Composer packages updated in composer.json\n";
         echo "📁 Packages added: firebase/php-jwt, psr/clock, vlucas/phpdotenv, yiisoft/* packages\n";
 
+        // Show release notes (scripts/skeleton.readme) for the version(s) just installed
+        $this->displayReleaseNotes();
+
         $versionFile = $this->projectRoot . '/scripts/skeleton.version';
         $version = file_exists($versionFile) ? trim((string) file_get_contents($versionFile)) : 'unknown';
         echo "\n\033[1;92m✨ Skeleton updated successfully to version {$version}\033[0m\n";
@@ -132,13 +135,20 @@ class SkeletonInstaller
             ? trim((string) file_get_contents($currentVersionFile))
             : null;
 
+        $targetScriptsPath = $this->projectRoot . '/scripts';
+
         if ($vendorVersion === '' || $vendorVersion === $currentVersion) {
+            // Skeleton is already on this version — still refresh the release
+            // notes so `skeleton:update` always shows the latest readme.
+            $this->syncScriptFile(
+                $vendorScriptsPath . '/skeleton.readme',
+                $targetScriptsPath . '/skeleton.readme',
+            );
             return;
         }
 
         echo "\033[1;93m📜 Updating skeleton scripts: {$currentVersion} → {$vendorVersion}\033[0m\n";
 
-        $targetScriptsPath = $this->projectRoot . '/scripts';
         if (!is_dir($targetScriptsPath)) {
             mkdir($targetScriptsPath, 0755, true);
         }
@@ -173,6 +183,10 @@ class SkeletonInstaller
         if (getenv('SKELETON_SELF_UPDATED') !== '1') {
             echo "🔄 Skeleton updated to {$vendorVersion} — restarting with the new installer...\n";
             putenv('SKELETON_SELF_UPDATED=1');
+            // The restarted process shows only the release notes newer than this version
+            if ($currentVersion !== null && $currentVersion !== '') {
+                putenv('SKELETON_PREV_VERSION=' . $currentVersion);
+            }
             passthru(PHP_BINARY . ' ' . escapeshellarg($targetScriptsPath . '/skeleton-update.php'), $exitCode);
             exit($exitCode);
         }
@@ -839,7 +853,7 @@ class SkeletonInstaller
                 }
                 
                 file_put_contents($targetPath, $content);
-                
+
                 // Copy permissions
                 $permissions = fileperms($sourcePath);
                 if ($permissions !== false) {
@@ -848,7 +862,106 @@ class SkeletonInstaller
             }
         }
     }
-    
+
+    /**
+     * Copy a single scripts/ file from the vendor package when it differs.
+     * Used for skeleton.readme so release notes stay fresh even when the
+     * skeleton version itself is unchanged.
+     */
+    private function syncScriptFile(string $source, string $target): void
+    {
+        if (!is_file($source)) {
+            return;
+        }
+
+        if (is_file($target) && md5_file($source) === md5_file($target)) {
+            return;
+        }
+
+        $targetDir = dirname($target);
+        if (!is_dir($targetDir)) {
+            mkdir($targetDir, 0755, true);
+        }
+
+        copy($source, $target);
+        echo "✅ Copied script: scripts/" . basename($target) . "\n";
+    }
+
+    /**
+     * Print the release notes from scripts/skeleton.readme. Only the
+     * sections newer than the previously installed version are shown
+     * (the old version is passed via SKELETON_PREV_VERSION on restart).
+     */
+    private function displayReleaseNotes(): void
+    {
+        $readmePath = $this->projectRoot . '/scripts/skeleton.readme';
+        if (!is_file($readmePath)) {
+            return;
+        }
+
+        $content = trim((string) file_get_contents($readmePath));
+        if ($content === '') {
+            return;
+        }
+
+        $previousVersion = getenv('SKELETON_PREV_VERSION');
+        $notes = $this->extractReleaseNotes(
+            $content,
+            ($previousVersion === false || $previousVersion === '') ? null : $previousVersion,
+        );
+
+        if ($notes === '') {
+            return;
+        }
+
+        echo "\n\033[1;96m📋 What's changed\033[0m\n\n";
+        echo $notes . "\n";
+    }
+
+    /**
+     * Extract `## X.Y.Z` sections from the changelog. Sections are expected
+     * newest-first. When $previousVersion is known, all newer sections are
+     * returned; otherwise only the newest section. A "---" line ends a
+     * section so footer text is never shown.
+     */
+    private function extractReleaseNotes(string $content, ?string $previousVersion): string
+    {
+        if (!preg_match_all('/^##\s+\[?v?(\d+\.\d+\.\d+)\]?/m', $content, $matches, PREG_OFFSET_CAPTURE)) {
+            // Not a versioned changelog — show it as-is
+            return $content;
+        }
+
+        $headings = $matches[0];
+        $versions = $matches[1];
+        $count = count($headings);
+
+        $sliceSection = static function (int $index) use ($content, $headings, $count): string {
+            $end = ($index + 1 < $count) ? $headings[$index + 1][1] : strlen($content);
+            $section = substr($content, $headings[$index][1], $end - $headings[$index][1]);
+
+            return (string) preg_split('/^---\s*$/m', $section)[0];
+        };
+
+        if ($previousVersion === null) {
+            return trim($sliceSection(0));
+        }
+
+        $notes = '';
+        for ($i = 0; $i < $count; $i++) {
+            if (version_compare($versions[$i][0], $previousVersion, '<=')) {
+                break;
+            }
+            $notes .= $sliceSection($i);
+        }
+
+        // Fall back to the newest section (e.g. readme not updated for this release)
+        if (trim($notes) === '') {
+            $notes = $sliceSection(0);
+        }
+
+        return trim($notes);
+    }
+
     private function copyConsoleCommands(): void
     {
         echo "🖥️  Copying console commands...\n";
