@@ -35,3 +35,6 @@ Thumbs.db
 
 # Docker
 /docker/runtime/
+
+# Codeception coverage
+/c3.php
