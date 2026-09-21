@@ -5,10 +5,17 @@ node_modules/
 # Runtime & cache
 /runtime/*
 !/runtime/.gitignore
+.cache/
 *.log
 .phpunit.cache/
 .phpunit.result.cache
 .php-cs-fixer.cache
+
+# Docker
+/docker/runtime/
+
+# Codeception coverage
+/c3.php
 
 # Environment
 .env
@@ -30,9 +37,3 @@ public/.htaccess
 *.iml
 .DS_Store
 Thumbs.db
-
-# Docker
-/docker/runtime/
-
-# Codeception coverage
-/c3.php
