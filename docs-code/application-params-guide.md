@@ -232,7 +232,7 @@ MyMiddleware::class => static fn () => new MyMiddleware(
 - **Initialization**: `params.php` is evaluated once by yiisoft/config and merged into the container
 - **Memory Usage**: `ApplicationParams` is a single readonly instance shared via DI
 - **Access Speed**: Direct property access with minimal overhead
-- **Configuration**: Environment variables loaded once at startup (`src/autoload.php` loads `.env`)
+- **Configuration**: Environment variables loaded once at startup (`src/bootstrap.php` loads `.env`)
 
 ---
 

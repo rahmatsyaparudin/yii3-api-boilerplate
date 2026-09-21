@@ -79,7 +79,7 @@ config/
 ## **📁 SOURCE CODE**
 ```
 src/
-├── 📄 autoload.php - Autoloader configuration
+├── 📄 bootstrap.php - Bootstrap: loads vendor autoload + .env
 ├── 📄 Environment.php - Environment management
 ├── 📁 Api/ - API layer
 │   ├── 📄 IndexAction.php - Root API action

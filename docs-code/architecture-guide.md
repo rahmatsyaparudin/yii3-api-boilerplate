@@ -262,7 +262,7 @@ yii3-api/
 │   │   │   └── ValueObject/ # Message, LockVersionConfig
 │   │   └── ApplicationParams.php # Application parameters DTO
 │   ├── Environment.php      # Environment variables (APP_ENV, APP_DEBUG, ...)
-│   └── autoload.php        # Custom autoloader
+│   └── bootstrap.php       # Bootstrap: loads vendor autoload + .env
 ├── tests/                  # Test suite (Codeception)
 │   ├── Api/                # API tests
 │   │   ├── IndexCest.php   # API index test

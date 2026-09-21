@@ -93,8 +93,8 @@ class SkeletonInstaller
         echo "📁 Message files copied to resources/messages/ for all languages (app.php skipped)\n";
         echo "🌐 API files copied to src/Api/\n";
         echo "📁 Files copied: IndexAction.php\n";
-        echo "🔧 Autoload file copied to src/\n";
-        echo "📁 Files copied: autoload.php\n";
+        echo "🔧 Bootstrap file copied to src/\n";
+        echo "📁 Files copied: bootstrap.php, Environment.php\n";
         echo "📁 Empty directories created: src/Migration, src/Seed\n";
         echo "🖥️  Console commands copied to src/Console/Core/\n";
         echo "📁 Files copied: Core/{HelloCommand.php, MigrateModuleCommand.php, MigrationGuardCommand.php, SeederCommand.php}, Common/.gitkeep, AGENTS.md\n";
@@ -641,21 +641,39 @@ class SkeletonInstaller
             }
         }
         
-        // Copy autoload.php from src/ (not src/Api/)
-        $autoloadSource = $vendorRootPath . '/autoload.php';
-        $autoloadTarget = $targetRootPath . '/autoload.php';
-        
-        if (file_exists($autoloadSource)) {
-            $content = file_get_contents($autoloadSource);
-            file_put_contents($autoloadTarget, $content);
-            echo "✅ Copied autoload file: src/autoload.php\n";
+        // Copy bootstrap.php from src/ (not src/Api/)
+        $bootstrapSource = $vendorRootPath . '/bootstrap.php';
+        $bootstrapTarget = $targetRootPath . '/bootstrap.php';
+
+        if (file_exists($bootstrapSource)) {
+            $content = file_get_contents($bootstrapSource);
+            file_put_contents($bootstrapTarget, $content);
+            echo "✅ Copied bootstrap file: src/bootstrap.php\n";
         } else {
             // Fallback: copy from current location (for testing in boilerplate)
-            $currentAutoloadSource = $this->projectRoot . '/src/autoload.php';
-            if (file_exists($currentAutoloadSource)) {
-                $content = file_get_contents($currentAutoloadSource);
-                file_put_contents($autoloadTarget, $content);
-                echo "✅ Copied existing autoload file: src/autoload.php\n";
+            $currentBootstrapSource = $this->projectRoot . '/src/bootstrap.php';
+            if (file_exists($currentBootstrapSource)) {
+                $content = file_get_contents($currentBootstrapSource);
+                file_put_contents($bootstrapTarget, $content);
+                echo "✅ Copied existing bootstrap file: src/bootstrap.php\n";
+            }
+        }
+
+        // Copy Environment.php from src/ (not src/Api/)
+        $environmentSource = $vendorRootPath . '/Environment.php';
+        $environmentTarget = $targetRootPath . '/Environment.php';
+
+        if (file_exists($environmentSource)) {
+            $content = file_get_contents($environmentSource);
+            file_put_contents($environmentTarget, $content);
+            echo "✅ Copied environment file: src/Environment.php\n";
+        } else {
+            // Fallback: copy from current location (for testing in boilerplate)
+            $currentEnvironmentSource = $this->projectRoot . '/src/Environment.php';
+            if (file_exists($currentEnvironmentSource)) {
+                $content = file_get_contents($currentEnvironmentSource);
+                file_put_contents($environmentTarget, $content);
+                echo "✅ Copied existing environment file: src/Environment.php\n";
             }
         }
     }

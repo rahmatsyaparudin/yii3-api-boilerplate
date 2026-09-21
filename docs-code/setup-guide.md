@@ -150,7 +150,7 @@ yii3-api/
 │   ├── Seeder/             # Seeders, YAML fixtures, Faker providers
 │   ├── Shared/             # Shared utilities (middleware, exceptions, value objects)
 │   ├── Environment.php     # APP_ENV handling (dev/test/prod)
-│   └── autoload.php        # Bootstrap: loads vendor autoload + .env
+│   └── bootstrap.php       # Bootstrap: loads vendor autoload + .env
 ├── tests/                  # Codeception test suites
 │   ├── Api/                # API tests (REST module)
 │   ├── Console/            # Console tests

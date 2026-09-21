@@ -97,7 +97,7 @@ src/Application/Shared/
 ### API Files (`src/`)
 ```
 src/
-├── autoload.php                   # API autoloader configuration
+├── bootstrap.php                  # Bootstrap: loads vendor autoload + .env
 ├── Api/                          # API layer
 │   ├── IndexAction.php           # API index action
 │   └── Shared/                   # API shared components
@@ -186,7 +186,7 @@ If you prefer to set up manually:
 
 6. Copy API files from vendor:
    ```bash
-   cp vendor/rahmatsyaparudin/yii3-api-boilerplate/src/autoload.php src/
+   cp vendor/rahmatsyaparudin/yii3-api-boilerplate/src/bootstrap.php src/
    cp vendor/rahmatsyaparudin/yii3-api-boilerplate/src/Api/IndexAction.php src/Api/
    ```
 
