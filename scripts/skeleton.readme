@@ -1,0 +1,91 @@
+# Skeleton Release Notes
+
+> Maintained by the skeleton maintainer. Add a `## X.Y.Z` section at the
+> top of this file for every release (newest first). `composer
+> skeleton:update` prints the sections newer than the previously
+> installed version, so users always see which files changed and what
+> changed — without anyone having to edit `skeleton-update.php`.
+
+## 1.2.8
+
+### Added
+- `scripts/skeleton.readme` — this changelog. `composer skeleton:update`
+  prints the sections newer than the previously installed version.
+- `scripts/skeleton-update.php` — release-notes display after update
+  (`displayReleaseNotes()`, `extractReleaseNotes()`); the restarted
+  installer receives the previous version via `SKELETON_PREV_VERSION`
+  and `skeleton.readme` is re-synced even when the version is unchanged.
+
+### Changed
+- `src/Shared/Core/Query/QueryConditionApplier.php` — `filterByLike()` and
+  `orLike()` are now instance methods (no longer static). The `$operator`
+  argument is now nullable and auto-resolved from the DB connection
+  (`ilike` for PostgreSQL, `like` otherwise). An optional `$db` argument
+  was added for multi-database queries.
+- `src/Infrastructure/Common/Persistence/Example/ExampleRepository.php`,
+  `.../AnotherExample/AnotherExampleRepository.php` — repository examples
+  updated to call `QueryConditionApplier` as an injected instance.
+
+### Renamed
+- `scripts/generate-module.php` → `scripts/skeleton-generate-module.php`
+  — consistent `skeleton-*` naming for skeleton-owned scripts; the
+  `composer skeleton:generate-module` command is unchanged. Update any
+  direct calls (`php scripts/generate-module.php ...`) to the new path.
+
+## 1.2.7
+
+### Added
+- `src/Console/Core/MigrationGuardCommand.php` — `migration-guard` command
+  that replaces `migrate:down` and `migrate:redo` in the `prod`
+  environment so destructive migrations can never run there.
+- `src/Console/` layer with the Core/Common split: `Core/` (frozen),
+  `Common/` (project commands), `AGENTS.md`, `!DONT-EDIT-CORE.txt`,
+  `!USE-COMMON-FOR-YOUR-CODE`.
+- `scripts/skeleton-version.php` — `composer skeleton:version` compares
+  the installed skeleton version with the vendor package.
+
+### Changed
+- `src/Console/{ => Core}/HelloCommand.php`, `MigrateModuleCommand.php`,
+  `SeederCommand.php` — moved into `src/Console/Core/` (namespace
+  `App\Console\Core`).
+- `config/console/commands.php` — registers `MigrationGuardCommand` for
+  `migrate:down`/`migrate:redo` when `Environment::isProd()`.
+- `config/common/di/infrastructure-di.php`, `AGENTS.md`,
+  `scripts/skeleton-update.php`, `composer.json` scripts.
+
+### Removed
+- `.env copy.example` — stray duplicate of the env example file.
+
+## 1.2.6
+
+### Added
+- `src/Presentation/` layer — HTTP middleware moved out of `src/Shared`
+  into `src/Presentation/Core/Http/Middleware/`: `AccessMiddleware`,
+  `CorsMiddleware`, `JwtMiddleware`, `RateLimitMiddleware`,
+  `RequestParamsMiddleware`, `SecureHeadersMiddleware`,
+  `TrustedHostMiddleware`. `src/Presentation/Core/` is now a protected
+  (frozen) path; the installer removes the legacy
+  `src/Shared/Core/Middleware/` directory.
+
+### Changed
+- `config/common/di/{jwt.php,middleware-di.php}`,
+  `config/common/{middleware.php,routes.php,security.php,migration.php}`,
+  `config/web/di/application.php` — updated to the new
+  `App\Presentation\` namespaces.
+- `AGENTS.md` and per-layer rules files — `src/Presentation/Core/` added
+  to the protected-paths policy.
+
+## 1.2.5
+
+### Changed
+- `src/Infrastructure/Core/Database/ConnectionPool.php` — MySQL/PostgreSQL
+  connection pool fixes.
+- `scripts/skeleton-generate-module.php` — module generator improvements.
+- `src/Console/MigrateModuleCommand.php` — command fixes.
+- Documentation refresh across `docs-code/` (value object, migration &
+  seeding, setup, localization guides).
+
+---
+
+Versions before 1.2.5 predate this changelog — see `git log` for their
+history.

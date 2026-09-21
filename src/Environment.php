@@ -103,7 +103,7 @@ final class Environment
 
     private static function setString(string $key, string $default): void
     {
-        $value              = self::getRawValue($key);
+        $value = self::getRawValue($key);
         self::$values[$key] ??= $default;
     }
 

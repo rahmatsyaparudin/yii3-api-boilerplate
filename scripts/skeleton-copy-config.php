@@ -17,22 +17,48 @@ class SkeletonConfigCopier
     
     public function copy(): void
     {
+        echo "\033[41m\033[97m                                                     \033[0m\n";
+        echo "\033[41m\033[97m  WARNING: This script should only be run once.     \033[0m\n";
+        echo "\033[41m\033[97m  Re-running will overwrite existing config files    \033[0m\n";
+        echo "\033[41m\033[97m  and may remove your current setup.                \033[0m\n";
+        echo "\033[41m\033[97m                                                     \033[0m\n\n";
+
         echo "🚀 Copying config files from skeleton...\n";
         
         // Files and directories to copy
         $itemsToCopy = [
             // Files
             '.env.example' => '.env',
-            
-            // Config files
-            'config/common/access.php' => 'config/common/access.php',
-            'config/common/aliases.php' => 'config/common/aliases.php',
-            'config/common/routes.php' => 'config/common/routes.php',
-            'config/common/repository.php' => 'config/common/repository.php',
-            'config/common/service.php' => 'config/common/service.php',
-            'config/common/translator.php' => 'config/common/translator.php',
-            'config/console/commands.php' => 'config/console/commands.php',
+            '.gitignore' => '.gitignore',
+
+            // Message files
+            'resources/messages/en/app.php' => 'resources/messages/en/app.php',
+            'resources/messages/id/app.php' => 'resources/messages/id/app.php',
+
         ];
+
+        // All files in config/common except common/di (di is handled by skeleton-update)
+        $commonDir = $this->vendorPath . '/config/common';
+        if (!is_dir($commonDir)) {
+            $commonDir = $this->projectRoot . '/config/common';
+        }
+
+        if (is_dir($commonDir)) {
+            $iterator = new DirectoryIterator($commonDir);
+            foreach ($iterator as $fileinfo) {
+                if ($fileinfo->isDot()) {
+                    continue;
+                }
+
+                $name = $fileinfo->getFilename();
+                if ($name === 'di') {
+                    continue;
+                }
+
+                $relative = 'config/common/' . $name;
+                $itemsToCopy[$relative] = $relative;
+            }
+        }
         
         $flagFile = $this->projectRoot . '/.skeleton_config_copied';
         

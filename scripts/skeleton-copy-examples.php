@@ -22,29 +22,26 @@ class SkeletonExamplesCopier
         // Files and directories to copy
         $itemsToCopy = [
             '.env.example' => '.env.example',
+            'public/.htaccess.example' => 'public/.htaccess',
+            'config/common/redis.php' => 'config/common/redis.php',
+            'config/common/infrastructure.php' => 'config/common/infrastructure.php',
 
-            // Message files
-            'resources/messages/en/app.php' => 'resources/messages/en/app.php',
-            'resources/messages/id/app.php' => 'resources/messages/id/app.php',
-            
-            // Config files
-            'config/common/params.php' => 'config/common/params.php',
-            'config/common/di/infrastructure.php' => 'config/common/di/infrastructure.php',
-            'config/common/di/optimistic-lock.php' => 'config/common/di/optimistic-lock.php',
-            'config/common/di/validator.php' => 'config/common/di/validator.php',
-            'config/console/commands.php' => 'config/console/commands.php',
-            'config/console/params.php' => 'config/console/params.php',
-            
             // Directories (recursive copy)
             'src/Api/V1/Example' => 'src/Api/V1/Example',
             'src/Application/Example' => 'src/Application/Example',
             'src/Domain/Example' => 'src/Domain/Example',
-            'src/Infrastructure/Persistence/Example' => 'src/Infrastructure/Persistence/Example',
+            'src/Infrastructure/Common/Persistence/Example' => 'src/Infrastructure/Common/Persistence/Example',
+            'src/Api/V1/AnotherExample' => 'src/Api/V1/AnotherExample',
+            'src/Application/AnotherExample' => 'src/Application/AnotherExample',
+            'src/Domain/AnotherExample' => 'src/Domain/AnotherExample',
+            'src/Infrastructure/Common/Persistence/AnotherExample' => 'src/Infrastructure/Common/Persistence/AnotherExample',
             'src/Migration' => 'src/Migration',
 
             'src/Seeder/Fixtures/example.yaml' => 'src/Seeder/Fixtures/example.yaml',
+            'src/Seeder/Fixtures/anotherexample.yaml' => 'src/Seeder/Fixtures/anotherexample.yaml',
             'src/Seeder/Faker/SeedDataPoolFaker.php' => 'src/Seeder/Faker/SeedDataPoolFaker.php',
             'src/Seeder/SeedExampleData.php' => 'src/Seeder/SeedExampleData.php',
+            'src/Seeder/SeedAnotherExampleData.php' => 'src/Seeder/SeedAnotherExampleData.php',
         ];
 
         $skipFlagFile = true;

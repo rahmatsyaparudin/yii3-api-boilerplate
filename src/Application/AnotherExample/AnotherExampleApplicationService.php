@@ -1,0 +1,297 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Application\AnotherExample;
+
+// Application Layer
+use App\Application\AnotherExample\Command\CreateAnotherExampleCommand;
+use App\Application\AnotherExample\Command\UpdateAnotherExampleCommand;
+use App\Application\AnotherExample\Dto\AnotherExampleResponse;
+use App\Application\Shared\Core\Factory\DetailInfoFactory;
+use App\Application\Shared\Core\Factory\SyncFlagFactory;
+// Infrastructure Layer
+use App\Infrastructure\Core\Database\Redis\RedisService;
+// Domain Layer
+use App\Domain\AnotherExample\Entity\AnotherExample;
+use App\Domain\AnotherExample\Repository\AnotherExampleRepositoryInterface;
+use App\Domain\AnotherExample\Service\AnotherExampleDomainService;
+use App\Domain\Shared\Core\Security\AuthorizerInterface;
+use App\Domain\Shared\Core\ValueObject\ResourceStatus;
+// Shared Layer
+use App\Shared\Core\Dto\PaginatedResult;
+use App\Shared\Core\Dto\SearchCriteria;
+use App\Shared\Core\Exception\NotFoundException;
+use App\Shared\Core\ValueObject\Message;
+
+/**
+ * AnotherExample Application Service (Mandor/Alur Kerja).
+ *
+ * Orchestrates use cases and coordinates domain & infrastructure
+ */
+final class AnotherExampleApplicationService
+{
+    public function __construct(
+        private AuthorizerInterface $auth,
+        private DetailInfoFactory $detailInfoFactory,
+        private AnotherExampleDetailInfoFactory $anotherExampleDetailInfoFactory,
+        private SyncFlagFactory $syncFlagFactory,
+        private AnotherExampleRepositoryInterface $repository,
+        private AnotherExampleDomainService $domainService,
+        private RedisService $redis,
+    ) {
+    }
+
+    public function getResource(): string
+    {
+        return AnotherExample::RESOURCE;
+    }
+
+    private function getEntityById(int $id, ?int $status = null): AnotherExample
+    {
+        $data = $this->repository->findById(
+            id: $id,
+            status: $status
+        );
+
+        if ($data === null) {
+            throw new NotFoundException(translate: Message::create(key: 'resource.not_found', params: ['resource' => $this->getResource(), 'field' => 'id', 'value' => $id]));
+        }
+
+        return $data;
+    }
+
+    public function list(SearchCriteria $criteria): PaginatedResult
+    {
+        return $this->repository->list(
+            criteria: $criteria
+        );
+    }
+
+    public function view(int $id): AnotherExampleResponse
+    {
+        $data = $this->getEntityById(
+            id: $id,
+            status: null
+        );
+
+        return AnotherExampleResponse::fromEntity(
+            entity: $data
+        );
+    }
+
+    public function create(CreateAnotherExampleCommand $command): AnotherExampleResponse
+    {
+        $detailInfoPayload = $this->anotherExampleDetailInfoFactory
+            ->buildFromPrimitives(
+                exampleId: $command->exampleId
+            )
+            ->toArray();
+
+        $detailInfo = $this->detailInfoFactory
+            ->create(
+                detailInfo: $detailInfoPayload
+            )
+            ->build();
+
+        $syncFlag = $this->syncFlagFactory->create(
+            originId: $command->originId,
+            syncFlag: $command->syncFlag ?? 1,
+        );
+
+        $data = AnotherExample::create(
+            name: $command->name,
+            status: ResourceStatus::from($command->status),
+            detailInfo: $detailInfo,
+            exampleId: $command->exampleId,
+            syncFlag: $syncFlag,
+        );
+
+        return AnotherExampleResponse::fromEntity(
+            entity: $this->repository->insert(
+                entity: $data
+            )
+        );
+    }
+
+    /**
+     * Example: insert to SQL then sync the result to Redis.
+     *
+     * Use this as a reference for write-through caching. The main create()
+     * method is not modified; this is a separate opt-in function.
+     */
+    public function createWithRedisCache(CreateAnotherExampleCommand $command): AnotherExampleResponse
+    {
+        $detailInfoPayload = $this->anotherExampleDetailInfoFactory
+            ->buildFromPrimitives(
+                exampleId: $command->exampleId
+            )
+            ->toArray();
+
+        $detailInfo = $this->detailInfoFactory
+            ->create(
+                detailInfo: $detailInfoPayload
+            )
+            ->build();
+
+        $data = AnotherExample::create(
+            name: $command->name,
+            status: ResourceStatus::from($command->status),
+            detailInfo: $detailInfo,
+            exampleId: $command->exampleId,
+        );
+
+        $inserted = $this->repository->insert(
+            entity: $data
+        );
+
+        $this->redis->getClient()->set(
+            "anotherexample:{$inserted->getId()}",
+            json_encode($inserted->toArray())
+        );
+
+        return AnotherExampleResponse::fromEntity(
+            entity: $inserted
+        );
+    }
+
+    public function update(int $id, UpdateAnotherExampleCommand $command): AnotherExampleResponse
+    {
+        $data = $this->getEntityById(
+            id: $id,
+            status: null
+        );
+
+        $this->repository->verifyLockVersion(
+            entity: $data,
+            version: $command->lockVersion ?? null
+        );
+
+        $newStatus = ResourceStatus::tryFrom($command->status);
+
+        $hasFieldChanges = $data->hasFieldChanges(
+            data: (array) $command,
+            removeNulls: true
+        );
+
+        $data->guardAgainstInvalidTransition(
+            hasFieldChanges: $hasFieldChanges,
+            newStatus: $newStatus
+        );
+
+        $data->updateName(
+            newName: $command->name
+        );
+
+        $data->updateExampleId(
+            exampleId: $command->exampleId
+        );
+
+        $data->applyStatus(
+            newStatus: $newStatus
+        );
+
+        $exampleSnapshot = $this->anotherExampleDetailInfoFactory
+            ->buildFromPrimitives($command->exampleId);
+
+        $detailInfo = $this->detailInfoFactory
+            ->update(
+                detailInfo: $data->getDetailInfo(),
+                payload: \array_merge(
+                    $command->detailInfo ?? [],
+                    $exampleSnapshot->toArray()
+                ),
+            )
+            ->build();
+
+        $data->updateDetailInfo(
+            detailInfo: $detailInfo
+        );
+
+        return AnotherExampleResponse::fromEntity(
+            entity: $this->repository->update(
+                entity: $data
+            )
+        );
+    }
+
+    public function delete(int $id, ?int $lockVersion = null): AnotherExampleResponse
+    {
+        $data = $this->getEntityById(
+            id: $id,
+            status: null
+        );
+
+        $this->repository->verifyLockVersion(
+            entity: $data,
+            version: $lockVersion,
+        );
+
+        $this->domainService->guardPermission(
+            id: $id,
+            authorizer: $this->auth,
+            permission: 'anotherexample.delete',
+            resource: $this->getResource(),
+        );
+
+        $this->domainService->ensureDeletable(
+            entity: $data,
+            resource: $this->getResource(),
+        );
+
+        $detailInfo = $this->detailInfoFactory
+            ->delete(
+                detailInfo: $data->getDetailInfo(),
+                payload: [],
+            )
+            ->build();
+
+        $data->updateDetailInfo(
+            detailInfo: $detailInfo
+        );
+
+        return AnotherExampleResponse::fromEntity(
+            entity: $this->repository->delete(
+                entity: $data
+            )
+        );
+    }
+
+    public function restore(int $id): AnotherExampleResponse
+    {
+        $data = $this->getEntityById(
+            id: $id,
+            status: ResourceStatus::deleted()->value()
+        );
+
+        if ($data === null) {
+            throw new NotFoundException(translate: Message::create(key: 'resource.not_found', params: ['resource' => $this->getResource(), 'field' => 'id', 'value' => $id]));
+        }
+
+        $data->guardAgainstInvalidTransition(
+            hasFieldChanges: false,
+            newStatus: ResourceStatus::restored()
+        );
+
+        $data->markAsRestored();
+
+        $detailInfo = $this->detailInfoFactory
+            ->restore(
+                detailInfo: $data->getDetailInfo(),
+                payload: [],
+            )
+            ->build();
+
+        $data->updateDetailInfo(
+            detailInfo: $detailInfo
+        );
+
+        $restoredData = $this->repository->restore(
+            id: $data->getId()
+        );
+
+        return AnotherExampleResponse::fromEntity(
+            entity: $restoredData
+        );
+    }
+}

@@ -5,13 +5,13 @@
 After creating a project from this boilerplate, run:
 
 ```bash
-composer skeleton-install
-composer skeleton-copy-examples
+composer skeleton:update
+composer skeleton:copy-examples
 ```
 
 ## What it does
 
-### `composer skeleton-install`
+### `composer skeleton:update`
 1. **Copy Shared classes** - Copy all Shared infrastructure from vendor to project
 2. **Copy Infrastructure classes** - Copy Infrastructure components from vendor to project
 3. **Copy Domain Shared classes** - Copy Domain Shared components from vendor to project
@@ -23,7 +23,11 @@ composer skeleton-copy-examples
 9. **Update composer.json** - Add required packages for Yii3 API functionality
 10. **Create directories** - Set up complete directory structure for all layers
 
-### `composer skeleton-copy-examples`
+### `composer skeleton:version`
+1. **Compare versions** - Compare the project's `scripts/skeleton.version` with the version shipped by the package in vendor/
+2. **Report status** - Shows whether the project is up to date or an update is available (`X → Y`), with a hint to run `composer skeleton:update`
+
+### `composer skeleton:copy-examples`
 1. **Copy example files** - Copy example configuration and code files
 2. **Setup environment** - Create .env from .env.example
 3. **Copy example entities** - Copy Example entity across all layers
@@ -37,47 +41,57 @@ The script creates the following structure:
 ### Shared Classes (`src/Shared/`)
 ```
 src/Shared/
-├── Dto/           # Data Transfer Objects
-├── Enums/         # Enumerations  
-├── ErrorHandler/  # Error handling utilities
-├── Exception/     # Custom exceptions
-├── Middleware/    # HTTP middleware
-├── Query/         # Query builders and utilities
-├── Repository/    # Repository base classes
-├── Request/       # Request handling classes
-├── Security/      # Security utilities
-├── Utility/       # General utilities
-├── Validation/    # Validation classes
-└── ValueObject/   # Value objects
+├── Common/        # Common shared helpers
+└── Core/
+    ├── Dto/           # Data Transfer Objects
+    ├── Enums/         # Enumerations  
+    ├── ErrorHandler/  # Error handling utilities
+    ├── Exception/     # Custom exceptions
+    ├── Middleware/    # HTTP middleware
+    ├── Query/         # Query builders and utilities
+    ├── Repository/    # Repository base classes
+    ├── Request/       # Request handling classes
+    ├── Security/      # Security utilities
+    ├── Utility/       # General utilities
+    ├── Validation/    # Validation classes
+    └── ValueObject/   # Value objects
 ```
 
 ### Infrastructure Classes (`src/Infrastructure/`)
 ```
 src/Infrastructure/
-├── Audit/         # Audit logging components
-├── Clock/         # Time/clock utilities
-├── Concerns/      # Infrastructure traits
-├── Monitoring/    # Monitoring and logging
-├── RateLimit/     # Rate limiting components
-├── Security/      # Security infrastructure
-├── Time/          # Time management
-└── Persistence/   # Database persistence (empty directory)
+├── Core/          # Core infrastructure
+│   ├── Audit/         # Audit logging components
+│   ├── Clock/         # Time/clock utilities
+│   ├── Concerns/      # Infrastructure traits
+│   ├── Database/      # Database implementations
+│   ├── Monitoring/    # Monitoring and logging
+│   ├── RateLimit/     # Rate limiting components
+│   ├── Security/      # Security infrastructure
+│   ├── Seeder/        # Seeder base classes
+│   └── Time/          # Time management
+└── Common/        # Common infrastructure
+    └── Persistence/   # Database persistence (empty directory)
 ```
 
 ### Domain Shared Classes (`src/Domain/Shared/`)
 ```
 src/Domain/Shared/
-├── Audit/         # Domain audit components
-├── Concerns/      # Domain traits
-├── Contract/      # Domain contracts and interfaces
-├── Security/      # Domain security components
-└── ValueObject/   # Domain value objects
+├── Core/          # Core domain shared components
+│   ├── Audit/         # Domain audit components
+│   ├── Concerns/      # Domain traits
+│   ├── Contract/      # Domain contracts and interfaces
+│   ├── Security/      # Domain security components
+│   └── ValueObject/   # Domain value objects
+└── Common/        # Common domain shared helpers
 ```
 
 ### Application Shared Classes (`src/Application/Shared/`)
 ```
 src/Application/Shared/
-└── Factory/       # Application factory classes
+├── Core/
+│   └── Factory/       # Application factory classes
+└── Common/        # Common application shared helpers
 ```
 
 ### API Files (`src/`)
@@ -106,7 +120,7 @@ src/
 ├── Api/V1/Example/              # Example API endpoints
 ├── Application/Example/          # Example application services
 ├── Domain/Example/              # Example domain entities
-└── Infrastructure/Persistence/Example/  # Example repositories
+└── Infrastructure/Common/Persistence/Example/  # Example repositories
 ```
 
 ### Config Files (`config/`)
@@ -196,23 +210,28 @@ If you prefer to set up manually:
    cp vendor/rahmatsyaparudin/yii3-api-boilerplate/config/common/access.php config/common/
    cp vendor/rahmatsyaparudin/yii3-api-boilerplate/config/common/params.php config/common/
    cp vendor/rahmatsyaparudin/yii3-api-boilerplate/config/common/routes.php config/common/
-   cp -r vendor/rahmatsyaparudin/yii3-api-boilerplate/config/common/di/infrastructure.php config/common/di/
+   cp vendor/rahmatsyaparudin/yii3-api-boilerplate/config/common/redis.php config/common/
+   cp vendor/rahmatsyaparudin/yii3-api-boilerplate/config/common/infrastructure.php config/common/
    cp -r vendor/rahmatsyaparudin/yii3-api-boilerplate/config/common/di/repository.php config/common/di/
    cp -r vendor/rahmatsyaparudin/yii3-api-boilerplate/config/common/di/service.php config/common/di/
    cp -r vendor/rahmatsyaparudin/yii3-api-boilerplate/config/common/di/translator.php config/common/di/
    cp -r vendor/rahmatsyaparudin/yii3-api-boilerplate/src/Api/V1/Example src/Api/V1/
    cp -r vendor/rahmatsyaparudin/yii3-api-boilerplate/src/Application/Example src/Application/
    cp -r vendor/rahmatsyaparudin/yii3-api-boilerplate/src/Domain/Example src/Domain/
-   cp -r vendor/rahmatsyaparudin/yii3-api-boilerplate/src/Infrastructure/Persistence/Example src/Infrastructure/Persistence/
+   cp -r vendor/rahmatsyaparudin/yii3-api-boilerplate/src/Infrastructure/Common/Persistence/Example src/Infrastructure/Common/Persistence/
    cp -r vendor/rahmatsyaparudin/yii3-api-boilerplate/src/Migration src/
    ```
 
 10. Create required directories:
     ```bash
-    mkdir -p src/Shared/{Dto,Enums,ErrorHandler,Exception,Middleware,Query,Repository,Request,Security,Utility,Validation,ValueObject}
-    mkdir -p src/Infrastructure/{Audit,Clock,Concerns,Monitoring,RateLimit,Security,Time,Persistence}
-    mkdir -p src/Domain/Shared/{Audit,Concerns,Contract,Security,ValueObject}
-    mkdir -p src/Application/Shared/Factory
+    mkdir -p src/Shared/Core/{Dto,Enums,ErrorHandler,Exception,Middleware,Query,Repository,Request,Security,Utility,Validation,ValueObject}
+    mkdir -p src/Shared/Common/Context
+    mkdir -p src/Infrastructure/Core/{Audit,Clock,Concerns,Database,Monitoring,RateLimit,Security,Seeder,Time}
+    mkdir -p src/Infrastructure/Common/Persistence
+    mkdir -p src/Domain/Shared/Core/{Audit,Concerns,Contract,Security,ValueObject}
+    mkdir -p src/Domain/Shared/Common
+    mkdir -p src/Application/Shared/Core/Factory
+    mkdir -p src/Application/Shared/Common
     mkdir -p src/Api/Shared/Presenter
     mkdir -p config/common/di
     mkdir -p config/web/di
@@ -237,10 +256,10 @@ php yii simple-generate crud Product
 php yii template:generate my-api /tmp
 
 # Copy example files (if not already copied)
-composer skeleton-copy-examples
+composer skeleton:copy-examples
 
 # Force re-copy examples (remove flag file first)
-rm .skeleton_examples_copied && composer skeleton-copy-examples
+rm .skeleton_examples_copied && composer skeleton:copy-examples
 ```
 
 ## Next Steps
@@ -274,10 +293,10 @@ composer create-project rahmatsyaparudin/yii3-api-boilerplate my-api
 cd my-api
 
 # 2. Install shared infrastructure
-composer skeleton-install
+composer skeleton:update
 
 # 3. Copy example files and entities
-composer skeleton-copy-examples
+composer skeleton:copy-examples
 
 # 4. Install required packages
 composer update

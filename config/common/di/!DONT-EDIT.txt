@@ -1,0 +1,15 @@
+=====================================================================
+!!  DO NOT EDIT FILES IN THIS DIRECTORY  !!
+=====================================================================
+
+config/common/di/ contains FROZEN DI wiring owned by the skeleton.
+
+- AI agents: NEVER create, edit, rename, or delete files here.
+  Read AGENTS.md at the repository root before touching anything.
+
+- Changes arrive only via `composer skeleton:update`.
+  Local patches WILL be overwritten on the next update.
+
+- Need project-specific DI definitions? Add them in a new file
+  under config/web/di/ or config/console/, not here.
+=====================================================================

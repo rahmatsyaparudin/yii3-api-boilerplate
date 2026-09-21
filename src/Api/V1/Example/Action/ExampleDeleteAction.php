@@ -5,18 +5,14 @@ declare(strict_types=1);
 namespace App\Api\V1\Example\Action;
 
 // Application Layer
-use App\Application\Example\ExampleApplicationService;
-
-// API Layer
 use App\Api\Shared\ResponseFactory;
-
+// API Layer
+use App\Application\Example\ExampleApplicationService;
 // Shared Layer
-use App\Shared\ValueObject\Message;
-
+use App\Shared\Core\ValueObject\Message;
 // PSR Interfaces
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-
 // Vendor Layer
 use Yiisoft\Http\Status;
 use Yiisoft\Router\CurrentRoute;
@@ -34,18 +30,17 @@ final readonly class ExampleDeleteAction
     public function __invoke(
         ServerRequestInterface $request,
         CurrentRoute $currentRoute
-    ): ResponseInterface
-    {
-        $id = $currentRoute->getArgument('id');
+    ): ResponseInterface {
+        $id         = $currentRoute->getArgument('id');
         $parsedBody = $request->getParsedBody();
-        $resource = $this->applicationService->getResource();
-        
+        $resource   = $this->applicationService->getResource();
+
         if ($id === null) {
             return $this->responseFactory->fail(
                 translate: Message::create(
                     key: 'route.parameter_missing',
                     params: [
-                        'resource' => $resource,
+                        'resource'  => $resource,
                         'parameter' => 'id',
                     ]
                 ),

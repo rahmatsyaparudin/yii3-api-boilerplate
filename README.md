@@ -73,23 +73,26 @@ Open your project's `composer.json` and add the following sections:
 
 ### Add this to `composer.json` `scripts` 
 ```json
-"skeleton-scripts": [
-    "@php scripts/skeleton-scripts.php"
-],
-"skeleton-update": [
-    "composer update rahmatsyaparudin/yii3-api-boilerplate --ignore-platform-reqs",
-    "@php scripts/skeleton-scripts.php",
-    "@php scripts/skeleton-update.php"
-],
-"skeleton-copy-config": [
-    "@php scripts/skeleton-copy-config.php"
-],
-"skeleton-copy-examples": [
-    "@php scripts/skeleton-copy-examples.php"
-],
-"skeleton-generate-module": [
-    "@php scripts/generate-module.php"
-]
+"skeleton:scripts": [
+            "@php scripts/skeleton-scripts.php"
+        ],
+        "skeleton:version": [
+            "@php scripts/skeleton-version.php"
+        ],
+        "skeleton:update": [
+            "composer update rahmatsyaparudin/yii3-api-boilerplate --ignore-platform-reqs",
+            "@php scripts/skeleton-scripts.php",
+            "@php scripts/skeleton-update.php"
+        ],
+        "skeleton:copy-config": [
+            "@php scripts/skeleton-copy-config.php"
+        ],
+        "skeleton:copy-examples": [
+            "@php scripts/skeleton-copy-examples.php"
+        ],
+        "skeleton:generate-module": [
+            "@php scripts/skeleton-generate-module.php"
+        ]
 ```
 
 ### 3. Update Composer
@@ -109,30 +112,48 @@ mkdir scripts; cp -r -Force vendor/rahmatsyaparudin/yii3-api-boilerplate/scripts
 ### 5. Install Skeleton
 Install skeleton structure
 ```bash
-composer skeleton-update
+composer skeleton:update
 ```
 
 Copy config files (first time only)
+
+This copies `.env.example` → `.env`, `.gitignore`, message files (`resources/messages/{en,id}/`), and other skeleton configuration files.
+
 ```bash
-composer skeleton-copy-config
+composer skeleton:copy-config
 ```
 
 Copy example files (first time only)
 ```bash
-composer skeleton-copy-examples
+composer skeleton:copy-examples
 ```
+
+### Check for Skeleton Updates
+
+Compare your installed skeleton version (`scripts/skeleton.version`) with the version shipped by the package:
+
+```bash
+composer skeleton:version
+```
+
+It reports whether the project is up to date or an update is available (e.g. `1.2.6 → 1.2.7`), in which case run `composer skeleton:update`.
 
 ### 6. Generate New Module
 
 Use the built-in module generator to create new API modules with complete structure:
 Generate a new module (e.g., Product)
 ```bash
-composer skeleton-generate-module -- --module=Product --table=product_management
+composer skeleton:generate-module -- --module=Product --table=product_management
 ```
 
 Or use direct PHP script (alternative):
 ```bash
-php scripts/generate-module.php --module=Product --table=product_management
+php scripts/skeleton-generate-module.php --module=Product --table=product_management
+```
+
+By default the module's migrations run on the `default` connection. Pass `--db=<name>` to map the module to another connection (a `db.<name>.*` env block):
+```bash
+composer skeleton:generate-module -- --module=AuditLog --db=audit
 ```
 
 > **Note:** The skeleton comes with an Example module that demonstrates the complete structure. Use the generator above to create additional modules for your specific needs.
@@ -177,9 +198,9 @@ src/Domain/Product/
     └── ProductDomainService.php  # Domain service
 ```
 
-#### **📁 Infrastructure Layer** (`src/Infrastructure/Persistence/{Module}/`)
+#### **📁 Infrastructure Layer** (`src/Infrastructure/Common/Persistence/{Module}/`)
 ```
-src/Infrastructure/Persistence/Product/
+src/Infrastructure/Common/Persistence/Product/
 ├── ProductRepository.php         # Repository implementation
 └── MdbProductSchema.php          # MongoDB schema
 ```
@@ -187,7 +208,8 @@ src/Infrastructure/Persistence/Product/
 #### **📁 Database & Seeding**
 ```
 src/Migration/
-└── M20240130123457CreateProductTable.php  # Database migration
+└── Product/
+    └── M20240130123457CreateProductTable.php  # Database migration (namespace App\Migration\Product)
 
 src/Seeder/
 ├── SeedProductData.php           # Seeder class
@@ -197,13 +219,10 @@ src/Seeder/
 #### **⚙️ Configuration Updates**
 The generator automatically updates configuration files:
 
+- **`config/common/repository.php`** - Adds repository DI binding
 - **`config/common/access.php`** - Adds access control rules  
-- **`config/common/aliases.php`** - Adds aliases  
 - **`config/common/routes.php`** - Adds API routes with proper permissions
-- **`config/common/di/repository.php`** - Adds repository DI binding
-- **`config/common/di/service.php`** - Adds service DI binding
-- **`config/common/di/translator.php`** - Adds translator DI binding
-- **`config/console/commands.php`** - Adds console commands
+- **`config/common/migration.php`** - Registers the module's migration connection (`moduleConnections`)
 
 #### **🔧 Features Included**
 - **✅ Complete CRUD Operations** - Create, Read, Update, Delete, Restore
@@ -242,8 +261,9 @@ The skeleton includes the following modules out of the box:
 #### **🔧 Custom Modules** (Generate as needed)
 - **Product, Category, Brand, Order, User, etc.**
 - **Purpose:** Your business-specific modules
-- **Generation:** Use `composer skeleton-generate-module -- --module=ModuleName --table=table_name` or `php scripts/generate-module.php --module=ModuleName --table=table_name`
+- **Generation:** Use `composer skeleton:generate-module -- --module=ModuleName --table=table_name` or `php scripts/skeleton-generate-module.php --module=ModuleName --table=table_name`
 - **Custom Table:** Use `--table=table_name` for table names (e.g., `--module=Product --table=product_management`)
+- **Custom Connection:** Use `--db=connection_name` to migrate on a non-default database (e.g., `--module=AuditLog --db=audit`)
 - **Customization:** Modify generated files according to your business logic
 
 ## 📁 Project Structure
@@ -266,10 +286,12 @@ yii3-api/
 ├── resources/              # Application resources
 │   └── messages/           # Translation files
 ├── scripts/                # Utility scripts
-│   ├── generate-module.php # Module generator
+│   ├── skeleton-generate-module.php # Module generator
+│   ├── skeleton-scripts.php # Skeleton script installer
 │   ├── skeleton-update.php # Skeleton installer
 │   ├── skeleton-copy-examples.php # Example files copier
-│   └── skeleton-copy-config.php # Config files copier
+│   ├── skeleton-copy-config.php # Config files copier
+│   └── skeleton.version    # Installed skeleton version marker
 ├── src/                    # Source code
 │   ├── Api/                # API layer
 │   │   ├── V1/             # API version 1
@@ -283,19 +305,37 @@ yii3-api/
 │   │   ├── Example/        # Domain entities
 │   │   └── Shared/         # Shared domain components
 │   ├── Infrastructure/      # Infrastructure layer
-│   │   ├── Audit/         # Audit services
-│   │   ├── Database/      # Database implementations
-│   │   ├── Persistence/   # Repository implementations
-│   │   │   └── Example/    # Example repository
-│   │   └── Security/      # Security services
-│   ├── Migration/          # Database migrations
-│   │   └── M20240101000000CreateExampleTable.php
+│   │   ├── Core/           # Core infrastructure
+│   │   │   ├── Audit/      # Audit services
+│   │   │   ├── Database/   # Database implementations
+│   │   │   └── Security/   # Security services
+│   │   └── Common/         # Common infrastructure
+│   │       └── Persistence/  # Repository implementations
+│   │           └── Example/    # Example repository
+│   ├── Migration/          # Database migrations (module subfolders are isolated)
+│   │   ├── Auditable/     # audit_logs + rate_limits (opt-in, via migrate:module)
+│   │   └── Example/       # Example module migrations (via migrate:module)
 │   ├── Seeder/            # Data seeders
 │   │   ├── Fixtures/      # Alice fixtures
 │   │   │   └── example.yaml
 │   │   ├── Faker/         # Faker providers
 │   │   └── SeedExampleData.php
 │   └── Shared/            # Shared utilities
+│       ├── ApplicationParams.php
+│       ├── Common/        # Common shared helpers
+│       └── Core/          # Core shared components
+│           ├── Context/   # Validation context
+│           ├── Dto/       # Data Transfer Objects
+│           ├── Enums/     # Shared enumerations
+│           ├── ErrorHandler/ # Error handling utilities
+│           ├── Exception/ # Custom exceptions
+│           ├── Middleware/ # HTTP middleware
+│           ├── Query/     # Query utilities
+│           ├── Request/   # Request handling
+│           ├── Security/  # Security utilities
+│           ├── Utility/   # General utilities
+│           ├── Validation/ # Validation classes
+│           └── ValueObject/ # Value objects
 ├── tests/                  # Test suite
 │   ├── Api/                # API tests
 │   ├── Functional/         # Functional tests
@@ -372,6 +412,19 @@ redis.default.db=0
 redis.default.password=null
 ```
 
+> **Note:** `app.config.language` sets the application language (used for translations). When `APP_ENV=dev` (or `development`), `ApplicationParams::$environment` is set to `development` and the root index endpoint (`GET /`) includes it in the response:
+>
+> ```json
+> {
+>   "name": "appAPI",
+>   "version": "1.0",
+>   "language": "en",
+>   "environment": "development"
+> }
+> ```
+>
+> In production (`APP_ENV` other than `dev`/`development`) the `environment` field is omitted.
+
 #### 3. Database Migration
 
 ```bash
@@ -386,6 +439,43 @@ redis.default.password=null
 
 # Note: Seed commands only work in development environment (APP_ENV=dev)
 ```
+
+##### Isolated Module Migrations
+
+Migrations live in per-module subfolders of `src/Migration/` (namespace `App\Migration\<Module>`) and are applied with `migrate:module`. Every module **must be mapped to a connection** in `config/common/migration.php` → `moduleConnections`; without a mapping the command fails. Migration history (`{{%migration}}` table) is tracked in the module's own database.
+
+```bash
+# Apply migrations from src/Migration/Example on its mapped connection (default)
+./yii migrate:module example
+
+# Apply migrations from src/Migration/Auditable (audit_logs + rate_limits tables)
+./yii migrate:module auditable
+
+# Override the mapped connection for this run (uses db.<name>.* env keys)
+./yii migrate:module auditable --db=audit
+
+# Options
+./yii migrate:module example -y      # skip confirmation
+./yii migrate:module example -l 1    # limit number of migrations
+```
+
+The module → connection map lives in `config/common/migration.php`:
+
+```php
+'moduleConnections' => [
+    'Example'   => 'default',
+    'Auditable' => 'audit',   // uses db.audit.* env keys
+],
+```
+
+The skeleton ships with two isolated groups:
+
+| Folder | Namespace | Tables | Required? |
+|--------|-----------|--------|-----------|
+| `src/Migration/Example/` | `App\Migration\Example` | `example`, `another_example` | Only for the demo module |
+| `src/Migration/Auditable/` | `App\Migration\Auditable` | `audit_logs`, `rate_limits` | Opt-in, see [Audit Trail](#audit-trail) |
+
+New module migrations generated by `skeleton-generate-module.php` are placed in `src/Migration/<Module>/` and registered in `moduleConnections` automatically (connection `default`, or the value of `--db`).
 
 #### 4. Optimistic Lock Configuration
 
@@ -514,7 +604,7 @@ Entities use the `OptimisticLock` trait for automatic version management:
 
 ```php
 // In your Entity class
-use App\Domain\Shared\Concerns\Entity\OptimisticLock;
+use App\Domain\Shared\Core\Concerns\Entity\OptimisticLock;
 
 final class Example extends Entity
 {
@@ -569,6 +659,40 @@ curl -X PUT http://localhost:8080/v1/example/1 \
   -H "Content-Type: application/json" \
   -d '{"name": "Updated Name"}'
 ```
+
+#### 5. Translation Message Files
+
+Message files in `resources/messages/{en,id}/` are split into **skeleton-managed** and **project-owned** files:
+
+| File | Owner | Notes |
+|------|-------|-------|
+| `app.php` | **Project** | Add your custom messages here. Never overwritten by `composer skeleton:update`. |
+| `error.php` | Skeleton | Do not edit or add keys — overwritten by `composer skeleton:update`. |
+| `success.php` | Skeleton | Do not edit or add keys — overwritten by `composer skeleton:update`. |
+| `validation.php` | Skeleton | Do not edit or add keys — overwritten by `composer skeleton:update`. |
+
+Put project-specific error, success, or validation messages in `app.php` for each locale:
+
+```php
+// resources/messages/en/app.php
+return [
+    'success' => 'Success',
+    'validation.custom_rule' => 'The {field} is invalid.',
+];
+```
+
+Messages are referenced in code via `Message::create()`:
+
+```php
+use App\Shared\Core\ValueObject\Message;
+
+throw new BadRequestException(
+    translate: Message::create(
+        domain: 'validation',          // message file: validation.php
+        key: 'resource.not_deleted',
+        params: ['resource' => 'example', 'id' => $id]
+    )
+);
 ```
 
 ---
@@ -670,7 +794,7 @@ final class ExampleApplicationService
 Repository implementations handle data persistence:
 
 ```php
-// src/Infrastructure/Persistence/Example/ExampleRepository.php
+// src/Infrastructure/Common/Persistence/Example/ExampleRepository.php
 final class ExampleRepository implements ExampleRepositoryInterface
 {
     public function insert(Example $example): Example
@@ -720,13 +844,166 @@ $app->addMiddleware(new AuthorizationMiddleware($rbacAuthorizer));
 
 ### Audit Trail
 
+Audit logging is **opt-in** — the `audit_logs` table is only created when you run the isolated migration group:
+
+```bash
+./yii migrate:module auditable   # creates audit_logs + rate_limits
+```
+
+`AuditServiceInterface` is already bound to `DatabaseAuditService` in `config/common/di/audit.php`. Inject it where you need logging:
+
 ```php
-// Automatic audit logging
-final class DatabaseAuditService implements AuditServiceInterface
+use App\Domain\Shared\Core\Audit\AuditServiceInterface;
+
+final class ExampleApplicationService
 {
-    public function log(string $tableName, int $recordId, string $action, ?array $oldValues = null, ?array $newValues = null): void
+    public function __construct(
+        private AuditServiceInterface $audit,
+    ) {}
+
+    public function update(int $id, array $oldValues, array $newValues): void
     {
-        // Log to database with actor information
+        // ... update logic ...
+
+        $this->audit->log('example', $id, 'UPDATE', $oldValues, $newValues);
+    }
+}
+```
+
+```php
+// Read audit history
+$this->audit->getHistory('example', $recordId);        // history per record
+$this->audit->getUserActivity($userId, $from, $to);    // activity per user
+```
+
+> **Note:** The `App\Infrastructure\Core\Concerns\Auditable` trait is designed for Active Record-style classes (`beforeSave`/`afterSave`/`getIsNewRecord`). This project uses the Query Builder in repositories, so use `AuditServiceInterface` directly instead.
+
+### Database Rate Limiter (opt-in)
+
+The active `RateLimitMiddleware` uses **in-memory** storage and does not need a table. A persistent DB-backed limiter (`App\Infrastructure\Core\RateLimit\DatabaseRateLimiter`) is available but not wired anywhere — it uses the `rate_limits` table created by `migrate:module auditable`:
+
+```php
+use App\Infrastructure\Core\RateLimit\DatabaseRateLimiter;
+
+public function __construct(private DatabaseRateLimiter $limiter) {}
+
+$key = "login:{$clientIp}";
+
+if (!$this->limiter->isAllowed($key, limit: 5, window: 60)) {
+    throw new TooManyRequestsException(/* ... */);
+}
+
+$this->limiter->hit($key);
+$remaining = $this->limiter->getRemaining($key, 5, 60);
+$resetAt   = $this->limiter->getResetTime($key, 60);
+```
+
+To enforce it through middleware, modify `RateLimitMiddleware` to use `DatabaseRateLimiter`, or call the limiter manually in specific actions (e.g., login).
+
+### Current Actor
+
+`CurrentUser::getActor()` always returns an `ActorInterface` — it is never `null`. Unauthenticated/system contexts get the default actor (`id: 0`, `username: 'system'`). Audit logging and `DetailInfoFactory` rely on this, so you can call `$actor->getUsername()` directly without null-safe operators.
+
+---
+
+## 🔄 Data Synchronization
+
+The skeleton ships with value objects and a factory for tracking record synchronization — both to MongoDB and between master/origin instances.
+
+### MongoDB Sync Flag — `SyncMdb`
+
+`App\Domain\Shared\Core\ValueObject\SyncMdb` wraps the `sync_mdb` column (`null` = synced, `1` = pending):
+
+```php
+use App\Domain\Shared\Core\ValueObject\SyncMdb;
+
+$sync = SyncMdb::pending();          // mark record as needing MongoDB sync
+$sync = SyncMdb::synced();           // mark record as synced
+$sync = SyncMdb::fromInt($row['sync_mdb']);
+$sync = SyncMdb::fromString($input); // accepts string input, throws on non-numeric
+
+$sync->isPending();  // true when sync_mdb = 1
+$sync->isSynced();   // true when sync_mdb = null
+$sync->toInt();      // null | 1 — for DB writes
+```
+
+### Master–Origin Sync — `SyncFlag`
+
+`App\Domain\Shared\Core\ValueObject\SyncFlag` manages the `origin_id` / `sync_flag` columns plus a sync direction. `origin_id` is an integer (default `null`); `sync_flag` is a smallint (`null` = synced, `1` = not synced, default `1`). Status and direction are typed enums in `App\Domain\Shared\Core\Enum`:
+
+| Enum | Case | DB Value | Meaning |
+|------|------|----------|---------|
+| `SyncStatus` | `SYNCED` | `null` | Record already synced |
+| `SyncStatus` | `NOT_SYNCED` | `1` | Record needs syncing |
+| `SyncDirection` | `NONE` | `0` | No direction |
+| `SyncDirection` | `MASTER_TO_ORIGIN` | `1` | Push from master to origin |
+| `SyncDirection` | `ORIGIN_TO_MASTER` | `2` | Push from origin to master |
+| `SyncDirection` | `BIDIRECTIONAL` | `3` | Sync both ways |
+
+```php
+use App\Domain\Shared\Core\Enum\SyncStatus;
+use App\Domain\Shared\Core\ValueObject\SyncFlag;
+
+// Direction is auto-resolved when not given:
+//   sync_flag=null           -> SyncDirection::NONE
+//   sync_flag=1, no origin   -> SyncDirection::MASTER_TO_ORIGIN
+//   sync_flag=1, origin set  -> SyncDirection::ORIGIN_TO_MASTER
+$sync = SyncFlag::create(originId: null, status: SyncStatus::NOT_SYNCED);
+
+$sync = SyncFlag::masterToOrigin();        // to all origins
+$sync = SyncFlag::masterToOrigin(5);       // to origin #5
+$sync = SyncFlag::originToMaster(5);       // origin #5 -> master
+$sync = SyncFlag::bidirectional(5);        // both ways
+$sync = SyncFlag::synced();
+
+$sync = SyncFlag::fromArray($row);         // from request/DB array
+$sync = SyncFlag::fromEntity($entity);     // reads getOriginId()/getSyncFlag()/getSyncDirection()
+
+$sync->needsSyncToOrigin();  // pending && master->origin direction
+$sync->needsSyncToMaster();  // pending && origin->master direction
+$sync->markForSync();        // returns new instance with sync_flag=1
+$sync->markSynced();         // returns new instance with sync_flag=null
+$sync->toArray();            // origin_id + sync_flag + direction
+$sync->toDbArray();          // origin_id + sync_flag only
+```
+
+Invalid `sync_flag` values (not `null`/`1`) or directions (not `0`–`3`) throw `BadRequestException` with translated messages (`sync_flag.invalid_value`, `sync_flag.invalid_direction`).
+
+### `SyncFlagFactory`
+
+`App\Application\Shared\Core\Factory\SyncFlagFactory` is the application-layer helper that wraps `SyncFlag` and adds actor/timestamp-aware payload building:
+
+```php
+use App\Application\Shared\Core\Factory\SyncFlagFactory;
+
+final class ExampleApplicationService
+{
+    public function __construct(
+        private SyncFlagFactory $syncFlagFactory,
+    ) {}
+
+    public function create(CreateExampleCommand $command): void
+    {
+        // Build from request data / entity / record
+        $sync = $this->syncFlagFactory->fromRequest($command->data);
+
+        if ($this->syncFlagFactory->shouldPushToOrigin($sync)) {
+            // Queue payload includes table, record_id, origin_id, direction,
+            // operation, payload, created_at and created_by (current actor)
+            $payload = $this->syncFlagFactory->buildMasterToOriginPayload(
+                originId: $sync->getOriginId(),
+                table: 'example',
+                recordId: $id,
+                operation: 'INSERT',
+                data: $command->data,
+            );
+        }
+
+        // Merge sync state into detail_info
+        $detailInfo = $this->syncFlagFactory->mergeIntoDetailInfo($sync, $detailInfo);
+
+        // Audit-style sync log entry (timestamp + current actor)
+        $log = $this->syncFlagFactory->buildSyncLog($sync, 'example', $id, 'INSERT');
     }
 }
 ```
@@ -810,6 +1087,7 @@ docker-compose -f docker/prod/compose.yml logs -f
 - **[Architecture Guide](architecture-guide.md)**: Complete architecture overview
 - **[Quality Guide](quality-guide.md)**: Quality assurance procedures
 - **[API Documentation](docs/api/)**: API endpoint documentation
+- **[Sync Flag Guide](docs/sync-flag-guide.md)**: Master–origin record synchronization (`origin_id`/`sync_flag`)
 - **[Development Guide](docs/development/)**: Development setup and guidelines
 
 ### Generating Documentation
@@ -870,6 +1148,7 @@ vendor/bin/phpunit tests/Unit/Domain/Example/ExampleTest.php
 
 #### Weekly
 - Update dependencies: `composer update`
+- Check skeleton updates: `composer skeleton:version`
 - Run quality checks: `php quality`
 - Review test coverage trends
 - Check security advisories

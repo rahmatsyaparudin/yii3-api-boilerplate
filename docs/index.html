@@ -256,7 +256,7 @@
                     # Configure .env file<br><br>
                     
                     <div class="command"># Generate Module</div>
-                    composer skeleton-generate-module --module=ProductCategory<br><br>
+                    composer skeleton:generate-module -- --module=ProductCategory<br><br>
                     
                     <div class="command"># Run Server</div>
                     php yii serve
@@ -300,10 +300,10 @@
                 <h3>Module Generator</h3>
                 <div class="code-block">
                     <div class="command"># Generate new module</div>
-                    php scripts/generate-module.php --module=ModuleName<br><br>
+                    php scripts/skeleton-generate-module.php --module=ModuleName<br><br>
                     
                     <div class="command"># Update skeleton</div>
-                    composer skeleton-update
+                    composer skeleton:update
                 </div>
 
                 <h3>Validation</h3>

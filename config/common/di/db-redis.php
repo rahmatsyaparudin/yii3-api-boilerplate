@@ -2,20 +2,23 @@
 
 declare(strict_types=1);
 
-// Domain Layer
-use App\Domain\Example\ExampleRepositoryInterface;
-
 // Infrastructure Layer
-use App\Infrastructure\Database\Redis\RedisService;
-use App\Infrastructure\Database\Redis\RedisExampleRepository;
+use App\Infrastructure\Core\Database\Redis\RedisService;
 
-return [
+/** @var array $params */
+
+// Core Redis service binding. Project-owned Redis bindings (services, cache,
+// queue, or optional repository override) are merged from config/common/redis.php.
+// Redis is normally a side service, but you may bind a repository interface here
+// if a specific domain should use Redis as its storage. Bindings in redis.php
+// are loaded after common/repository.php, so they will override SQL defaults.
+$projectBindings = \dirname(__DIR__) . '/redis.php';
+
+return array_merge([
     RedisService::class => [
         '__construct()' => [
             'host' => $_ENV['redis.default.host'],
-            'port' => (int)$_ENV['redis.default.port'],
+            'port' => (int) $_ENV['redis.default.port'],
         ],
     ],
-    // Mapping Interface ke Implementasi (Penting untuk DDD)
-    ExampleRepositoryInterface::class => RedisExampleRepository::class,
-];
+], file_exists($projectBindings) ? require $projectBindings : []);

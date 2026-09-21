@@ -31,7 +31,10 @@ class SkeletonInstaller
     public function install(): void
     {
         echo "🚀 Installing Shared classes from vendor...\n";
-        
+
+        // Copy scripts first so the latest installer logic is used
+        $this->copyScripts();
+
         // Only copy Shared classes from vendor
         $this->copySharedClasses();
         
@@ -43,7 +46,10 @@ class SkeletonInstaller
         
         // Copy Application Shared classes from vendor
         $this->copyApplicationSharedClasses();
-        
+
+        // Copy Presentation classes from vendor
+        $this->copyPresentationClasses();
+
         // Copy API Shared classes from vendor
         $this->copyApiSharedClasses();
         
@@ -61,34 +67,129 @@ class SkeletonInstaller
         
         // Copy Quality Assurance script
         $this->copyQualityScript();
-        
+
+        // Copy core protection files (AGENTS.md frozen-core rules)
+        $this->copyProtectionFiles();
+
         // Update composer.json with required packages
         $this->updateComposerJson();
         
         echo "✅ Shared classes installation completed!\n";
         echo "\n🎯 Shared classes copied to src/Shared/\n";
-        echo "📁 Directories created: Dto, Enums, ErrorHandler, Exception, Middleware, Query, Request, Security, Utility, Context, ValueObject\n";
+        echo "📁 Directories created: Core/{Dto, Enums, ErrorHandler, Exception, Query, Request, Security, Utility, Validation, ValueObject}, Common/Context\n";
         echo "🏗️  Infrastructure classes copied to src/Infrastructure/\n";
-        echo "📁 Directories created: Audit, Clock, Concerns, Database, Monitoring, RateLimit, Security, Time, Persistence\n";
+        echo "📁 Directories created: Core/{Audit, Clock, Concerns, Database, Monitoring, RateLimit, Security, Seeder, Time}, Common/Persistence\n";
+        echo "🖼️  Presentation classes copied to src/Presentation/\n";
+        echo "📁 Directories created: Core/Http/Middleware, Common\n";
         echo "🧠 Domain Shared classes copied to src/Domain/Shared/\n";
-        echo "📁 Directories created: Audit, Concerns, Contract, Security, ValueObject\n";
+        echo "📁 Directories created: Core/{Audit, Concerns, Contract, Security, ValueObject}, Common\n";
         echo "⚙️  Application Shared classes copied to src/Application/Shared/\n";
-        echo "📁 Directories created: Factory\n";
+        echo "📁 Directories created: Core/Factory, Common\n";
         echo "🌐 API Shared classes copied to src/Api/Shared/\n";
         echo "📁 Directories created: Presenter, ExceptionResponderFactory.php, ResponseFactory.php\n";
         echo "⚙️  Config files copied to config/\n";
-        echo "📁 Files copied: common/middleware.php, common/di/access-di.php, common/di/audit.php, common/di/db-mongodb.php, common/di/db-pgsql.php, common/di/json.php, common/di/jwt.php, common/di/middleware.php, common/di/monitoring.php, common/di/security.php, web/di/application.php\n";
+        echo "📁 Files copied: config/common/di/*, config/common/params-core.php, config/web/di/*, config/console/*\n";
         echo "💬 Message files copied to resources/messages/\n";
-        echo "📁 Files copied: en/error.php, en/success.php, en/validation.php, id/error.php, id/success.php, id/validation.php\n";
+        echo "📁 Message files copied to resources/messages/ for all languages (app.php skipped)\n";
         echo "🌐 API files copied to src/Api/\n";
         echo "📁 Files copied: IndexAction.php\n";
         echo "🔧 Autoload file copied to src/\n";
         echo "📁 Files copied: autoload.php\n";
         echo "📁 Empty directories created: src/Migration, src/Seed\n";
+        echo "🖥️  Console commands copied to src/Console/Core/\n";
+        echo "📁 Files copied: Core/{HelloCommand.php, MigrateModuleCommand.php, MigrationGuardCommand.php, SeederCommand.php}, Common/.gitkeep, AGENTS.md\n";
         echo "🔧 Quality Assurance script copied to project root\n";
         echo "📁 Files copied: quality\n";
+        echo "🛡️  Core protection installed (AGENTS.md frozen-core rules)\n";
+        echo "📁 src/**/Core/ is frozen for AI agents — update it only via composer skeleton:update\n";
         echo "📦 Composer packages updated in composer.json\n";
         echo "📁 Packages added: firebase/php-jwt, psr/clock, vlucas/phpdotenv, yiisoft/* packages\n";
+
+        // Show release notes (scripts/skeleton.readme) for the version(s) just installed
+        $this->displayReleaseNotes();
+
+        $versionFile = $this->projectRoot . '/scripts/skeleton.version';
+        $version = file_exists($versionFile) ? trim((string) file_get_contents($versionFile)) : 'unknown';
+        echo "\n\033[1;92m✨ Skeleton updated successfully to version {$version}\033[0m\n";
+    }
+
+    private function copyScripts(): void
+    {
+        // Scripts are only copied from the vendor package (no project fallback)
+        $vendorScriptsPath = $this->vendorPath . '/scripts';
+
+        if (!is_dir($vendorScriptsPath)) {
+            return;
+        }
+
+        // Compare scripts/skeleton.version instead of comparing files
+        $vendorVersionFile  = $vendorScriptsPath . '/skeleton.version';
+        $currentVersionFile = $this->projectRoot . '/scripts/skeleton.version';
+
+        if (!file_exists($vendorVersionFile)) {
+            return;
+        }
+
+        $vendorVersion  = trim((string) file_get_contents($vendorVersionFile));
+        $currentVersion = file_exists($currentVersionFile)
+            ? trim((string) file_get_contents($currentVersionFile))
+            : null;
+
+        $targetScriptsPath = $this->projectRoot . '/scripts';
+
+        if ($vendorVersion === '' || $vendorVersion === $currentVersion) {
+            // Skeleton is already on this version — still refresh the release
+            // notes so `skeleton:update` always shows the latest readme.
+            $this->syncScriptFile(
+                $vendorScriptsPath . '/skeleton.readme',
+                $targetScriptsPath . '/skeleton.readme',
+            );
+            return;
+        }
+
+        echo "\033[1;93m📜 Updating skeleton scripts: {$currentVersion} → {$vendorVersion}\033[0m\n";
+
+        if (!is_dir($targetScriptsPath)) {
+            mkdir($targetScriptsPath, 0755, true);
+        }
+
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($vendorScriptsPath, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::SELF_FIRST
+        );
+
+        foreach ($iterator as $file) {
+            $sourcePath   = $file->getPathname();
+            $relativePath = str_replace($vendorScriptsPath, '', $sourcePath);
+            $targetPath   = $targetScriptsPath . $relativePath;
+
+            if ($file->isDir()) {
+                if (!is_dir($targetPath)) {
+                    mkdir($targetPath, 0755, true);
+                }
+                continue;
+            }
+
+            $targetDir = dirname($targetPath);
+            if (!is_dir($targetDir)) {
+                mkdir($targetDir, 0755, true);
+            }
+
+            copy($sourcePath, $targetPath);
+            echo "✅ Copied script: scripts" . str_replace('\\', '/', $relativePath) . "\n";
+        }
+
+        // Version changed — restart once so the new installer logic applies immediately
+        if (getenv('SKELETON_SELF_UPDATED') !== '1') {
+            echo "🔄 Skeleton updated to {$vendorVersion} — restarting with the new installer...\n";
+            putenv('SKELETON_SELF_UPDATED=1');
+            // The restarted process shows only the release notes newer than this version
+            if ($currentVersion !== null && $currentVersion !== '') {
+                putenv('SKELETON_PREV_VERSION=' . $currentVersion);
+            }
+            passthru(PHP_BINARY . ' ' . escapeshellarg($targetScriptsPath . '/skeleton-update.php'), $exitCode);
+            exit($exitCode);
+        }
     }
 
     private function copySharedClasses(): void
@@ -104,18 +205,18 @@ class SkeletonInstaller
         
         // Create all required subdirectories
         $sharedDirs = [
-            'Dto',
-            'Enums', 
-            'ErrorHandler',
-            'Exception',
-            'Middleware',
-            'Query',
-            'Request',
-            'Security',
-            'Utility',
-            'Validation',
-            'Context',
-            'ValueObject'
+            'Core/Dto',
+            'Core/Enums',
+            'Core/ErrorHandler',
+            'Core/Exception',
+            'Core/Query',
+            'Core/Request',
+            'Core/Security',
+            'Core/Utility',
+            'Core/Validation',
+            'Core/ValueObject',
+            'Common',
+            'Common/Context',
         ];
         
         foreach ($sharedDirs as $dir) {
@@ -138,6 +239,10 @@ class SkeletonInstaller
                 echo "✅ Copied existing Shared classes\n";
             }
         }
+
+        if (file_exists($targetSharedPath . '/ApplicationParams.php')) {
+            echo "✅ ApplicationParams.php copied to src/Shared/\n";
+        }
     }
 
     private function copyInfrastructureClasses(): void
@@ -153,16 +258,16 @@ class SkeletonInstaller
         
         // Create all required subdirectories
         $infrastructureDirs = [
-            'Audit',
-            'Clock',
-            'Concerns',
-            'Database',
-            'Monitoring',
-            'RateLimit',
-            'Security',
-            'Time',
-            'Persistence',
-            'Seeder',
+            'Core/Audit',
+            'Core/Clock',
+            'Core/Concerns',
+            'Core/Database',
+            'Core/Monitoring',
+            'Core/RateLimit',
+            'Core/Security',
+            'Core/Time',
+            'Core/Seeder',
+            'Common/Persistence',
         ];
         
         foreach ($infrastructureDirs as $dir) {
@@ -200,11 +305,12 @@ class SkeletonInstaller
         
         // Create all required subdirectories
         $domainSharedDirs = [
-            'Audit',
-            'Concerns',
-            'Contract',
-            'Security',
-            'ValueObject',
+            'Core/Audit',
+            'Core/Concerns',
+            'Core/Contract',
+            'Core/Security',
+            'Core/ValueObject',
+            'Common',
         ];
         
         foreach ($domainSharedDirs as $dir) {
@@ -242,7 +348,8 @@ class SkeletonInstaller
         
         // Create all required subdirectories
         $applicationSharedDirs = [
-            'Factory'
+            'Core/Factory',
+            'Common',
         ];
         
         foreach ($applicationSharedDirs as $dir) {
@@ -264,6 +371,52 @@ class SkeletonInstaller
                 $this->copyDirectory($currentApplicationSharedPath, $targetApplicationSharedPath);
                 echo "✅ Copied existing Application Shared classes\n";
             }
+        }
+    }
+
+    private function copyPresentationClasses(): void
+    {
+        // In actual vendor package usage, copy from vendor to project
+        $vendorPresentationPath = $this->vendorPath . '/src/Presentation';
+        $targetPresentationPath = $this->projectRoot . '/src/Presentation';
+
+        // Ensure Presentation directory exists
+        if (!is_dir($targetPresentationPath)) {
+            mkdir($targetPresentationPath, 0755, true);
+        }
+
+        // Create all required subdirectories
+        $presentationDirs = [
+            'Core/Http/Middleware',
+            'Common',
+        ];
+
+        foreach ($presentationDirs as $dir) {
+            $dirPath = $targetPresentationPath . '/' . $dir;
+            if (!is_dir($dirPath)) {
+                mkdir($dirPath, 0755, true);
+                echo "✅ Created directory: src/Presentation/{$dir}\n";
+            }
+        }
+
+        // Copy Presentation classes from vendor if available
+        if (is_dir($vendorPresentationPath)) {
+            $this->copyDirectory($vendorPresentationPath, $targetPresentationPath);
+            echo "✅ Copied Presentation classes from vendor\n";
+        } else {
+            // Fallback: copy from current location (for testing in boilerplate)
+            $currentPresentationPath = $this->projectRoot . '/src/Presentation';
+            if (is_dir($currentPresentationPath)) {
+                $this->copyDirectory($currentPresentationPath, $targetPresentationPath);
+                echo "✅ Copied existing Presentation classes\n";
+            }
+        }
+
+        // Legacy location: HTTP middleware moved out of src/Shared/Core
+        $legacyMiddlewarePath = $this->projectRoot . '/src/Shared/Core/Middleware';
+        if (is_dir($legacyMiddlewarePath)) {
+            $this->filesystem->remove($legacyMiddlewarePath);
+            echo "🗑️  Removed legacy directory: src/Shared/Core/Middleware\n";
         }
     }
 
@@ -333,49 +486,59 @@ class SkeletonInstaller
             mkdir($targetConfigPath, 0755, true);
         }
         
-        // Specific config files to copy
-        $configFiles = [
-            'common/middleware.php',
-            'common/di/access-di.php',
-            'common/di/audit.php',
-            'common/di/db-pgsql.php',
-            'common/di/db-mongodb.php',
-            'common/di/json.php',
-            'common/di/jwt.php',
-            'common/di/middleware.php',
-            'common/di/monitoring.php',
-            'common/di/optimistic-lock.php',
-            'common/di/repository-di.php',
-            'common/di/translator-di.php',
-            'common/di/service-di.php',
-            'common/di/security.php',
-            'web/di/application.php'
-        ];
-        
-        foreach ($configFiles as $file) {
-            $sourceFile = $vendorConfigPath . '/' . $file;
-            $targetFile = $targetConfigPath . '/' . $file;
-            
-            // Ensure target directory exists
-            $targetDir = dirname($targetFile);
-            if (!is_dir($targetDir)) {
-                mkdir($targetDir, 0755, true);
-                echo "✅ Created directory: config/common/" . basename($targetDir) . "\n";
+        // Copy all common/di files at once
+        $commonDiSource = $vendorConfigPath . '/common/di';
+        $commonDiFallback = $this->projectRoot . '/config/common/di';
+        $commonDiTarget = $targetConfigPath . '/common/di';
+
+        if (is_dir($commonDiSource)) {
+            $this->copyDirectory($commonDiSource, $commonDiTarget);
+            echo "✅ Copied config/common/di directory from vendor\n";
+        } elseif (is_dir($commonDiFallback)) {
+            $this->copyDirectory($commonDiFallback, $commonDiTarget);
+            echo "✅ Copied config/common/di directory from current project\n";
+        }
+
+        // Copy all web/di files at once
+        $webDiSource = $vendorConfigPath . '/web/di';
+        $webDiFallback = $this->projectRoot . '/config/web/di';
+        $webDiTarget = $targetConfigPath . '/web/di';
+
+        if (is_dir($webDiSource)) {
+            $this->copyDirectory($webDiSource, $webDiTarget);
+            echo "✅ Copied config/web/di directory from vendor\n";
+        } elseif (is_dir($webDiFallback)) {
+            $this->copyDirectory($webDiFallback, $webDiTarget);
+            echo "✅ Copied config/web/di directory from current project\n";
+        }
+
+        // Copy all console config files at once
+        $consoleSource = $vendorConfigPath . '/console';
+        $consoleFallback = $this->projectRoot . '/config/console';
+        $consoleTarget = $targetConfigPath . '/console';
+
+        if (is_dir($consoleSource)) {
+            $this->copyDirectory($consoleSource, $consoleTarget);
+            echo "✅ Copied config/console directory from vendor\n";
+        } elseif (is_dir($consoleFallback)) {
+            $this->copyDirectory($consoleFallback, $consoleTarget);
+            echo "✅ Copied config/console directory from current project\n";
+        }
+
+        // Copy skeleton-owned core params (config/common/params-core.php).
+        // params.php stays project-owned and merges over this file.
+        $coreParamsSource = $vendorConfigPath . '/common/params-core.php';
+        $coreParamsFallback = $this->projectRoot . '/config/common/params-core.php';
+        $coreParamsTarget = $targetConfigPath . '/common/params-core.php';
+
+        if (is_file($coreParamsSource)) {
+            if ($coreParamsSource !== $coreParamsTarget) {
+                copy($coreParamsSource, $coreParamsTarget);
             }
-            
-            if (file_exists($sourceFile)) {
-                $content = file_get_contents($sourceFile);
-                file_put_contents($targetFile, $content);
-                echo "✅ Copied config file: config/{$file}\n";
-            } else {
-                // Fallback: copy from current location (for testing in boilerplate)
-                $currentSourceFile = $this->projectRoot . '/config/' . $file;
-                if (file_exists($currentSourceFile)) {
-                    $content = file_get_contents($currentSourceFile);
-                    file_put_contents($targetFile, $content);
-                    echo "✅ Copied existing config file: config/{$file}\n";
-                }
-            }
+            echo "✅ Copied config/common/params-core.php from vendor\n";
+        } elseif (is_file($coreParamsFallback) && $coreParamsFallback !== $coreParamsTarget) {
+            copy($coreParamsFallback, $coreParamsTarget);
+            echo "✅ Copied config/common/params-core.php from current project\n";
         }
     }
 
@@ -384,45 +547,55 @@ class SkeletonInstaller
         // In actual vendor package usage, copy from vendor to project
         $vendorMessagesPath = $this->vendorPath . '/resources/messages';
         $targetMessagesPath = $this->projectRoot . '/resources/messages';
-        
+
         // Ensure resources/messages directory exists
         if (!is_dir($targetMessagesPath)) {
             mkdir($targetMessagesPath, 0755, true);
         }
-        
-        // Message files to copy for each language
-        $messageFiles = [
-            'error.php',
-            'success.php',
-            'validation.php'
-        ];
-        
-        $languages = ['en', 'id'];
-        
-        foreach ($languages as $lang) {
-            // Create language directory
+
+        $sourcePath = is_dir($vendorMessagesPath) ? $vendorMessagesPath : $targetMessagesPath;
+
+        if (!is_dir($sourcePath)) {
+            return;
+        }
+
+        $languages = new DirectoryIterator($sourcePath);
+        foreach ($languages as $langInfo) {
+            if ($langInfo->isDot() || !$langInfo->isDir()) {
+                continue;
+            }
+
+            $lang = $langInfo->getFilename();
             $langDir = $targetMessagesPath . '/' . $lang;
             if (!is_dir($langDir)) {
                 mkdir($langDir, 0755, true);
                 echo "✅ Created directory: resources/messages/{$lang}\n";
             }
-            
-            foreach ($messageFiles as $file) {
-                $sourceFile = $vendorMessagesPath . '/' . $lang . '/' . $file;
+
+            $files = new DirectoryIterator($sourcePath . '/' . $lang);
+            foreach ($files as $fileInfo) {
+                if ($fileInfo->isDot() || $fileInfo->isDir()) {
+                    continue;
+                }
+
+                $file = $fileInfo->getFilename();
+
+                // app.php is project-specific, do not overwrite
+                if ($file === 'app.php') {
+                    continue;
+                }
+
+                $sourceFile = $sourcePath . '/' . $lang . '/' . $file;
                 $targetFile = $langDir . '/' . $file;
-                
+
+                if ($sourceFile === $targetFile) {
+                    continue;
+                }
+
                 if (file_exists($sourceFile)) {
                     $content = file_get_contents($sourceFile);
                     file_put_contents($targetFile, $content);
                     echo "✅ Copied message file: resources/messages/{$lang}/{$file}\n";
-                } else {
-                    // Fallback: copy from current location (for testing in boilerplate)
-                    $currentSourceFile = $this->projectRoot . '/resources/messages/' . $lang . '/' . $file;
-                    if (file_exists($currentSourceFile)) {
-                        $content = file_get_contents($currentSourceFile);
-                        file_put_contents($targetFile, $content);
-                        echo "✅ Copied existing message file: resources/messages/{$lang}/{$file}\n";
-                    }
                 }
             }
         }
@@ -509,8 +682,8 @@ class SkeletonInstaller
             }
         }
         
-        // Copy Seeder infrastructure files
-        $this->copySeederInfrastructure();
+        // Copy skeleton-owned console commands
+        $this->copyConsoleCommands();
         
         // Create .gitkeep files to preserve empty directories in git
         $this->createGitKeepFile($this->projectRoot . '/src/Migration/.gitkeep');
@@ -554,6 +727,29 @@ class SkeletonInstaller
         }
     }
 
+    private function copyProtectionFiles(): void
+    {
+        echo "🛡️  Installing core protection files...\n";
+
+        // AGENTS.md — frozen-core rules for AI agents and contributors.
+        // Appended when the project already maintains its own AGENTS.md.
+        $agentsSource = $this->vendorPath . '/AGENTS.md';
+        $agentsTarget = $this->projectRoot . '/AGENTS.md';
+        if (file_exists($agentsSource)) {
+            if (!file_exists($agentsTarget)) {
+                copy($agentsSource, $agentsTarget);
+                echo "✅ Copied AGENTS.md\n";
+            } elseif (!str_contains((string) file_get_contents($agentsTarget), 'Protected paths')) {
+                file_put_contents(
+                    $agentsTarget,
+                    "\n\n" . (string) file_get_contents($agentsSource),
+                    FILE_APPEND
+                );
+                echo "✅ Appended protected-paths rules to existing AGENTS.md\n";
+            }
+        }
+    }
+
     private function updateComposerJson(): void
     {
         $composerFile = $this->projectRoot . '/composer.json';
@@ -582,6 +778,7 @@ class SkeletonInstaller
             "yiisoft/cache-file" => "^3.2",
             "yiisoft/db" => "^2.0",
             "yiisoft/db-migration" => "^2.0.1",
+            "yiisoft/db-mysql" => "^2.0",
             "yiisoft/db-pgsql" => "^2.0",
             "yiisoft/router" => "^4.0.2",
             "yiisoft/router-fastroute" => "^4.0.3",
@@ -656,7 +853,7 @@ class SkeletonInstaller
                 }
                 
                 file_put_contents($targetPath, $content);
-                
+
                 // Copy permissions
                 $permissions = fileperms($sourcePath);
                 if ($permissions !== false) {
@@ -665,30 +862,116 @@ class SkeletonInstaller
             }
         }
     }
-    
-    private function copySeederInfrastructure(): void
+
+    /**
+     * Copy a single scripts/ file from the vendor package when it differs.
+     * Used for skeleton.readme so release notes stay fresh even when the
+     * skeleton version itself is unchanged.
+     */
+    private function syncScriptFile(string $source, string $target): void
     {
-        echo "🌱 Copying Seeder infrastructure files...\n";
-        
-        // Define seeder files to copy
-        $seederFiles = [
-            'src/Console/SeederCommand.php' => 'src/Console/SeederCommand.php'
-        ];
-        
-        foreach ($seederFiles as $source => $target) {
-            $sourcePath = $this->vendorPath . '/' . $source;
-            $targetPath = $this->projectRoot . '/' . $target;
-            
-            if (file_exists($sourcePath)) {
-                // Ensure target directory exists
-                $targetDir = dirname($targetPath);
-                if (!is_dir($targetDir)) {
-                    mkdir($targetDir, 0755, true);
-                }
-                
-                copy($sourcePath, $targetPath);
-                echo "✅ Copied: {$target}\n";
+        if (!is_file($source)) {
+            return;
+        }
+
+        if (is_file($target) && md5_file($source) === md5_file($target)) {
+            return;
+        }
+
+        $targetDir = dirname($target);
+        if (!is_dir($targetDir)) {
+            mkdir($targetDir, 0755, true);
+        }
+
+        copy($source, $target);
+        echo "✅ Copied script: scripts/" . basename($target) . "\n";
+    }
+
+    /**
+     * Print the release notes from scripts/skeleton.readme. Only the
+     * sections newer than the previously installed version are shown
+     * (the old version is passed via SKELETON_PREV_VERSION on restart).
+     */
+    private function displayReleaseNotes(): void
+    {
+        $readmePath = $this->projectRoot . '/scripts/skeleton.readme';
+        if (!is_file($readmePath)) {
+            return;
+        }
+
+        $content = trim((string) file_get_contents($readmePath));
+        if ($content === '') {
+            return;
+        }
+
+        $previousVersion = getenv('SKELETON_PREV_VERSION');
+        $notes = $this->extractReleaseNotes(
+            $content,
+            ($previousVersion === false || $previousVersion === '') ? null : $previousVersion,
+        );
+
+        if ($notes === '') {
+            return;
+        }
+
+        echo "\n\033[1;96m📋 What's changed\033[0m\n\n";
+        echo $notes . "\n";
+    }
+
+    /**
+     * Extract `## X.Y.Z` sections from the changelog. Sections are expected
+     * newest-first. When $previousVersion is known, all newer sections are
+     * returned; otherwise only the newest section. A "---" line ends a
+     * section so footer text is never shown.
+     */
+    private function extractReleaseNotes(string $content, ?string $previousVersion): string
+    {
+        if (!preg_match_all('/^##\s+\[?v?(\d+\.\d+\.\d+)\]?/m', $content, $matches, PREG_OFFSET_CAPTURE)) {
+            // Not a versioned changelog — show it as-is
+            return $content;
+        }
+
+        $headings = $matches[0];
+        $versions = $matches[1];
+        $count = count($headings);
+
+        $sliceSection = static function (int $index) use ($content, $headings, $count): string {
+            $end = ($index + 1 < $count) ? $headings[$index + 1][1] : strlen($content);
+            $section = substr($content, $headings[$index][1], $end - $headings[$index][1]);
+
+            return (string) preg_split('/^---\s*$/m', $section)[0];
+        };
+
+        if ($previousVersion === null) {
+            return trim($sliceSection(0));
+        }
+
+        $notes = '';
+        for ($i = 0; $i < $count; $i++) {
+            if (version_compare($versions[$i][0], $previousVersion, '<=')) {
+                break;
             }
+            $notes .= $sliceSection($i);
+        }
+
+        // Fall back to the newest section (e.g. readme not updated for this release)
+        if (trim($notes) === '') {
+            $notes = $sliceSection(0);
+        }
+
+        return trim($notes);
+    }
+
+    private function copyConsoleCommands(): void
+    {
+        echo "🖥️  Copying console commands...\n";
+
+        $sourcePath = $this->vendorPath . '/src/Console';
+        $targetPath = $this->projectRoot . '/src/Console';
+
+        if (is_dir($sourcePath)) {
+            $this->copyDirectory($sourcePath, $targetPath);
+            echo "✅ Copied console commands from vendor\n";
         }
     }
 }

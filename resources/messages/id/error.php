@@ -2,6 +2,15 @@
 
 declare(strict_types=1);
 
+/**
+ * Pesan error dalam Bahasa Indonesia.
+ *
+ * FILE INI DIBUAT OLEH SKELETON DAN TIDAK BOLEH DIEDIT, DIHAPUS,
+ * ATAU DITAMBAHKAN KEY BARU. File ini akan ditimpa oleh `composer skeleton-update`.
+ *
+ * Tambahkan pesan error, success, atau validation khusus project di
+ * `resources/messages/id/app.php`.
+ */
 return [
     // HTTP Prefix (Generic API Errors)
     'http.bad_request' => 'Permintaan tidak valid atau formatnya salah',
@@ -24,6 +33,7 @@ return [
     'auth.invalid_issuer' => 'Penerbit (issuer) token tidak valid',
     'auth.invalid_audience' => 'Target (audience) token tidak valid',
     'auth.missing_claim' => 'Token tidak memiliki klaim yang diperlukan: {claim}',
+    'auth.invalid_secret' => 'Secret token tidak valid',
 
     // Request Prefix
     'request.invalid_json' => 'Isi permintaan mengandung JSON yang tidak valid',
@@ -53,6 +63,7 @@ return [
 
     // Validation
     'validation.failed' => 'Validasi gagal. Silakan periksa kembali data yang dikirimkan',
+    'validation.invalid_payload' => 'Data {resource} tidak valid',
 
     // Data type
     'type.string' => 'Kolom {field} harus berupa teks (string)',
@@ -89,6 +100,7 @@ return [
     'resource.update_not_allowed_by_status' => 'Perubahan data tidak diizinkan untuk {resource} saat berstatus "{current_status}"',
     'resource.status_already_set' => 'Tidak dapat memperbarui {resource}. Status sudah bernilai "{current_status}"',
     'resource.modification_denied_on_deleted' => 'Tindakan dilarang: Operasi yang diminta tidak dapat dilakukan karena {resource} ditandai sebagai "{status}".',
+    'resource.not_deleted' => 'Cannot restore data with id: {id} because it is not deleted',
 
     // Access & Rate Limit
     'operation.not_allowed' => 'Operasi ini tidak diizinkan',
