@@ -155,6 +155,28 @@ resources/messages/
     └── validation.php           # Validation messages
 ```
 
+## Environment Configuration
+
+The monitoring middlewares (`RequestIdMiddleware`, `StructuredLoggingMiddleware`,
+`MetricsMiddleware`, `ErrorMonitoringMiddleware`) can be overridden from `.env`.
+All keys are optional — `config/common/params-core.php` provides the defaults
+shown below.
+
+| Key | Default | Description |
+| --- | --- | --- |
+| `app.monitoring.request_id_header` | `X-Request-Id` | Header name carrying the request ID |
+| `app.monitoring.logging.enabled` | `true` | Enable/disable structured request/response logging |
+| `app.monitoring.logging.log_level` | `warning` | Log level: `debug`, `info`, `warning`, `error` |
+| `app.monitoring.logging.include_request_body` | `false` | Include the sanitized request body in logs (passwords/tokens are redacted) |
+| `app.monitoring.logging.include_response_body` | `false` | Include the response body in logs |
+| `app.monitoring.logging.max_log_size` | `10000` | Max characters per logged value before truncation |
+| `app.monitoring.logging.exclude_paths` | `["/health","/metrics"]` | JSON array of path prefixes excluded from logging |
+| `app.monitoring.metrics.enabled` | `true` | Enable/disable request metrics collection |
+| `app.monitoring.error_monitoring.enabled` | `true` | Enable/disable error & exception capture |
+
+Note: the level of each log entry is derived automatically from the HTTP status
+code (`>=500` → error, `>=400` → warning, otherwise info).
+
 ## Manual Setup
 
 If you prefer to set up manually:
