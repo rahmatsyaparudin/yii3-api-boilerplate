@@ -98,7 +98,7 @@ Open your project's `composer.json` and add the following sections:
 ### 3. Update Composer
 Update composer dependencies
 ```bash
-composer update --ignore-platform-reqs
+composer install --ignore-platform-reqs
 ```
 
 ### 4. Copy skeleton scripts
