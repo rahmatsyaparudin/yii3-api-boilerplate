@@ -166,7 +166,7 @@ shown below.
 | --- | --- | --- |
 | `app.monitoring.request_id_header` | `X-Request-Id` | Header name carrying the request ID |
 | `app.monitoring.logging.enabled` | `true` | Enable/disable structured request/response logging |
-| `app.monitoring.logging.log_level` | `warning` | Log level: `debug`, `info`, `warning`, `error` |
+| `app.monitoring.logging.log_level` | `warning` | Minimum level yang dicatat: `debug`, `info`, `warning`, `error` |
 | `app.monitoring.logging.include_request_body` | `false` | Include the sanitized request body in logs (passwords/tokens are redacted) |
 | `app.monitoring.logging.include_response_body` | `false` | Include the response body in logs |
 | `app.monitoring.logging.max_log_size` | `10000` | Max characters per logged value before truncation |
@@ -175,7 +175,8 @@ shown below.
 | `app.monitoring.error_monitoring.enabled` | `true` | Enable/disable error & exception capture |
 
 Note: the level of each log entry is derived automatically from the HTTP status
-code (`>=500` → error, `>=400` → warning, otherwise info).
+code (`>=500` → error, `>=400` → warning, otherwise info); `log_level` then
+filters out entries below the configured minimum.
 
 ## Manual Setup
 

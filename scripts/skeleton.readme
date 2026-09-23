@@ -6,6 +6,27 @@
 > installed version, so users always see which files changed and what
 > changed — without anyone having to edit `skeleton-update.php`.
 
+## 1.2.9
+
+### Changed
+- `src/Infrastructure/Core/Monitoring/StructuredLoggingMiddleware.php` —
+  `log_level` is now enforced: entries below the configured minimum
+  level (`debug` < `info` < `warning` < `error`) are skipped. Entry
+  levels are still derived from the HTTP status code.
+- `config/common/params-core.php` — the `app/monitoring` params are now
+  overridable from `.env`: `app.monitoring.request_id_header`,
+  `app.monitoring.logging.{enabled,log_level,include_request_body,include_response_body,max_log_size,exclude_paths}`,
+  `app.monitoring.metrics.enabled`, and
+  `app.monitoring.error_monitoring.enabled`. All keys are optional and
+  fall back to the previous defaults.
+- `.env.example` — new "Monitoring & Structured Logging" block with the
+  keys above, so fresh projects can tune the monitoring middlewares
+  (`StructuredLoggingMiddleware`, `MetricsMiddleware`,
+  `ErrorMonitoringMiddleware`, `RequestIdMiddleware`) without touching
+  config files.
+- `README-SKELETON.md` — new "Environment Configuration" section
+  documenting the `app.monitoring.*` keys.
+
 ## 1.2.8
 
 ### Added

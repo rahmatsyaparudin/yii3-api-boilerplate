@@ -14,6 +14,13 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 final class StructuredLoggingMiddleware implements MiddlewareInterface
 {
+    private const LEVEL_PRIORITY = [
+        'debug'   => 0,
+        'info'    => 1,
+        'warning' => 2,
+        'error'   => 3,
+    ];
+
     private array $config;
     private array $logs = [];
 
@@ -257,6 +264,11 @@ final class StructuredLoggingMiddleware implements MiddlewareInterface
 
     private function writeLog(string $level, string $message, array $context): void
     {
+        $minLevel = self::LEVEL_PRIORITY[$this->config['log_level']] ?? self::LEVEL_PRIORITY['info'];
+        if ((self::LEVEL_PRIORITY[$level] ?? self::LEVEL_PRIORITY['info']) < $minLevel) {
+            return;
+        }
+
         $logEntry = \json_encode([
             'level'   => \strtoupper($level),
             'message' => $message,
