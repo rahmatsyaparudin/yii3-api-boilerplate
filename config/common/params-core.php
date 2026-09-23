@@ -28,6 +28,7 @@ $exposedHeaders  = \json_decode($_ENV['app.cors.exposedHeaders'] ?? '[]', true) 
 $trustedHosts    = \json_decode($_ENV['app.trusted_hosts.allowedHosts'] ?? '[]', true) ?? [];
 $disabledValues  = \json_decode($_ENV['app.optimistic_lock.disabled.values'] ?? '[]', true) ?? [];
 $publicPaths     = \json_decode($_ENV['app.jwt.publicPaths'] ?? '[]', true) ?? [];
+$excludePaths    = \json_decode($_ENV['app.monitoring.logging.exclude_paths'] ?? '["/health","/metrics"]', true) ?? ['/health', '/metrics'];
 
 return [
     'application'     => require __DIR__ . '/application.php',
@@ -134,18 +135,18 @@ return [
     'app/monitoring' => [
         'provider'          => 'custom',
         'log_file'          => 'runtime/logs/api.log',
-        'request_id_header' => 'X-Request-Id',
+        'request_id_header' => $_ENV['app.monitoring.request_id_header'] ?? 'X-Request-Id',
         'logging'           => [
-            'enabled'               => true,
-            'log_level'             => 'info',
-            'include_request_body'  => false,
-            'include_response_body' => false,
-            'max_log_size'          => 10000,
-            'exclude_paths'         => ['/health', '/metrics'],
+            'enabled'               => \filter_var($_ENV['app.monitoring.logging.enabled'] ?? true, FILTER_VALIDATE_BOOLEAN),
+            'log_level'             => $_ENV['app.monitoring.logging.log_level'] ?? 'info',
+            'include_request_body'  => \filter_var($_ENV['app.monitoring.logging.include_request_body'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            'include_response_body' => \filter_var($_ENV['app.monitoring.logging.include_response_body'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            'max_log_size'          => (int) ($_ENV['app.monitoring.logging.max_log_size'] ?? 10000),
+            'exclude_paths'         => $excludePaths,
             'exclude_status_codes'  => [404],
         ],
         'metrics' => [
-            'enabled'             => true,
+            'enabled'             => \filter_var($_ENV['app.monitoring.metrics.enabled'] ?? true, FILTER_VALIDATE_BOOLEAN),
             'track_response_time' => true,
             'track_request_count' => true,
             'track_status_codes'  => true,
@@ -154,7 +155,7 @@ return [
             'reset_interval'      => 300,
         ],
         'error_monitoring' => [
-            'enabled'                => true,
+            'enabled'                => \filter_var($_ENV['app.monitoring.error_monitoring.enabled'] ?? true, FILTER_VALIDATE_BOOLEAN),
             'capture_exceptions'     => true,
             'capture_errors'         => true,
             'max_errors_per_request' => 10,
