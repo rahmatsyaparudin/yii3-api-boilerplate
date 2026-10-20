@@ -15,6 +15,7 @@ use App\Presentation\Core\Http\Middleware\RequestParamsMiddleware;
 // Api Layer
 use App\Api\V1\Example\Action as ExampleV1;
 use App\Api\V1\AnotherExample\Action as AnotherExampleV1;
+use App\Api\V1\System\Token\Action as ServiceTokenV1;
 
 // @var array $params
 
@@ -82,5 +83,27 @@ return [
                 ->action(AnotherExampleV1\AnotherExampleRestoreAction::class)
                 ->name('v1/another-example/restore')
                 ->defaults(['permission' => 'another-example.restore']),
+
+            // System — Service Token Routes
+            Route::post('/system/service-token/data')
+                ->action(ServiceTokenV1\ServiceTokenDataAction::class)
+                ->name('v1/system/service-token/data')
+                ->defaults(['permission' => 'system.service-token.list']),
+            Route::get('/system/service-token/{id:\d+}')
+                ->action(ServiceTokenV1\ServiceTokenViewAction::class)
+                ->name('v1/system/service-token/view')
+                ->defaults(['permission' => 'system.service-token.view']),
+            Route::post('/system/service-token/create')
+                ->action(ServiceTokenV1\ServiceTokenCreateAction::class)
+                ->name('v1/system/service-token/create')
+                ->defaults(['permission' => 'system.service-token.create']),
+            Route::put('/system/service-token/{id:\d+}')
+                ->action(ServiceTokenV1\ServiceTokenUpdateAction::class)
+                ->name('v1/system/service-token/update')
+                ->defaults(['permission' => 'system.service-token.update']),
+            Route::delete('/system/service-token/{id:\d+}')
+                ->action(ServiceTokenV1\ServiceTokenDeleteAction::class)
+                ->name('v1/system/service-token/delete')
+                ->defaults(['permission' => 'system.service-token.delete']),
         ),
 ];

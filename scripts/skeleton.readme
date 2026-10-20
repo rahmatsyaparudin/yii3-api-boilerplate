@@ -1,112 +1,178 @@
-# Skeleton Release Notes
+# Catatan Rilis Skeleton
 
-> Maintained by the skeleton maintainer. Add a `## X.Y.Z` section at the
-> top of this file for every release (newest first). `composer
-> skeleton:update` prints the sections newer than the previously
-> installed version, so users always see which files changed and what
-> changed — without anyone having to edit `skeleton-update.php`.
+> Dikelola oleh maintainer skeleton. Tambahkan section `## X.Y.Z` di
+> bagian atas file ini untuk setiap rilis (terbaru di atas).
+> `composer skeleton:update` menampilkan section yang lebih baru
+> dibanding versi yang sebelumnya terinstal, sehingga user selalu tahu
+> file mana yang berubah dan apa yang berubah — tanpa perlu mengedit
+> `skeleton-update.php`.
+
+## 1.3.0
+
+### Ditambahkan
+- **Modul Service Token** — bearer token opaque long-lived untuk service
+  eksternal (POS, script, integrasi), alternatif JWT tanpa SSO.
+  File baru: `src/Api/V1/System/Token/` (5 action +
+  `ServiceTokenInputValidator`), `src/Application/System/Token/`
+  (`ServiceTokenApplicationService`, `Dto/ServiceTokenResponse`),
+  `src/Domain/System/Token/` (entity `ServiceToken` + kontrak
+  repository),
+  `src/Infrastructure/Common/Persistence/System/ServiceTokenRepository.php`,
+  `src/Migration/ServiceToken/` (tabel `service_tokens` —
+  `migrate:module serviceToken`; hanya hash SHA-256 yang disimpan,
+  plaintext secret hanya ditampilkan sekali saat issuance/regeneration).
+  Disalin ke project konsumen lewat `composer skeleton:copy-examples`.
+- `src/Presentation/Core/Http/Middleware/ServiceTokenAuthMiddleware.php` —
+  entry terpisah yang berjalan sebelum JwtMiddleware: token
+  `Authorization: Bearer` opaque diautentikasi ke `service_tokens`
+  sebagai user penerbit (gaya SSO — permission, audit, dan changelog
+  DetailInfo berjalan sebagai user tersebut) dan membawa attribute
+  `actor` yang di-skip oleh JwtMiddleware. Opt-in via
+  `app.service_token.enabled` di `.env` (default `false` — tanpa
+  overhead DB saat mati). Mendukung `whitelist_host` (exact / `*` /
+  prefix `x.*` / suffix `*.x`), `expires_at`, dan revoke instan lewat
+  soft delete.
+- `JwtMiddleware` — guard attribute `actor` baru: request yang sudah
+  terautentikasi oleh middleware sebelumnya diteruskan (pass-through).
+- `resources/messages/{en,id}/error.php` — key `service_token.duplicate`
+  (ikut skeleton sehingga konsumen menerimanya via `skeleton:update`).
+- `docs/system_service-token.md` — dokumentasi endpoint & middleware.
+
+### Berubah
+- `config/web/di/application.php` — `ServiceTokenAuthMiddleware`
+  ditambahkan sebagai entry sendiri sebelum `JwtMiddleware` (keduanya
+  sekarang entry stack).
+- `config/common/params-core.php` — param `app/serviceToken.enabled`
+  (env `app.service_token.enabled`, default `false`).
+- `config/common/routes.php` — 5 route `/v1/system/service-token/*`.
+- `config/common/access.php` — 5 permission `system.service-token.*`.
+- `config/common/repository.php` — binding
+  `ServiceTokenRepositoryInterface`.
+- `config/common/migration.php` — modul `ServiceToken` → koneksi
+  `default`.
+- `scripts/skeleton-copy-examples.php` — ikut menyalin
+  `src/Api/V1/System`, `src/Application/System`, `src/Domain/System`,
+  `src/Infrastructure/Common/Persistence/System`.
+
+### Catatan untuk project konsumen
+- Yang tersalin otomatis via `skeleton:update`: kedua middleware,
+  `application.php`, `middleware-di.php`, `params-core.php`, repository
+  `src/Infrastructure/`, dan `resources/messages/{en,id}/error.php`.
+- Yang perlu `skeleton:copy-examples`: layer `Api`/`Application`/
+  `Domain` modul `System` + folder `src/Migration/ServiceToken`.
+- Yang harus ditambahkan manual di project konsumen (config milik
+  project, tidak ikut sync): 5 route di `config/common/routes.php`,
+  5 permission di `config/common/access.php`, binding
+  `ServiceTokenRepositoryInterface` di `config/common/repository.php`,
+  dan mapping `ServiceToken` di `config/common/migration.php`.
+- `app.service_token.enabled` default `false` — middleware langsung
+  skip ke JWT tanpa query DB. Set `true` setelah binding repository +
+  migrasi terpasang.
 
 ## 1.2.9
 
-### Changed
+### Berubah
 - `src/Infrastructure/Core/Monitoring/StructuredLoggingMiddleware.php` —
-  `log_level` is now enforced: entries below the configured minimum
-  level (`debug` < `info` < `warning` < `error`) are skipped. Entry
-  levels are still derived from the HTTP status code.
-- `config/common/params-core.php` — the `app/monitoring` params are now
-  overridable from `.env`: `app.monitoring.request_id_header`,
+  `log_level` sekarang ditegakkan: entri di bawah level minimum yang
+  dikonfigurasi (`debug` < `info` < `warning` < `error`) di-skip. Level
+  entri tetap diturunkan dari HTTP status code.
+- `config/common/params-core.php` — params `app/monitoring` sekarang
+  bisa di-override dari `.env`: `app.monitoring.request_id_header`,
   `app.monitoring.logging.{enabled,log_level,include_request_body,include_response_body,max_log_size,exclude_paths}`,
-  `app.monitoring.metrics.enabled`, and
-  `app.monitoring.error_monitoring.enabled`. All keys are optional and
-  fall back to the previous defaults.
-- `.env.example` — new "Monitoring & Structured Logging" block with the
-  keys above, so fresh projects can tune the monitoring middlewares
+  `app.monitoring.metrics.enabled`, dan
+  `app.monitoring.error_monitoring.enabled`. Semua key opsional dan
+  fallback ke default sebelumnya.
+- `.env.example` — blok "Monitoring & Structured Logging" baru berisi
+  key-key di atas, agar project baru bisa mengatur middleware monitoring
   (`StructuredLoggingMiddleware`, `MetricsMiddleware`,
-  `ErrorMonitoringMiddleware`, `RequestIdMiddleware`) without touching
-  config files.
-- `README-SKELETON.md` — new "Environment Configuration" section
-  documenting the `app.monitoring.*` keys.
+  `ErrorMonitoringMiddleware`, `RequestIdMiddleware`) tanpa menyentuh
+  file config.
+- `README-SKELETON.md` — section "Environment Configuration" baru yang
+  mendokumentasikan key `app.monitoring.*`.
 
 ## 1.2.8
 
-### Added
-- `scripts/skeleton.readme` — this changelog. `composer skeleton:update`
-  prints the sections newer than the previously installed version.
-- `scripts/skeleton-update.php` — release-notes display after update
-  (`displayReleaseNotes()`, `extractReleaseNotes()`); the restarted
-  installer receives the previous version via `SKELETON_PREV_VERSION`
-  and `skeleton.readme` is re-synced even when the version is unchanged.
+### Ditambahkan
+- `scripts/skeleton.readme` — changelog ini. `composer skeleton:update`
+  menampilkan section yang lebih baru dibanding versi terinstal.
+- `scripts/skeleton-update.php` — tampilan release-notes setelah update
+  (`displayReleaseNotes()`, `extractReleaseNotes()`); installer yang
+  di-restart menerima versi sebelumnya via `SKELETON_PREV_VERSION` dan
+  `skeleton.readme` ikut tersinkron walau versi tidak berubah.
 
-### Changed
-- `src/Shared/Core/Query/QueryConditionApplier.php` — `filterByLike()` and
-  `orLike()` are now instance methods (no longer static). The `$operator`
-  argument is now nullable and auto-resolved from the DB connection
-  (`ilike` for PostgreSQL, `like` otherwise). An optional `$db` argument
-  was added for multi-database queries.
+### Berubah
+- `src/Shared/Core/Query/QueryConditionApplier.php` — `filterByLike()`
+  dan `orLike()` sekarang instance method (bukan static lagi). Argumen
+  `$operator` sekarang nullable dan otomatis di-resolve dari koneksi DB
+  (`ilike` untuk PostgreSQL, `like` selainnya). Argumen opsional `$db`
+  ditambahkan untuk query multi-database.
 - `src/Infrastructure/Common/Persistence/Example/ExampleRepository.php`,
-  `.../AnotherExample/AnotherExampleRepository.php` — repository examples
-  updated to call `QueryConditionApplier` as an injected instance.
+  `.../AnotherExample/AnotherExampleRepository.php` — contoh repository
+  diupdate untuk memanggil `QueryConditionApplier` sebagai instance
+  yang di-inject.
 
-### Renamed
+### Diganti nama
 - `scripts/generate-module.php` → `scripts/skeleton-generate-module.php`
-  — consistent `skeleton-*` naming for skeleton-owned scripts; the
-  `composer skeleton:generate-module` command is unchanged. Update any
-  direct calls (`php scripts/generate-module.php ...`) to the new path.
+  — penamaan `skeleton-*` yang konsisten untuk script milik skeleton;
+  command `composer skeleton:generate-module` tidak berubah. Update
+  pemanggilan langsung (`php scripts/generate-module.php ...`) ke path
+  baru.
 
 ## 1.2.7
 
-### Added
-- `src/Console/Core/MigrationGuardCommand.php` — `migration-guard` command
-  that replaces `migrate:down` and `migrate:redo` in the `prod`
-  environment so destructive migrations can never run there.
-- `src/Console/` layer with the Core/Common split: `Core/` (frozen),
-  `Common/` (project commands), `AGENTS.md`, `!DONT-EDIT-CORE.txt`,
+### Ditambahkan
+- `src/Console/Core/MigrationGuardCommand.php` — command
+  `migration-guard` yang menggantikan `migrate:down` dan `migrate:redo`
+  di environment `prod` agar migration destruktif tidak pernah jalan
+  di sana.
+- Layer `src/Console/` dengan pemisahan Core/Common: `Core/` (frozen),
+  `Common/` (command project), `AGENTS.md`, `!DONT-EDIT-CORE.txt`,
   `!USE-COMMON-FOR-YOUR-CODE`.
-- `scripts/skeleton-version.php` — `composer skeleton:version` compares
-  the installed skeleton version with the vendor package.
+- `scripts/skeleton-version.php` — `composer skeleton:version`
+  membandingkan versi skeleton terinstal dengan package vendor.
 
-### Changed
+### Berubah
 - `src/Console/{ => Core}/HelloCommand.php`, `MigrateModuleCommand.php`,
-  `SeederCommand.php` — moved into `src/Console/Core/` (namespace
+  `SeederCommand.php` — dipindah ke `src/Console/Core/` (namespace
   `App\Console\Core`).
-- `config/console/commands.php` — registers `MigrationGuardCommand` for
-  `migrate:down`/`migrate:redo` when `Environment::isProd()`.
+- `config/console/commands.php` — meregistrasi `MigrationGuardCommand`
+  untuk `migrate:down`/`migrate:redo` saat `Environment::isProd()`.
 - `config/common/di/infrastructure-di.php`, `AGENTS.md`,
   `scripts/skeleton-update.php`, `composer.json` scripts.
 
-### Removed
-- `.env copy.example` — stray duplicate of the env example file.
+### Dihapus
+- `.env copy.example` — duplikat nyasar dari file env example.
 
 ## 1.2.6
 
-### Added
-- `src/Presentation/` layer — HTTP middleware moved out of `src/Shared`
-  into `src/Presentation/Core/Http/Middleware/`: `AccessMiddleware`,
+### Ditambahkan
+- Layer `src/Presentation/` — HTTP middleware dipindah dari `src/Shared`
+  ke `src/Presentation/Core/Http/Middleware/`: `AccessMiddleware`,
   `CorsMiddleware`, `JwtMiddleware`, `RateLimitMiddleware`,
   `RequestParamsMiddleware`, `SecureHeadersMiddleware`,
-  `TrustedHostMiddleware`. `src/Presentation/Core/` is now a protected
-  (frozen) path; the installer removes the legacy
-  `src/Shared/Core/Middleware/` directory.
+  `TrustedHostMiddleware`. `src/Presentation/Core/` sekarang path
+  terproteksi (frozen); installer menghapus direktori legacy
+  `src/Shared/Core/Middleware/`.
 
-### Changed
+### Berubah
 - `config/common/di/{jwt.php,middleware-di.php}`,
   `config/common/{middleware.php,routes.php,security.php,migration.php}`,
-  `config/web/di/application.php` — updated to the new
-  `App\Presentation\` namespaces.
-- `AGENTS.md` and per-layer rules files — `src/Presentation/Core/` added
-  to the protected-paths policy.
+  `config/web/di/application.php` — diupdate ke namespace
+  `App\Presentation\` baru.
+- `AGENTS.md` dan rules file per-layer — `src/Presentation/Core/`
+  ditambahkan ke kebijakan protected-paths.
 
 ## 1.2.5
 
-### Changed
-- `src/Infrastructure/Core/Database/ConnectionPool.php` — MySQL/PostgreSQL
-  connection pool fixes.
-- `scripts/skeleton-generate-module.php` — module generator improvements.
-- `src/Console/MigrateModuleCommand.php` — command fixes.
-- Documentation refresh across `docs-code/` (value object, migration &
-  seeding, setup, localization guides).
+### Berubah
+- `src/Infrastructure/Core/Database/ConnectionPool.php` — perbaikan
+  connection pool MySQL/PostgreSQL.
+- `scripts/skeleton-generate-module.php` — perbaikan module generator.
+- `src/Console/MigrateModuleCommand.php` — perbaikan command.
+- Penyegaran dokumentasi di `docs-code/` (guide value object, migration
+  & seeding, setup, localization).
 
 ---
 
-Versions before 1.2.5 predate this changelog — see `git log` for their
-history.
+Versi sebelum 1.2.5 mendahului changelog ini — lihat `git log` untuk
+riwayatnya.

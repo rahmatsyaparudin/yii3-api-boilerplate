@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Presentation\Core\Http\Middleware;
 
+// Domain Layer
+use App\Domain\Shared\Core\Contract\ActorInterface;
 // Infrastructure Layer
 use App\Infrastructure\Core\Security\ActorProvider;
 use App\Infrastructure\Core\Security\CurrentUser;
@@ -147,6 +149,12 @@ final class JwtMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
+        // Already authenticated upstream (e.g. ServiceTokenAuthMiddleware
+        // resolved an opaque bearer) — nothing left to validate.
+        if ($request->getAttribute('actor') instanceof ActorInterface) {
+            return $handler->handle($request);
+        }
+
         $path = $request->getUri()->getPath();
 
         // Skip JWT validation for public paths

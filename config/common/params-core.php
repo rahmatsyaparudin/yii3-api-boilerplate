@@ -110,6 +110,11 @@ return [
         'audience'    => $_ENV['app.jwt.audience'] ?? null,
         'publicPaths' => $publicPaths,
     ],
+    'app/serviceToken' => [
+        // Opaque bearer tokens via service_tokens table. Off by default —
+        // the middleware short-circuits straight to JwtMiddleware.
+        'enabled' => \filter_var($_ENV['app.service_token.enabled'] ?? false, FILTER_VALIDATE_BOOLEAN),
+    ],
     'app/trusted_hosts' => [
         'allowedHosts' => $trustedHosts,
     ],

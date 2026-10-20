@@ -127,4 +127,7 @@ return [
     // Seeder
     'seeder.missing_entity_class' => 'ENTITY_CLASS constant must be defined in {class}',
     'seeder.missing_yaml_file' => 'YAML_FILE constant must be defined in {class}',
+
+    // Service Token
+    'service_token.duplicate' => 'Service token username "{username}" is already in use.',
 ];

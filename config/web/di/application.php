@@ -12,6 +12,8 @@ use App\Presentation\Core\Http\Middleware\AccessMiddleware;
 use App\Presentation\Core\Http\Middleware\CorsMiddleware;
 use App\Presentation\Core\Http\Middleware\JwtMiddleware;
 use App\Presentation\Core\Http\Middleware\RateLimitMiddleware;
+use App\Presentation\Core\Http\Middleware\QueryPathParamMiddleware;
+use App\Presentation\Core\Http\Middleware\ServiceTokenAuthMiddleware;
 use App\Presentation\Core\Http\Middleware\SecureHeadersMiddleware;
 use App\Presentation\Core\Http\Middleware\TrustedHostMiddleware;
 use Yiisoft\DataResponse\Formatter\JsonDataResponseFormatter;
@@ -51,6 +53,11 @@ return [
                             $params['app/trusted_hosts']['allowedHosts'] ?? [],
                         ),
                         CorsMiddleware::class,
+                        // Service-token bearer auth (opt-in via
+                        // app.service_token.enabled). Authenticated
+                        // requests carry an `actor` attribute, which
+                        // JwtMiddleware skips below.
+                        ServiceTokenAuthMiddleware::class,
                         JwtMiddleware::class,
                         RequestIdMiddleware::class,
                         StructuredLoggingMiddleware::class,
@@ -58,6 +65,7 @@ return [
                         RateLimitMiddleware::class,
                         SecureHeadersMiddleware::class,
                         ErrorMonitoringMiddleware::class,
+                        QueryPathParamMiddleware::class,
                         RequestBodyParser::class,
                         AccessMiddleware::class,
                         Router::class,

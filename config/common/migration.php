@@ -8,5 +8,6 @@ return [
     'moduleConnections' => [
         'Example' => 'default',
         'Auditable' => 'audit',
+        'ServiceToken' => 'default',
     ],
 ];

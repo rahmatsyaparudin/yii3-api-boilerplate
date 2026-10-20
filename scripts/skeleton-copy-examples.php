@@ -35,6 +35,10 @@ class SkeletonExamplesCopier
             'src/Application/AnotherExample' => 'src/Application/AnotherExample',
             'src/Domain/AnotherExample' => 'src/Domain/AnotherExample',
             'src/Infrastructure/Common/Persistence/AnotherExample' => 'src/Infrastructure/Common/Persistence/AnotherExample',
+            'src/Api/V1/System' => 'src/Api/V1/System',
+            'src/Application/System' => 'src/Application/System',
+            'src/Domain/System' => 'src/Domain/System',
+            'src/Infrastructure/Common/Persistence/System' => 'src/Infrastructure/Common/Persistence/System',
             'src/Migration' => 'src/Migration',
 
             'src/Seeder/Fixtures/example.yaml' => 'src/Seeder/Fixtures/example.yaml',

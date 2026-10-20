@@ -127,4 +127,7 @@ return [
     // Seeder
     'seeder.missing_entity_class' => 'Konstanta ENTITY_CLASS harus didefinisikan di {class}',
     'seeder.missing_yaml_file' => 'Konstanta YAML_FILE harus didefinisikan di {class}',
+
+    // Service Token
+    'service_token.duplicate' => 'Username service token "{username}" sudah digunakan.',
 ];

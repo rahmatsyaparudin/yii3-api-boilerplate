@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// Application Layer
+use App\Application\System\Token\ServiceTokenApplicationService;
 // Infrastructure Layer
 use App\Infrastructure\Core\Monitoring\ErrorMonitoringMiddleware;
 use App\Infrastructure\Core\Monitoring\MetricsMiddleware;
@@ -16,6 +18,7 @@ use App\Presentation\Core\Http\Middleware\CorsMiddleware;
 use App\Presentation\Core\Http\Middleware\RateLimitMiddleware;
 use App\Presentation\Core\Http\Middleware\RequestParamsMiddleware;
 use App\Presentation\Core\Http\Middleware\SecureHeadersMiddleware;
+use App\Presentation\Core\Http\Middleware\ServiceTokenAuthMiddleware;
 // PSR Interfaces
 use Psr\Http\Message\ResponseFactoryInterface;
 // Vendor Layer
@@ -87,6 +90,15 @@ return [
 
         return new ErrorMonitoringMiddleware($monitoring['error_monitoring'] ?? []);
     },
+
+    ServiceTokenAuthMiddleware::class => static fn (
+        ServiceTokenApplicationService $serviceTokens,
+        CurrentUser $currentUser
+    ) => new ServiceTokenAuthMiddleware(
+        serviceTokens: $serviceTokens,
+        currentUser: $currentUser,
+        enabled: (bool) ($params['app/serviceToken']['enabled'] ?? false),
+    ),
 
     AccessMiddleware::class => static fn (
         AccessChecker $accessChecker,

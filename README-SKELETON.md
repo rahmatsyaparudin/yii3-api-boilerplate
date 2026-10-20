@@ -108,10 +108,14 @@ src/
 │       ├── ExceptionResponderFactory.php  # Exception response factory
 │       └── ResponseFactory.php    # HTTP response factory
 └── Api/V1/                       # API version 1
-    └── Example/                   # Example API endpoints
-        ├── Action/                # API actions
-        ├── Validation/            # API validation
-        └── ...
+    ├── Example/                   # Example API endpoints
+    │   ├── Action/                # API actions
+    │   ├── Validation/            # API validation
+    │   └── ...
+    └── System/                    # System module endpoints
+        └── Token/                 # Service Token (opaque bearer, JWT alternative)
+            ├── Action/
+            └── Validation/
 ```
 
 ### Example Entity Structure
@@ -121,6 +125,17 @@ src/
 ├── Application/Example/          # Example application services
 ├── Domain/Example/              # Example domain entities
 └── Infrastructure/Common/Persistence/Example/  # Example repositories
+```
+
+### System — Service Token Structure
+```
+src/
+├── Api/V1/System/Token/          # Service Token endpoints (/v1/system/service-token/*)
+├── Application/System/Token/     # Issue/rotate/revoke + authenticate()
+├── Domain/System/Token/          # ServiceToken entity + repository contract
+├── Infrastructure/Common/Persistence/System/  # ServiceTokenRepository
+├── Migration/ServiceToken/       # service_tokens table (migrate:module serviceToken)
+└── Presentation/Core/Http/Middleware/ServiceTokenAuthMiddleware.php  # Bearer dispatcher
 ```
 
 ### Config Files (`config/`)
@@ -332,6 +347,7 @@ php yii serve
 This gives you a complete Yii3 API project with:
 - ✅ Shared infrastructure across all layers
 - ✅ Example entity implementation (Example CRUD)
+- ✅ Service Token module (opaque bearer auth for external services)
 - ✅ Complete configuration files
 - ✅ Translation files
 - ✅ Database migrations

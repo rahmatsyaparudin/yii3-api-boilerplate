@@ -56,4 +56,11 @@ return [
     'another-example.update'  => $isKasir,
     'another-example.delete'  => $isKasir,
     'another-example.restore' => $isSuperAdmin,
+
+    // System — Service Token Access Rules
+    'system.service-token.list'   => static fn (Actor $actor): bool => true,
+    'system.service-token.view'   => static fn (Actor $actor): bool => true,
+    'system.service-token.create' => static fn (Actor $actor): bool => true,
+    'system.service-token.update' => static fn (Actor $actor): bool => true,
+    'system.service-token.delete' => static fn (Actor $actor): bool => true,
 ];

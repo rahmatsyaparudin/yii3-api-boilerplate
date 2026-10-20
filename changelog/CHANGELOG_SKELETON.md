@@ -2,6 +2,53 @@
 
 Catatan perubahan per versi skeleton (`scripts/skeleton.version`).
 
+## [1.3.0] - 2026-10-20
+
+### Added
+- **Modul Service Token** — bearer token opaque long-lived untuk service
+  eksternal (POS, script, integrasi), alternatif JWT tanpa akun SSO.
+  - `src/Api/V1/System/Token/` — 5 action (`data`, `view`, `create`,
+    `update`+`regenerate`, `delete`) + `ServiceTokenInputValidator`.
+  - `src/Application/System/Token/` — `ServiceTokenApplicationService`
+    (issue/rotate/revoke + `authenticate()` → `Actor` penerbit) dan
+    `Dto/ServiceTokenResponse` (plaintext hanya muncul sekali).
+  - `src/Domain/System/Token/` — entity `ServiceToken` + kontrak
+    repository.
+  - `src/Infrastructure/Common/Persistence/System/ServiceTokenRepository.php`.
+  - `src/Migration/ServiceToken/` — tabel `service_tokens`
+    (`migrate:module serviceToken`, koneksi `default`); hanya hash
+    SHA-256 yang disimpan.
+  - `src/Presentation/Core/Http/Middleware/ServiceTokenAuthMiddleware.php`
+    — entry middleware terpisah sebelum `JwtMiddleware`: token opaque →
+    lookup `service_tokens` (SSO-style, `actor` = user penerbit, diset
+    sebagai request attribute yang di-skip `JwtMiddleware`). Opt-in via
+    `app.service_token.enabled` di `.env` (default `false` — nol
+    overhead DB saat off). Mendukung `whitelist_host` (exact / `*` /
+    prefix `x.*` / suffix `*.x`), `expires_at`, revoke instan via soft
+    delete, dan fallback ke JWT untuk semua kegagalan (termasuk tabel
+    belum dimigrasi).
+  - `JwtMiddleware` — guard baru: request yang sudah terautentikasi
+    oleh middleware sebelumnya (attribute `actor`) diteruskan apa
+    adanya.
+  - `resources/messages/{en,id}/error.php` — key `service_token.duplicate`
+    (ikut skeleton, tersinkron via `skeleton:update`).
+  - `docs/system_service-token.md` — dokumentasi endpoint & middleware.
+
+### Changed
+- `config/web/di/application.php` — `ServiceTokenAuthMiddleware`
+  ditambahkan sebagai entry tersendiri sebelum `JwtMiddleware` (keduanya
+  sekarang entry stack terpisah).
+- `config/common/params-core.php` — param `app/serviceToken.enabled`
+  (env `app.service_token.enabled`, default `false`).
+- `config/common/routes.php` — 5 route `/v1/system/service-token/*`.
+- `config/common/access.php` — 5 permission `system.service-token.*`.
+- `config/common/repository.php` — binding
+  `ServiceTokenRepositoryInterface` → `ServiceTokenRepository`.
+- `config/common/migration.php` — modul `ServiceToken` → koneksi
+  `default`.
+- `scripts/skeleton-copy-examples.php` — subtree `System` ikut tersalin
+  ke project konsumen.
+
 ## [1.2.9] - 2026-09-23
 
 ### Changed
