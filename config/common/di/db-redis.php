@@ -6,6 +6,7 @@ declare(strict_types=1);
 use App\Infrastructure\Core\Database\Redis\RedisService;
 
 /** @var array $params */
+$redis = $params['yiisoft/cache-redis'] ?? [];
 
 // Core Redis service binding. Project-owned Redis bindings (services, cache,
 // queue, or optional repository override) are merged from config/common/redis.php.
@@ -13,12 +14,30 @@ use App\Infrastructure\Core\Database\Redis\RedisService;
 // if a specific domain should use Redis as its storage. Bindings in redis.php
 // are loaded after common/repository.php, so they will override SQL defaults.
 $projectBindings = \dirname(__DIR__) . '/redis.php';
+$project         = \file_exists($projectBindings) ? require $projectBindings : [];
 
-return array_merge([
+$enabled = ($redis['enabled'] ?? false) && \extension_loaded('redis');
+
+if ($enabled) {
+    return \array_merge([
+        RedisService::class => [
+            'class'         => RedisService::class,
+            '__construct()' => [
+                'host'     => $redis['host'] ?? '127.0.0.1',
+                'port'     => (int) ($redis['port'] ?? 6379),
+                'database' => (int) ($redis['database'] ?? 0),
+                'password' => $redis['password'] ?? null,
+                'enabled'  => true,
+            ],
+        ],
+    ], $project);
+}
+
+return \array_merge([
     RedisService::class => [
+        'class'         => RedisService::class,
         '__construct()' => [
-            'host' => $_ENV['redis.default.host'],
-            'port' => (int) $_ENV['redis.default.port'],
+            'enabled' => false,
         ],
     ],
-], file_exists($projectBindings) ? require $projectBindings : []);
+], $project);

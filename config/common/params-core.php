@@ -50,6 +50,7 @@ return [
         'charset'  => $dbCharset,
     ],
     'yiisoft/cache-redis' => [
+        'enabled'  => \filter_var($_ENV['redis.default.enabled'] ?? true, FILTER_VALIDATE_BOOLEAN),
         'host'     => $_ENV['redis.default.host'] ?? '127.0.0.1',
         'port'     => (int) ($_ENV['redis.default.port'] ?? 6379),
         'database' => (int) ($_ENV['redis.default.db'] ?? 0),

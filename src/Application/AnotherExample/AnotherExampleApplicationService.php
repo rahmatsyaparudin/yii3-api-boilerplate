@@ -145,7 +145,7 @@ final class AnotherExampleApplicationService
             entity: $data
         );
 
-        $this->redis->getClient()->set(
+        $this->redis->getClient()?->set(
             "anotherexample:{$inserted->getId()}",
             json_encode($inserted->toArray())
         );

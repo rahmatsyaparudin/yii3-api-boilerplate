@@ -102,7 +102,7 @@ Instead of a fat `ApplicationParams` API, the project exposes domain-specific pa
 | `yiisoft/aliases` | `aliases` (from `common/aliases.php`) | — |
 | `yiisoft/translator` | `locale`, `fallbackLocale` | `app.config.language` |
 | `yiisoft/db` | `driver`, `host`, `port`, `name`, `user`, `password`, `charset` | `db.default.*` |
-| `yiisoft/cache-redis` | `host`, `port`, `database`, `password` | `redis.default.*` |
+| `yiisoft/cache-redis` | `enabled`, `host`, `port`, `database`, `password` | `redis.default.*` |
 | `yiisoft/db-migration` | `newMigrationNamespace`, `sourceNamespaces` | — (`App\Migration`) |
 | `mongodb/mongodb` | `enabled`, `dsn`, `database`, `connectTimeoutMS`, `socketTimeoutMS`, `readPreference` | `db.mongodb.*` |
 | `app/config` | `code`, `name`, `version`, `language`, `allow_god_mode` | `app.config.*` |
