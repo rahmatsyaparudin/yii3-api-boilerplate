@@ -1,16 +1,16 @@
-# Middleware Guide
+# Panduan Middleware
 
-## 📋 Overview
+## 📋 Gambaran Umum
 
-Middleware components provide a way to filter HTTP requests entering your application. In this Yii3 API application, middleware handles cross-cutting concerns like authentication, CORS, rate limiting, security headers, monitoring, and request parameter processing.
+Komponen middleware menyediakan cara untuk memfilter request HTTP yang masuk ke aplikasi Anda. Dalam aplikasi Yii3 API ini, middleware menangani cross-cutting concern seperti autentikasi, CORS, rate limiting, security header, monitoring, dan pemrosesan parameter request.
 
-All application middleware throw typed `HttpException` subclasses (`UnauthorizedException`, `ForbiddenException`, `TooManyRequestsException`, `BadRequestException`) instead of building responses inline — exceptions are rendered by the `ExceptionResponderFactory` responder registered in the middleware dispatcher.
+Semua middleware aplikasi melempar subclass `HttpException` bertipe (`UnauthorizedException`, `ForbiddenException`, `TooManyRequestsException`, `BadRequestException`) alih-alih membangun response secara inline — exception dirender oleh responder `ExceptionResponderFactory` yang terdaftar di middleware dispatcher.
 
 ---
 
-## 🏗️ Middleware Architecture
+## 🏗️ Arsitektur Middleware
 
-### Directory Structure
+### Struktur Direktori
 
 ```
 src/Shared/Core/Middleware/
@@ -35,36 +35,36 @@ src/Api/Shared/
 └── NotFoundMiddleware.php        # 404 for unmatched routes (after Router)
 ```
 
-### Design Principles
+### Prinsip Desain
 
 #### **1. **Single Responsibility**
-- Each middleware handles one specific concern
-- Clear separation of concerns
-- Easy to test and maintain
+- Setiap middleware menangani satu concern spesifik
+- Pemisahan tanggung jawab yang jelas
+- Mudah diuji dan dipelihara
 
 #### **2. **Composability**
-- Middleware can be chained together
-- Flexible request processing pipeline
-- Configurable execution order
+- Middleware dapat dirangkai satu sama lain
+- Pipeline pemrosesan request yang fleksibel
+- Urutan eksekusi yang dapat dikonfigurasi
 
-#### **3. **PSR Compliance**
-- PSR-7 HTTP message interface
-- PSR-15 middleware interface
-- Standardized implementation
+#### **3. **Kepatuhan PSR**
+- Interface pesan HTTP PSR-7
+- Interface middleware PSR-15
+- Implementasi yang terstandarisasi
 
-#### **4. **Exception-Based Errors**
-- Middleware throw `HttpException` subclasses with `Message` translation keys
-- A single exception responder renders consistent JSON error responses
+#### **4. **Error Berbasis Exception**
+- Middleware melempar subclass `HttpException` dengan key terjemahan `Message`
+- Satu exception responder merender response error JSON yang konsisten
 
 ---
 
-## 📁 Middleware Components
+## 📁 Komponen Middleware
 
 ### 1. TrustedHostMiddleware
 
-**Purpose**: Validates the request `Host` against an allow-list, preventing host-header injection. Supports exact hosts and `*.` wildcard subdomains.
+**Tujuan**: Memvalidasi `Host` request terhadap allow-list, mencegah host-header injection. Mendukung host persis dan wildcard subdomain `*.`.
 
-**Location**: `src/Shared/Core/Middleware/TrustedHostMiddleware.php`
+**Lokasi**: `src/Shared/Core/Middleware/TrustedHostMiddleware.php`
 
 ```php
 final class TrustedHostMiddleware implements MiddlewareInterface
@@ -95,17 +95,17 @@ final class TrustedHostMiddleware implements MiddlewareInterface
 }
 ```
 
-**Configuration**: `allowedHosts` comes from `app/trusted_hosts` params (`app.trusted_hosts.allowedHosts` env, JSON array). Registered inline in `config/web/di/application.php`.
+**Konfigurasi**: `allowedHosts` berasal dari params `app/trusted_hosts` (env `app.trusted_hosts.allowedHosts`, array JSON). Didaftarkan inline di `config/web/di/application.php`.
 
-> Note: `Yiisoft\Security\TrustedHosts\TrustedHostsMiddleware` is also defined in `config/common/di/middleware-di.php` as a vendor alternative; the application stack currently uses the custom `App\...\TrustedHostMiddleware`.
+> Catatan: `Yiisoft\Security\TrustedHosts\TrustedHostsMiddleware` juga didefinisikan di `config/common/di/middleware-di.php` sebagai alternatif dari vendor; stack aplikasi saat ini menggunakan `App\...\TrustedHostMiddleware` kustom.
 
 ---
 
 ### 2. CorsMiddleware
 
-**Purpose**: CORS handling — validates `Origin`, answers `OPTIONS` preflight with `204`, and adds CORS headers to responses.
+**Tujuan**: Penanganan CORS — memvalidasi `Origin`, menjawab preflight `OPTIONS` dengan `204`, dan menambahkan header CORS ke response.
 
-**Location**: `src/Shared/Core/Middleware/CorsMiddleware.php`
+**Lokasi**: `src/Shared/Core/Middleware/CorsMiddleware.php`
 
 ```php
 final class CorsMiddleware implements MiddlewareInterface
@@ -141,21 +141,21 @@ final class CorsMiddleware implements MiddlewareInterface
 }
 ```
 
-**Config keys** (`app/cors` params, populated from `app.cors.*` env vars):
-- `allowedOrigins` — list or `['*']` (forced to `['*']` in dev env)
+**Key konfigurasi** (params `app/cors`, diisi dari env var `app.cors.*`):
+- `allowedOrigins` — list atau `['*']` (dipaksa menjadi `['*']` di env dev)
 - `allowedMethods` — default `['GET','POST','PUT','PATCH','DELETE','OPTIONS']`
 - `allowedHeaders` — default `['Content-Type','Authorization']`
-- `exposedHeaders` — emitted as `Access-Control-Expose-Headers`
+- `exposedHeaders` — dikirim sebagai `Access-Control-Expose-Headers`
 - `maxAge` — default `3600`
-- `allowCredentials` — when true, `Access-Control-Allow-Origin` echoes the origin instead of `*`
+- `allowCredentials` — jika true, `Access-Control-Allow-Origin` menggemakan origin alih-alih `*`
 
 ---
 
 ### 3. JwtMiddleware
 
-**Purpose**: JWT authentication. Skips configured public paths; decodes the `Bearer` token via `JwtService`, builds an `Actor` via `ActorProvider`, and stores it in `CurrentUser` + the `actor` request attribute.
+**Tujuan**: Autentikasi JWT. Melewati public path yang dikonfigurasi; mendekode token `Bearer` via `JwtService`, membangun `Actor` via `ActorProvider`, dan menyimpannya di `CurrentUser` + atribut request `actor`.
 
-**Location**: `src/Shared/Core/Middleware/JwtMiddleware.php`
+**Lokasi**: `src/Shared/Core/Middleware/JwtMiddleware.php`
 
 ```php
 final class JwtMiddleware implements MiddlewareInterface
@@ -201,15 +201,15 @@ final class JwtMiddleware implements MiddlewareInterface
 }
 ```
 
-**DI** (`config/common/di/jwt.php`): `publicPaths` comes from `app/jwt` params (`app.jwt.publicPaths` env). `JwtService` gets `secret`/`algorithm`/`issuer`/`audience` from the same params.
+**DI** (`config/common/di/jwt.php`): `publicPaths` berasal dari params `app/jwt` (env `app.jwt.publicPaths`). `JwtService` mendapatkan `secret`/`algorithm`/`issuer`/`audience` dari params yang sama.
 
 ---
 
 ### 4. RequestParamsMiddleware
 
-**Purpose**: Merges query params + parsed body into a `RequestParams` object and stores it as the `payload` request attribute (plus `paginationConfig`). Attached to the `/v1` route group — see `config/common/routes.php`.
+**Tujuan**: Menggabungkan query param + body yang sudah di-parse ke dalam objek `RequestParams` dan menyimpannya sebagai atribut request `payload` (plus `paginationConfig`). Dipasang ke route group `/v1` — lihat `config/common/routes.php`.
 
-**Location**: `src/Shared/Core/Middleware/RequestParamsMiddleware.php`
+**Lokasi**: `src/Shared/Core/Middleware/RequestParamsMiddleware.php`
 
 ```php
 final class RequestParamsMiddleware implements MiddlewareInterface
@@ -237,15 +237,15 @@ final class RequestParamsMiddleware implements MiddlewareInterface
 }
 ```
 
-**Configuration**: `app/pagination` params (`app.pagination.defaultPageSize` / `app.pagination.maxPageSize` env); DI factory in `config/common/di/middleware-di.php`. Downstream actions read `$request->getAttribute('payload')`. See the Request Processing Guide for the full flow.
+**Konfigurasi**: params `app/pagination` (env `app.pagination.defaultPageSize` / `app.pagination.maxPageSize`); factory DI di `config/common/di/middleware-di.php`. Action di hilir membaca `$request->getAttribute('payload')`. Lihat Panduan Request Processing untuk alur lengkapnya.
 
 ---
 
 ### 5. RateLimitMiddleware
 
-**Purpose**: In-memory sliding-window rate limiting, keyed by client IP and path group (`/v1/example*` → `example:{ip}`, `/v1/auth*` → `auth:{ip}`, everything else → `global:{ip}`).
+**Tujuan**: Rate limiting sliding-window di memori, dikunci berdasarkan IP klien dan grup path (`/v1/example*` → `example:{ip}`, `/v1/auth*` → `auth:{ip}`, lainnya → `global:{ip}`).
 
-**Location**: `src/Shared/Core/Middleware/RateLimitMiddleware.php`
+**Lokasi**: `src/Shared/Core/Middleware/RateLimitMiddleware.php`
 
 ```php
 final class RateLimitMiddleware implements MiddlewareInterface
@@ -276,15 +276,15 @@ final class RateLimitMiddleware implements MiddlewareInterface
 }
 ```
 
-**Configuration**: `app/rateLimit` params (`app.rateLimit.maxRequests` / `app.rateLimit.windowSize` env). The storage is a per-process PHP array — for multi-process production setups, replace/extend with `App\Infrastructure\Core\RateLimit\DatabaseRateLimiter`.
+**Konfigurasi**: params `app/rateLimit` (env `app.rateLimit.maxRequests` / `app.rateLimit.windowSize`). Penyimpanannya berupa array PHP per proses — untuk setup production multi-proses, ganti/perluas dengan `App\Infrastructure\Core\RateLimit\DatabaseRateLimiter`.
 
 ---
 
 ### 6. SecureHeadersMiddleware
 
-**Purpose**: Adds security headers to every response. Config is a single array with `csp`, `permissions`, and `custom` sections.
+**Tujuan**: Menambahkan security header ke setiap response. Konfigurasinya berupa satu array dengan bagian `csp`, `permissions`, dan `custom`.
 
-**Location**: `src/Shared/Core/Middleware/SecureHeadersMiddleware.php`
+**Lokasi**: `src/Shared/Core/Middleware/SecureHeadersMiddleware.php`
 
 ```php
 final class SecureHeadersMiddleware implements MiddlewareInterface
@@ -317,17 +317,17 @@ final class SecureHeadersMiddleware implements MiddlewareInterface
 }
 ```
 
-**Configuration**: `app/secureHeaders` params in `config/common/params.php` — `csp` directives (defaults: `default-src 'self'`, `script-src 'self' 'unsafe-inline'`, `style-src 'self' 'unsafe-inline'`, `img-src 'self' data: https:`, `connect-src 'self'`), `permissions` feature list, and `custom` header overrides.
+**Konfigurasi**: params `app/secureHeaders` di `config/common/params.php` — directive `csp` (default: `default-src 'self'`, `script-src 'self' 'unsafe-inline'`, `style-src 'self' 'unsafe-inline'`, `img-src 'self' data: https:`, `connect-src 'self'`), daftar fitur `permissions`, dan override header `custom`.
 
-> A dedicated `HstsMiddleware` (`src/Infrastructure/Core/Security/HstsMiddleware.php`) also exists for standalone HSTS config (`app/hsts` params: `maxAge`, `includeSubDomains`, `preload`).
+> `HstsMiddleware` khusus (`src/Infrastructure/Core/Security/HstsMiddleware.php`) juga tersedia untuk konfigurasi HSTS mandiri (params `app/hsts`: `maxAge`, `includeSubDomains`, `preload`).
 
 ---
 
 ### 7. AccessMiddleware
 
-**Purpose**: RBAC authorization. Reads the `permission` requirement from the route (`defaults['permission']` or the `CurrentRoute` argument) and checks it via `Yiisoft\Access\AccessCheckerInterface`.
+**Tujuan**: Otorisasi RBAC. Membaca requirement `permission` dari route (`defaults['permission']` atau argumen `CurrentRoute`) dan memeriksanya via `Yiisoft\Access\AccessCheckerInterface`.
 
-**Location**: `src/Shared/Core/Middleware/AccessMiddleware.php`
+**Lokasi**: `src/Shared/Core/Middleware/AccessMiddleware.php`
 
 ```php
 final class AccessMiddleware implements MiddlewareInterface
@@ -375,7 +375,7 @@ final class AccessMiddleware implements MiddlewareInterface
 }
 ```
 
-**Route permission declaration** (`config/common/routes.php`):
+**Deklarasi permission route** (`config/common/routes.php`):
 
 ```php
 Route::post('/example/create')
@@ -386,23 +386,23 @@ Route::post('/example/create')
 
 ---
 
-### 8. Monitoring & Utility Middleware
+### 8. Middleware Monitoring & Utilitas
 
-Located in `src/Infrastructure/Core/Monitoring/` and `src/Api/Shared/`; configured via `app/monitoring` params in `config/common/params.php` and DI factories in `config/common/di/middleware-di.php`:
+Berada di `src/Infrastructure/Core/Monitoring/` dan `src/Api/Shared/`; dikonfigurasi via params `app/monitoring` di `config/common/params.php` dan factory DI di `config/common/di/middleware-di.php`:
 
-- **`RequestIdMiddleware`** — assigns/propagates `X-Request-Id` (header name configurable).
-- **`StructuredLoggingMiddleware`** — logs each request/response; options: `enabled`, `log_level`, `include_request_body`, `include_response_body`, `max_log_size`, `exclude_paths`, `exclude_status_codes`.
-- **`MetricsMiddleware`** — tracks request count, response time, status codes, memory; options under `metrics`.
-- **`ErrorMonitoringMiddleware`** — captures exceptions/errors; options under `error_monitoring` (`ignore_error_codes`, `include_stack_trace`, ...).
-- **`NotFoundMiddleware`** (`src/Api/Shared/NotFoundMiddleware.php`) — terminal 404 handler placed after `Router`.
+- **`RequestIdMiddleware`** — menetapkan/meneruskan `X-Request-Id` (nama header dapat dikonfigurasi).
+- **`StructuredLoggingMiddleware`** — mencatat setiap request/response; opsi: `enabled`, `log_level`, `include_request_body`, `include_response_body`, `max_log_size`, `exclude_paths`, `exclude_status_codes`.
+- **`MetricsMiddleware`** — melacak jumlah request, waktu response, status code, memori; opsi di bawah `metrics`.
+- **`ErrorMonitoringMiddleware`** — menangkap exception/error; opsi di bawah `error_monitoring` (`ignore_error_codes`, `include_stack_trace`, ...).
+- **`NotFoundMiddleware`** (`src/Api/Shared/NotFoundMiddleware.php`) — handler 404 terminal yang ditempatkan setelah `Router`.
 
 ---
 
-## 🔧 Middleware Configuration
+## 🔧 Konfigurasi Middleware
 
-### 1. **Application Stack**
+### 1. **Stack Aplikasi**
 
-The real pipeline lives in `config/web/di/application.php` (`Application` → `MiddlewareDispatcher::withMiddlewares()`), outermost first:
+Pipeline sebenarnya berada di `config/web/di/application.php` (`Application` → `MiddlewareDispatcher::withMiddlewares()`), terluar lebih dulu:
 
 ```php
 'withMiddlewares()' => [
@@ -432,7 +432,7 @@ The real pipeline lives in `config/web/di/application.php` (`Application` → `M
 ],
 ```
 
-Route-level middleware is attached via groups in `config/common/routes.php`:
+Middleware level route dipasang via group di `config/common/routes.php`:
 
 ```php
 Group::create('/v1')
@@ -440,11 +440,11 @@ Group::create('/v1')
     ->routes(/* ... */);
 ```
 
-`config/common/middleware.php` returns an extra common stack (currently `[]`) for project-specific additions.
+`config/common/middleware.php` mengembalikan stack common tambahan (saat ini `[]`) untuk penambahan spesifik proyek.
 
-### 2. **DI Configuration**
+### 2. **Konfigurasi DI**
 
-Middleware factories live in `config/common/di/middleware-di.php` (params-driven) and `config/common/di/jwt.php`:
+Factory middleware berada di `config/common/di/middleware-di.php` (digerakkan params) dan `config/common/di/jwt.php`:
 
 ```php
 // config/common/di/middleware-di.php (excerpt)
@@ -493,9 +493,9 @@ JwtMiddleware::class => static fn (
 
 ---
 
-## 🚀 Best Practices
+## 🚀 Praktik Terbaik
 
-### 1. **Middleware Order**
+### 1. **Urutan Middleware**
 ```php
 // ✅ Correct order (outermost first) — as wired in config/web/di/application.php
 // 1. ErrorCatcher / ExceptionResponder   // must wrap everything
@@ -524,7 +524,7 @@ $response->getBody()->write(json_encode(['error' => 'x']));
 return $response->withStatus(401);
 ```
 
-### 3. **Performance**
+### 3. **Performa**
 ```php
 // ✅ Early returns / cheap checks first
 if ($origin === '') {
@@ -536,32 +536,32 @@ if ($origin === '') {
 
 ---
 
-## 📊 Performance Considerations
+## 📊 Pertimbangan Performa
 
-### 1. **Middleware Overhead**
-- Keep middleware lightweight
-- `RateLimitMiddleware` storage is in-memory (per process) — swap in `DatabaseRateLimiter` for shared limits
-- Monitoring middleware is config-gated (`enabled` flags)
+### 1. **Overhead Middleware**
+- Jaga middleware tetap ringan
+- Penyimpanan `RateLimitMiddleware` berada di memori (per proses) — ganti dengan `DatabaseRateLimiter` untuk limit bersama
+- Middleware monitoring dikendalikan konfigurasi (flag `enabled`)
 
-### 2. **Execution Order**
-- Place cheap rejectors (host, CORS preflight, rate limit) early
-- `AccessMiddleware` runs after `RequestBodyParser` and before `Router` — it can fall back to `UrlMatcher` when `CurrentRoute` isn't set yet
+### 2. **Urutan Eksekusi**
+- Tempatkan penolak murah (host, preflight CORS, rate limit) di awal
+- `AccessMiddleware` berjalan setelah `RequestBodyParser` dan sebelum `Router` — ia dapat kembali ke `UrlMatcher` ketika `CurrentRoute` belum diset
 
-### 3. **Memory Usage**
-- Avoid storing large objects in middleware state
-- `$this->storage` in `RateLimitMiddleware` grows per-process — bound it in long-running workers
+### 3. **Penggunaan Memori**
+- Hindari menyimpan objek besar di state middleware
+- `$this->storage` di `RateLimitMiddleware` bertambah per proses — batasi di worker yang berjalan lama
 
 ---
 
-## 🎯 Summary
+## 🎯 Ringkasan
 
-Middleware provides a clean, composable way to handle cross-cutting concerns in the Yii3 API application. Key benefits include:
+Middleware menyediakan cara yang bersih dan composable untuk menangani cross-cutting concern dalam aplikasi Yii3 API. Manfaat utamanya meliputi:
 
-- **🔧 Modularity**: Each middleware handles one concern
-- **🔄 Reusability**: Middleware can be reused across routes and groups
-- **🧪 Testability**: Easy to unit test individual components
-- **⚡ Performance**: Efficient request processing pipeline
-- **🛡️ Security**: Centralized security handling with typed exceptions
-- **📦 Composability**: Global stack in `config/web/di/application.php`, group stack in `config/common/routes.php`
+- **🔧 Modularitas**: Setiap middleware menangani satu concern
+- **🔄 Reusability**: Middleware dapat dipakai ulang di berbagai route dan group
+- **🧪 Testability**: Mudah melakukan unit test pada komponen individual
+- **⚡ Performa**: Pipeline pemrosesan request yang efisien
+- **🛡️ Keamanan**: Penanganan keamanan terpusat dengan exception bertipe
+- **📦 Composability**: Stack global di `config/web/di/application.php`, stack group di `config/common/routes.php`
 
-By following the patterns and best practices outlined in this guide, you can build robust, maintainable middleware for your Yii3 API application! 🚀
+Dengan mengikuti pola dan praktik terbaik yang diuraikan dalam panduan ini, Anda dapat membangun middleware yang tangguh dan mudah dipelihara untuk aplikasi Yii3 API Anda! 🚀

@@ -1,14 +1,14 @@
-# Exceptions Guide
+# Panduan Exception
 
-## 📋 Overview
+## 📋 Gambaran Umum
 
-The exception hierarchy in this Yii3 API application provides a structured way to handle different types of errors and exceptions. Each exception class is designed to handle specific error scenarios with proper HTTP status codes and localized error messages carried by a `Message` value object.
+Hierarki exception dalam aplikasi Yii3 API ini menyediakan cara terstruktur untuk menangani berbagai jenis error dan exception. Setiap class exception dirancang untuk menangani skenario error tertentu dengan HTTP status code yang tepat dan pesan error terlokalisasi yang dibawa oleh value object `Message`.
 
 ---
 
-## 🏗️ Exception Architecture
+## 🏗️ Arsitektur Exception
 
-### Directory Structure
+### Struktur Direktori
 
 ```
 src/Shared/Core/Exception/
@@ -26,37 +26,37 @@ src/Shared/Core/Exception/
 └── README.md                      # Exception documentation
 ```
 
-### Design Principles
+### Prinsip Desain
 
 #### **1. HTTP Status Mapping**
-- Each exception maps to an HTTP status code via `getHttpStatusCode()` (also exposed as `getCode()`)
-- Consistent error response format produced by `ExceptionResponderFactory` / `ErrorHandlerResponse`
-- RESTful API compliance
+- Setiap exception dipetakan ke HTTP status code via `getHttpStatusCode()` (juga diekspos sebagai `getCode()`)
+- Format response error yang konsisten dihasilkan oleh `ExceptionResponderFactory` / `ErrorHandlerResponse`
+- Kepatuhan RESTful API
 
 #### **2. Structured Error Information**
-- Localized `Message` value object (`key`, `params`, `domain`)
-- Optional `errors` array for field-level validation details
-- Optional `data` payload for additional context
+- Value object `Message` yang terlokalisasi (`key`, `params`, `domain`)
+- Array `errors` opsional untuk detail validasi per field
+- Payload `data` opsional untuk konteks tambahan
 
 #### **3. Localization Support**
-- Every exception accepts a `Message` or a plain string (converted to `Message::create($string)`)
-- `domain` defaults to the `error` translation category when rendered
-- Default message keys exist under `resources/messages/{locale}/error.php` and `validation.php`
+- Setiap exception menerima `Message` atau string biasa (dikonversi menjadi `Message::create($string)`)
+- `domain` default ke kategori terjemahan `error` saat di-render
+- Key pesan default tersedia di `resources/messages/{locale}/error.php` dan `validation.php`
 
 #### **4. Type Safety**
-- Strong typing with PHP 8+ features
-- `final` concrete classes extending the abstract `HttpException`
-- Named-argument-friendly constructors (`translate:`, `errors:`, `data:`, `previous:`)
+- Pengetikan kuat dengan fitur PHP 8+
+- Class konkret `final` yang meng-extend `HttpException` abstrak
+- Konstruktor yang ramah named-argument (`translate:`, `errors:`, `data:`, `previous:`)
 
 ---
 
-## 📁 Exception Components
+## 📁 Komponen Exception
 
 ### 1. HttpException (Base Class)
 
-**Location**: `src/Shared/Core/Exception/HttpException.php`
+**Lokasi**: `src/Shared/Core/Exception/HttpException.php`
 
-**Purpose**: Abstract base for all HTTP exceptions; stores status code, `Message`, errors, and data.
+**Tujuan**: Base abstrak untuk semua HTTP exception; menyimpan status code, `Message`, errors, dan data.
 
 ```php
 abstract class HttpException extends \RuntimeException
@@ -80,7 +80,7 @@ abstract class HttpException extends \RuntimeException
 }
 ```
 
-**The `Message` value object** (`src/Shared/Core/ValueObject/Message.php`):
+**Value object `Message`** (`src/Shared/Core/ValueObject/Message.php`):
 
 ```php
 final readonly class Message
@@ -98,29 +98,29 @@ final readonly class Message
 }
 ```
 
-### 2. Concrete Exceptions
+### 2. Exception Konkret
 
-All concrete exceptions are `final` and accept `Message|string|null` for `translate` — a string is wrapped via `Message::create($string)`. When `translate` is `null`, a default message key is used.
+Semua exception konkret bersifat `final` dan menerima `Message|string|null` untuk `translate` — string dibungkus via `Message::create($string)`. Saat `translate` bernilai `null`, key pesan default digunakan.
 
-| Exception | HTTP | Signature | Default key |
+| Exception | HTTP | Signature | Key default |
 |---|---|---|---|
 | `BadRequestException` | 400 | `(Message\|string\|null $translate = null, ?array $errors = null, ?Throwable $previous = null)` | `http.bad_request` |
-| `UnauthorizedException` | 401 | same as above | `http.unauthorized` |
-| `ForbiddenException` | 403 | same as above | `http.forbidden` |
-| `NotFoundException` | 404 | same as above | `http.not_found` |
-| `ConflictException` | 409 | same as above | `resource.conflict` |
-| `TooManyRequestsException` | 429 | same as above | `http.too_many_requests` |
-| `ValidationException` | 422 | `(?array $errors = null, Message\|string\|null $translate = null, ?Throwable $previous = null)` — **errors first** | `validation.failed` |
+| `UnauthorizedException` | 401 | sama seperti di atas | `http.unauthorized` |
+| `ForbiddenException` | 403 | sama seperti di atas | `http.forbidden` |
+| `NotFoundException` | 404 | sama seperti di atas | `http.not_found` |
+| `ConflictException` | 409 | sama seperti di atas | `resource.conflict` |
+| `TooManyRequestsException` | 429 | sama seperti di atas | `http.too_many_requests` |
+| `ValidationException` | 422 | `(?array $errors = null, Message\|string\|null $translate = null, ?Throwable $previous = null)` — **errors di posisi pertama** | `validation.failed` |
 | `OptimisticLockException` | 409 | `(Message\|string\|null $translate = null, ?array $data = null, ?Throwable $previous = null)` | `optimistic.lock.failed` |
 | `NoChangesException` | 200 | `(Message\|string\|null $translate = null, ?array $data = null, ?Throwable $previous = null)` | `resource.conflict` |
-| `ServiceException` | configurable (default `Status::OK`) | `(Message\|string\|null $translate = null, ?array $data = null, ?int $code = Status::OK, ?Throwable $previous = null)` | `service.error` |
+| `ServiceException` | dapat dikonfigurasi (default `Status::OK`) | `(Message\|string\|null $translate = null, ?array $data = null, ?int $code = Status::OK, ?Throwable $previous = null)` | `service.error` |
 
-**Notes**:
-- `NoChangesException` is special-cased by `ExceptionResponderFactory` — it is rendered as a **success** response (HTTP 200) carrying `getData()` and the translated message, not as an error.
-- `ServiceException` carries its `$data` via `getData()` (passed as the `errors` slot internally) and lets you pick any HTTP status via `code:`.
-- There is **no** `BusinessRuleException` — use `ConflictException`, `ValidationException`, or `ServiceException` with an appropriate `code` for business-rule failures.
+**Catatan**:
+- `NoChangesException` ditangani khusus oleh `ExceptionResponderFactory` — di-render sebagai response **success** (HTTP 200) yang membawa `getData()` dan pesan yang diterjemahkan, bukan sebagai error.
+- `ServiceException` membawa `$data`-nya via `getData()` (diteruskan sebagai slot `errors` secara internal) dan memungkinkan Anda memilih HTTP status apa pun via `code:`.
+- **Tidak ada** `BusinessRuleException` — gunakan `ConflictException`, `ValidationException`, atau `ServiceException` dengan `code` yang sesuai untuk kegagalan business rule.
 
-### Usage Examples
+### Contoh Penggunaan
 
 ```php
 use App\Shared\Core\Exception\BadRequestException;
@@ -174,11 +174,11 @@ throw new OptimisticLockException(
 
 ---
 
-## 🔧 Exception Handling Patterns
+## 🔧 Pola Exception Handling
 
-### 1. **Let the Middleware Handle It**
+### 1. **Biarkan Middleware yang Menangani**
 
-The `ExceptionResponder` middleware (built by `App\Api\Shared\ExceptionResponderFactory`, registered in `config/web/di/application.php`) converts exceptions to JSON responses — no try/catch needed in actions:
+Middleware `ExceptionResponder` (dibangun oleh `App\Api\Shared\ExceptionResponderFactory`, terdaftar di `config/web/di/application.php`) mengonversi exception ke response JSON — tidak perlu try/catch di action:
 
 ```php
 final class UpdateAction
@@ -253,9 +253,9 @@ final class ExampleRepository
 
 ---
 
-## 🚀 Best Practices
+## 🚀 Praktik Terbaik
 
-### 1. **Exception Creation**
+### 1. **Pembuatan Exception**
 ```php
 // ✅ Use specific exception types with Message keys
 throw new NotFoundException(
@@ -266,7 +266,7 @@ throw new NotFoundException(
 throw new RuntimeException('User not found');
 ```
 
-### 2. **Error Messages**
+### 2. **Pesan Error**
 ```php
 // ✅ Provide context via params
 throw new ValidationException(
@@ -277,7 +277,7 @@ throw new ValidationException(
 throw new ValidationException();
 ```
 
-### 3. **HTTP Status Codes**
+### 3. **HTTP Status Code**
 ```php
 // ✅ Use appropriate status codes
 throw new UnauthorizedException();  // 401
@@ -303,34 +303,34 @@ throw new ServiceException(translate: 'External API call failed');
 
 ---
 
-## 📊 Performance Considerations
+## 📊 Pertimbangan Performa
 
-### 1. **Exception Overhead**
-- Exceptions are expensive — use for exceptional cases only
-- Avoid using exceptions for flow control
-- Use validation before business logic
+### 1. **Overhead Exception**
+- Exception itu mahal — gunakan hanya untuk kasus yang benar-benar exceptional
+- Hindari penggunaan exception untuk flow control
+- Gunakan validasi sebelum business logic
 
-### 2. **Memory Usage**
-- Keep `params`, `errors`, and `data` payloads concise
-- Avoid storing large objects in exceptions
-- Use exception chaining wisely
+### 2. **Penggunaan Memori**
+- Jaga payload `params`, `errors`, dan `data` tetap ringkas
+- Hindari menyimpan objek besar di dalam exception
+- Gunakan exception chaining dengan bijak
 
 ### 3. **Logging**
-- Log exceptions with proper context (`getDefaultMessageKey()`, `getTranslateParams()`, `getData()`)
-- `ErrorMonitoringMiddleware` captures exceptions per `app/monitoring.error_monitoring` config
-- Use appropriate log levels
+- Log exception dengan konteks yang tepat (`getDefaultMessageKey()`, `getTranslateParams()`, `getData()`)
+- `ErrorMonitoringMiddleware` menangkap exception sesuai config `app/monitoring.error_monitoring`
+- Gunakan log level yang sesuai
 
 ---
 
-## 🎯 Summary
+## 🎯 Ringkasan
 
-The exception hierarchy provides a structured way to handle different types of errors in the Yii3 API application. Key benefits include:
+Hierarki exception menyediakan cara terstruktur untuk menangani berbagai jenis error di aplikasi Yii3 API. Manfaat utamanya meliputi:
 
-- **🔍 Type Safety**: `final` concrete exceptions extending `HttpException`
-- **📡 HTTP Compliance**: Proper HTTP status code mapping via `getHttpStatusCode()`
-- **🌐 Localization**: `Message` value objects with `key`/`params`/`domain`
-- **🔧 Debugging**: `errors` and `data` payloads, dev-mode traces in error responses
-- **📦 Consistency**: Uniform `{code, success, message, errors}` error format
-- **🚀 Performance**: Optimized exception handling
+- **🔍 Type Safety**: Exception konkret `final` yang meng-extend `HttpException`
+- **📡 HTTP Compliance**: Pemetaan HTTP status code yang tepat via `getHttpStatusCode()`
+- **🌐 Localization**: Value object `Message` dengan `key`/`params`/`domain`
+- **🔧 Debugging**: Payload `errors` dan `data`, trace mode-dev di response error
+- **📦 Consistency**: Format error `{code, success, message, errors}` yang seragam
+- **🚀 Performance**: Exception handling yang dioptimalkan
 
-By following the patterns and best practices outlined in this guide, you can build robust, maintainable exception handling for your Yii3 API application! 🚀
+Dengan mengikuti pola dan praktik terbaik yang diuraikan dalam panduan ini, Anda dapat membangun exception handling yang robust dan mudah dipelihara untuk aplikasi Yii3 API Anda! 🚀

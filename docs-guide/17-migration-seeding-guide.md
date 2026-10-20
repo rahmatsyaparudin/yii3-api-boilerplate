@@ -1,14 +1,14 @@
-# Migration and Seeding Guide
+# Panduan Migration dan Seeding
 
-## 📋 Overview
+## 📋 Gambaran Umum
 
-This guide covers database migrations and data seeding in the Yii3 API project. It explains how to manage database schema changes, populate initial data, and maintain data consistency across different environments.
+Panduan ini membahas migration database dan seeding data di proyek Yii3 API. Panduan ini menjelaskan cara mengelola perubahan skema database, mengisi data awal, dan menjaga konsistensi data di berbagai environment.
 
 ---
 
-## 🏗️ Architecture Overview
+## 🏗️ Gambaran Arsitektur
 
-### Migration Structure
+### Struktur Migration
 
 ```
 src/
@@ -21,9 +21,9 @@ src/
         └── M20260910104729CreateAnotherExampleTable.php   # another_example table
 ```
 
-Migrations are namespaced per module: `App\Migration\Example`, `App\Migration\Auditable`, etc. (see `yiisoft/db-migration` settings in `config/common/params-core.php`). Each module is mapped to a database connection in `config/common/migration.php` → `moduleConnections` — `migrate:module` fails without a mapping.
+Migration diberi namespace per modul: `App\Migration\Example`, `App\Migration\Auditable`, dst. (lihat pengaturan `yiisoft/db-migration` di `config/common/params-core.php`). Setiap modul dipetakan ke koneksi database di `config/common/migration.php` → `moduleConnections` — `migrate:module` akan gagal tanpa pemetaan.
 
-### Seeding Structure
+### Struktur Seeding
 
 ```
 src/
@@ -45,9 +45,9 @@ src/
 
 ---
 
-## 🔄 Database Migrations
+## 🔄 Migration Database
 
-### Migration Best Practices
+### Praktik Terbaik Migration
 
 #### 1. **Separation of Concerns**
 ```php
@@ -59,7 +59,7 @@ src/Seeder/SeedExampleData.php                               // Data seeding onl
 M20240101000000CreateExampleWithSeed.php  // Combined approach
 ```
 
-#### 2. **Naming Convention**
+#### 2. **Konvensi Penamaan**
 ```php
 // ✅ Format: M{YYYYMMDDHHMMSS}{Description}, placed in a per-module namespace
 src/Migration/Example/M20240101000000CreateExampleTable.php     // namespace App\Migration\Example
@@ -67,7 +67,7 @@ src/Migration/Example/M20240101010000UpdateExampleFields.php    // Update fields
 src/Migration/Auditable/M20240101000000CreateAuditLogsTable.php // namespace App\Migration\Auditable
 ```
 
-#### 3. **Reversible Migrations**
+#### 3. **Migration Reversible**
 ```php
 // ✅ Always implement RevertibleMigrationInterface
 final class M20240101000000CreateExampleTable implements RevertibleMigrationInterface
@@ -84,23 +84,23 @@ final class M20240101000000CreateExampleTable implements RevertibleMigrationInte
 }
 ```
 
-### Creating New Migration
+### Membuat Migration Baru
 
-#### 1. **Generate Migration**
+#### 1. **Membuat Migration**
 ```bash
-# Create new migration for the "user" table in the default namespace (App\Migration)
+# Buat migration baru untuk tabel "user" di namespace default (App\Migration)
 ./yii migrate:create user --command=table
 
-# Create it inside a module namespace (directory must exist: src/Migration/Example)
+# Buat di dalam namespace modul (direktori harus sudah ada: src/Migration/Example)
 ./yii migrate:create user --command=table --namespace=App\\Migration\\Example
 
-# Generate fields inline
+# Buat field secara inline
 ./yii migrate:create user --command=table --fields="name:string(255):notNull(),status:smallint:notNull():defaultValue(1)"
 ```
 
-Available `--command` values: `create`, `table`, `dropTable`, `addColumn`, `dropColumn`, `junction`.
+Nilai `--command` yang tersedia: `create`, `table`, `dropTable`, `addColumn`, `dropColumn`, `junction`.
 
-#### 2. **Migration Template**
+#### 2. **Template Migration**
 ```php
 <?php
 
@@ -151,100 +151,100 @@ final class M20240101120000CreateUserTable implements RevertibleMigrationInterfa
 }
 ```
 
-### Running Migrations
+### Menjalankan Migration
 
-#### 1. **Basic Migration Commands**
+#### 1. **Perintah Dasar Migration**
 ```bash
-# Apply all pending migrations
+# Terapkan semua migration yang pending
 ./yii migrate:up
 
-# Apply only the first N pending migrations
+# Terapkan hanya N migration pending pertama
 ./yii migrate:up --limit=3
 
-# Apply migrations from a specific namespace or path
+# Terapkan migration dari namespace atau path tertentu
 ./yii migrate:up --namespace=App\\Migration\\Example
 ./yii migrate:up --path=@src/Migration/Example
 
-# Skip the confirmation prompt
+# Lewati prompt konfirmasi
 ./yii migrate:up --force-yes
 ```
 
-#### 2. **Per-Module Migrations**
+#### 2. **Migration per Modul**
 
-Every module folder must be mapped to a connection in `config/common/migration.php` → `moduleConnections` (e.g. `'Auditable' => 'audit'` uses the `db.audit.*` env keys). Without a mapping `migrate:module` fails. History is tracked per database — the `{{%migration}}` table is created in the module's own database.
+Setiap folder modul harus dipetakan ke sebuah koneksi di `config/common/migration.php` → `moduleConnections` (mis. `'Auditable' => 'audit'` menggunakan env key `db.audit.*`). Tanpa pemetaan, `migrate:module` akan gagal. Riwayat dilacak per database — tabel `{{%migration}}` dibuat di database milik modul itu sendiri.
 
 ```bash
-# Apply pending migrations of one module on its mapped connection
+# Terapkan migration pending milik satu modul pada koneksi yang dipetakan
 ./yii migrate:module example
 ./yii migrate:module auditable --limit=1 --force-yes
 
-# Override the mapped connection for this run
+# Timpa koneksi yang dipetakan untuk eksekusi ini
 ./yii migrate:module auditable --db=audit
 ```
 
-#### 3. **Migration Management**
+#### 3. **Manajemen Migration**
 ```bash
-# Show migration history
+# Tampilkan riwayat migration
 ./yii migrate:history
 
-# Show pending migrations
+# Tampilkan migration yang pending
 ./yii migrate:new
 
-# Rollback last migration
+# Rollback migration terakhir
 ./yii migrate:down
 
-# Rollback last 3 migrations / all migrations
+# Rollback 3 migration terakhir / semua migration
 ./yii migrate:down --limit=3
 ./yii migrate:down --all
 
-# Revert and re-apply the last migration
+# Revert lalu terapkan ulang migration terakhir
 ./yii migrate:redo
 ```
 
-#### 4. **Environment-Specific Migrations**
+#### 4. **Migration Spesifik Environment**
 ```bash
-# Development environment
+# Environment development
 APP_ENV=dev ./yii migrate:up
 
-# Production environment
+# Environment production
 APP_ENV=prod ./yii migrate:up
 
-# Test environment
+# Environment test
 APP_ENV=test ./yii migrate:up
 ```
 
 ---
 
-## 🌱 Data Seeding
+## 🌱 Seeding Data
 
-Seeding is handled by the `seed` console command (`src/Console/Core/SeederCommand.php`) together with per-module seeder classes in `src/Seeder/` that extend `App\Infrastructure\Core\Seeder\AbstractSeederData`. Fixtures are written in YAML using [nelmio/alice](https://github.com/nelmio/alice) `__factory` syntax.
+Seeding ditangani oleh perintah console `seed` (`src/Console/Core/SeederCommand.php`) bersama class seeder per modul di `src/Seeder/` yang meng-extend `App\Infrastructure\Core\Seeder\AbstractSeederData`. Fixture ditulis dalam YAML menggunakan sintaks `__factory` dari [nelmio/alice](https://github.com/nelmio/alice).
 
-### Console Seeding Commands
+### Perintah Console untuk Seeding
 
-#### 1. **Basic Seeding**
+#### 1. **Seeding Dasar**
 ```bash
-# Seed all seeders found in src/Seeder/ (default: 10 records each)
+# Jalankan semua seeder yang ditemukan di src/Seeder/ (default: 10 record masing-masing)
 ./yii seed
 
-# Seed a specific module (resolves App\Seeder\SeedExampleData)
+# Jalankan seeder modul tertentu (resolve ke App\Seeder\SeedExampleData)
 ./yii seed --module=example
 ./yii seed --module=anotherexample
 
-# Seed with custom count
+# Jalankan seeder dengan jumlah kustom
 ./yii seed --module=example --count=20
 ```
 
-#### 2. **Command Options**
+#### 2. **Opsi Perintah**
 ```bash
-# Show help
+# Tampilkan bantuan
 ./yii help seed
 
-# Available options:
-#   --module, -m   Specific module to seed (e.g., example, product)
-#   --count, -c    Number of records to seed (default: 10)
+# Opsi yang tersedia:
+#   --module, -m   Modul spesifik yang akan di-seed (mis. example, product)
+#   --count, -c    Jumlah record yang akan di-seed (default: 10)
 ```
 
-#### 3. **Command Implementation** (`src/Console/Core/SeederCommand.php`)
+#### 3. **Implementasi Perintah** (`src/Console/Core/SeederCommand.php`)
 ```php
 final class SeederCommand extends Command
 {
@@ -274,9 +274,9 @@ final class SeederCommand extends Command
 }
 ```
 
-### Seeder Classes
+### Class Seeder
 
-Each seeder extends `AbstractSeederData`, declares its fixture file and entity class via constants, and implements `insertEntity()`:
+Setiap seeder meng-extend `AbstractSeederData`, mendeklarasikan file fixture dan class entity-nya melalui konstanta, serta mengimplementasikan `insertEntity()`:
 
 ```php
 // src/Seeder/SeedExampleData.php
@@ -311,11 +311,11 @@ final class SeedExampleData extends AbstractSeederData
 }
 ```
 
-`AbstractSeederData::run($count)` checks the environment, loads the YAML fixture through `NativeLoader`, filters objects by `ENTITY_CLASS`, builds a `DetailInfo` via `DetailInfoFactory`, then calls `insertEntity()` for each entity (sliced to `$count`).
+`AbstractSeederData::run($count)` memeriksa environment, memuat fixture YAML melalui `NativeLoader`, memfilter objek berdasarkan `ENTITY_CLASS`, membangun `DetailInfo` via `DetailInfoFactory`, lalu memanggil `insertEntity()` untuk setiap entity (dipotong hingga `$count`).
 
-### Fixture Files (nelmio/alice)
+### File Fixture (nelmio/alice)
 
-Fixtures live in `src/Seeder/Fixtures/*.yaml` and use `__factory` to call static constructors. References to other fixtures use `@name`:
+Fixture berada di `src/Seeder/Fixtures/*.yaml` dan menggunakan `__factory` untuk memanggil constructor statis. Referensi ke fixture lain menggunakan `@name`:
 
 ```yaml
 # src/Seeder/Fixtures/example.yaml
@@ -342,9 +342,9 @@ App\Domain\Example\Entity\Example:
         - null                       # $syncMdb
 ```
 
-### Custom Faker Providers
+### Provider Faker Kustom
 
-`AbstractSeederData` automatically registers every `Faker\Provider\Base` subclass found in `src/Seeder/Faker/`. Providers must implement `SeederProviderInterface`:
+`AbstractSeederData` secara otomatis mendaftarkan setiap subclass `Faker\Provider\Base` yang ditemukan di `src/Seeder/Faker/`. Provider harus mengimplementasikan `SeederProviderInterface`:
 
 ```php
 // src/Seeder/Faker/SeedDataPoolFaker.php
@@ -361,25 +361,25 @@ final class SeedDataPoolFaker extends Base implements SeederProviderInterface
 }
 ```
 
-Use it in fixtures as `<seedDataPoolRandom()>`. Standard Faker formatters such as `<company()>` or `<sentence()>` work as well.
+Gunakan di fixture sebagai `<seedDataPoolRandom()>`. Formatter Faker standar seperti `<company()>` atau `<sentence()>` juga bisa digunakan.
 
-### Data Cleanup
+### Pembersihan Data
 
-Seeders do not provide a `down()`/truncate path. To reseed a table, truncate it manually before running `./yii seed` again:
+Seeder tidak menyediakan jalur `down()`/truncate. Untuk melakukan seed ulang pada suatu tabel, kosongkan (truncate) tabel tersebut secara manual sebelum menjalankan `./yii seed` lagi:
 
 ```bash
-# Example: clear the table then reseed
-./yii migrate:down --limit=1 && ./yii migrate:up   # recreate table structure
+# Contoh: kosongkan tabel lalu seed ulang
+./yii migrate:down --limit=1 && ./yii migrate:up   # buat ulang struktur tabel
 ./yii seed --module=example --count=20
 ```
 
 ---
 
-## 🔧 Configuration
+## 🔧 Konfigurasi
 
-### Migration Configuration
+### Konfigurasi Migration
 
-#### 1. **Migration Settings**
+#### 1. **Pengaturan Migration**
 ```php
 // config/common/params.php
 return [
@@ -391,9 +391,9 @@ return [
 ];
 ```
 
-All migrations are loaded by namespace, so any class under `App\Migration\*` (e.g. `App\Migration\Example`, `App\Migration\Auditable`) is discovered automatically.
+Semua migration dimuat berdasarkan namespace, sehingga setiap class di bawah `App\Migration\*` (mis. `App\Migration\Example`, `App\Migration\Auditable`) ditemukan secara otomatis.
 
-#### 2. **Database Configuration**
+#### 2. **Konfigurasi Database**
 ```php
 // config/common/di/db-pgsql.php (used when db.default.driver=pgsql)
 $dsn = new Dsn('pgsql', $db['host'], $db['name'], $db['port']);
@@ -417,13 +417,13 @@ return [
 ];
 ```
 
-`config/common/di/db-mysql.php` provides the equivalent binding when `db.default.driver=mysql` (or `mariadb`). Connection details come from the `yiisoft/db` group in `params.php`, populated from `db.default.*` variables in `.env`.
+`config/common/di/db-mysql.php` menyediakan binding yang setara ketika `db.default.driver=mysql` (atau `mariadb`). Detail koneksi berasal dari grup `yiisoft/db` di `params.php`, yang diisi dari variabel `db.default.*` di `.env`.
 
-### Seeding Configuration
+### Konfigurasi Seeding
 
-No dedicated DI file is needed — seeders are plain classes resolved through the container (autowiring), and `SeederCommand` is registered as a console command:
+Tidak diperlukan file DI khusus — seeder adalah class biasa yang di-resolve melalui container (autowiring), dan `SeederCommand` didaftarkan sebagai perintah console:
 
-#### 1. **Console Commands**
+#### 1. **Perintah Console**
 ```php
 // config/console/commands.php
 use App\Console;
@@ -435,7 +435,7 @@ return [
 ];
 ```
 
-#### 2. **Console Parameters**
+#### 2. **Parameter Console**
 ```php
 // config/console/params.php
 return [
@@ -447,55 +447,55 @@ return [
 
 ---
 
-## 🚀 Development Workflow
+## 🚀 Alur Kerja Development
 
-### 1. **Project Setup**
+### 1. **Setup Proyek**
 ```bash
-# 1. Install dependencies
+# 1. Instal dependency
 composer install
 
-# 2. Create database
+# 2. Buat database
 createdb yii3_api
 
-# 3. Run migrations
+# 3. Jalankan migration
 ./yii migrate:up
 
-# 4. Seed data (development only)
+# 4. Seed data (hanya development)
 ./yii seed --module=example
 
-# 5. Start development server
+# 5. Jalankan development server
 ./yii serve
 ```
 
-### 2. **Development Cycle**
+### 2. **Siklus Development**
 ```bash
-# During development
-./yii migrate:up                    # Apply new migrations
-./yii seed --module=example          # Refresh seed data
-./yii serve                         # Start server
+# Selama development
+./yii migrate:up                    # Terapkan migration baru
+./yii seed --module=example          # Refresh data seed
+./yii serve                         # Jalankan server
 ```
 
-### 3. **Testing Workflow**
+### 3. **Alur Kerja Testing**
 ```bash
-# Test environment
-APP_ENV=test ./yii migrate:up        # Create test schema
-composer test                        # Run the Codeception test suites
+# Environment test
+APP_ENV=test ./yii migrate:up        # Buat skema test
+composer test                        # Jalankan test suite Codeception
 ```
 
-### 4. **Production Deployment**
+### 4. **Deployment Production**
 ```bash
-# Production environment
-APP_ENV=prod ./yii migrate:up         # Apply migrations only
-# No seeding in production (the seed command refuses to run outside dev)
+# Environment production
+APP_ENV=prod ./yii migrate:up         # Terapkan migration saja
+# Tidak ada seeding di production (perintah seed menolak berjalan di luar dev)
 ```
 
 ---
 
-## 🛡️ Environment Safety
+## 🛡️ Keamanan Environment
 
-### Environment Restrictions
+### Pembatasan Environment
 
-#### 1. **Development Only Seeding**
+#### 1. **Seeding Hanya untuk Development**
 ```php
 // ✅ Environment check in SeederCommand (and again in AbstractSeederData::run())
 if (!\in_array($_ENV['APP_ENV'] ?? '', ['dev', 'development'], true)) {
@@ -504,7 +504,7 @@ if (!\in_array($_ENV['APP_ENV'] ?? '', ['dev', 'development'], true)) {
 }
 ```
 
-#### 2. **Environment Variables**
+#### 2. **Variabel Environment**
 ```bash
 # .env.example
 APP_ENV=dev
@@ -515,7 +515,7 @@ APP_ENV=prod
 APP_DEBUG=0
 ```
 
-#### 3. **Environment Detection**
+#### 3. **Deteksi Environment**
 ```php
 // ✅ Valid environments are restricted to dev/test/prod (src/Environment.php)
 use App\Environment;
@@ -525,9 +525,9 @@ if (!Environment::isDev()) {
 }
 ```
 
-### Safety Measures
+### Tindakan Pengamanan
 
-#### 1. **Confirmation Prompts**
+#### 1. **Prompt Konfirmasi**
 ```php
 // ✅ Add confirmation for destructive operations
 $io = new SymfonyStyle($input, $output);
@@ -536,7 +536,7 @@ if (!$io->confirm('This will reseed the example table. Continue?', false)) {
 }
 ```
 
-#### 2. **Backup Before Seeding**
+#### 2. **Backup Sebelum Seeding**
 ```php
 // ✅ Create backup before destructive operations (inside a custom seeder/command)
 $backupTable = 'example_backup_' . date('Y_m_d_His');
@@ -545,9 +545,9 @@ $this->db->createCommand()->renameTable('example', $backupTable)->execute();
 
 ---
 
-## 📊 Best Practices
+## 📊 Praktik Terbaik
 
-### Migration Best Practices
+### Praktik Terbaik Migration
 
 #### 1. **Single Responsibility**
 ```php
@@ -560,7 +560,7 @@ M20240101020000CreateExampleIndex.php   // Create index
 M20240101000000CreateExampleWithFieldsAndIndex.php
 ```
 
-#### 2. **Idempotent Migrations**
+#### 2. **Migration Idempotent**
 ```php
 // ✅ Check before creating (via the schema of the underlying connection)
 if ($b->getDb()->getSchema()->getTableSchema('example') === null) {
@@ -568,7 +568,7 @@ if ($b->getDb()->getSchema()->getTableSchema('example') === null) {
 }
 ```
 
-#### 3. **Rollback Safety**
+#### 3. **Keamanan Rollback**
 ```php
 // ✅ Always implement down() method
 public function down(MigrationBuilder $b): void
@@ -578,15 +578,15 @@ public function down(MigrationBuilder $b): void
 }
 ```
 
-### Seeding Best Practices
+### Praktik Terbaik Seeding
 
-#### 1. **Environment Awareness**
+#### 1. **Kesadaran Environment**
 ```php
 // ✅ Handled automatically: both SeederCommand and AbstractSeederData::run()
 // refuse to run when APP_ENV is not dev/development
 ```
 
-#### 2. **Data Consistency**
+#### 2. **Konsistensi Data**
 ```php
 // ✅ Insert through the repository (inside insertEntity())
 protected function insertEntity(object $entity, mixed $detailInfo): void
@@ -611,62 +611,62 @@ try {
 
 ## 🔍 Troubleshooting
 
-### Common Migration Issues
+### Masalah Umum Migration
 
-#### 1. **Migration Conflicts**
+#### 1. **Konflik Migration**
 ```bash
-# Check which migrations are applied / pending
+# Periksa migration mana yang sudah diterapkan / pending
 ./yii migrate:history
 ./yii migrate:new
 ```
 
-#### 2. **Database Connection Issues**
+#### 2. **Masalah Koneksi Database**
 ```bash
-# Check the db.default.* variables in your .env file
-# then re-run:
-./yii migrate:new   # fails early if the connection cannot be established
+# Periksa variabel db.default.* di file .env Anda
+# lalu jalankan ulang:
+./yii migrate:new   # gagal lebih awal jika koneksi tidak bisa dibuat
 ```
 
-#### 3. **Migration Rollback Issues**
+#### 3. **Masalah Rollback Migration**
 ```bash
-# Skip the confirmation prompt (use with caution)
+# Lewati prompt konfirmasi (gunakan dengan hati-hati)
 ./yii migrate:down --force-yes
 
-# Check migration history
+# Periksa riwayat migration
 ./yii migrate:history
 ```
 
-### Common Seeding Issues
+### Masalah Umum Seeding
 
-#### 1. **Environment Errors**
+#### 1. **Error Environment**
 ```bash
-# Check current environment
+# Periksa environment saat ini
 echo $APP_ENV
 
-# Set environment manually
+# Set environment secara manual
 export APP_ENV=dev
 ./yii seed --module=example
 ```
 
-#### 2. **Seeder Not Found**
+#### 2. **Seeder Tidak Ditemukan**
 ```bash
-# "Seeder not found: App\Seeder\SeedXxxData" means the class is missing.
-# Create src/Seeder/SeedXxxData.php extending AbstractSeederData, then:
+# "Seeder not found: App\Seeder\SeedXxxData" berarti class-nya belum ada.
+# Buat src/Seeder/SeedXxxData.php yang meng-extend AbstractSeederData, lalu:
 ./yii seed --module=xxx --count=1
 ```
 
-#### 3. **Fixture Issues**
+#### 3. **Masalah Fixture**
 ```bash
-# "Fixture file not found" -> create the YAML file under src/Seeder/Fixtures/
-# "No entities found in fixtures" -> the YAML __factory blocks must produce
-# instances of the seeder's ENTITY_CLASS.
+# "Fixture file not found" -> buat file YAML di src/Seeder/Fixtures/
+# "No entities found in fixtures" -> blok __factory di YAML harus menghasilkan
+# instance dari ENTITY_CLASS milik seeder.
 ```
 
 ---
 
-## 📚 Advanced Topics
+## 📚 Topik Lanjutan
 
-### 1. **Conditional Migrations**
+### 1. **Migration Kondisional**
 ```php
 public function up(MigrationBuilder $b): void
 {
@@ -679,7 +679,7 @@ public function up(MigrationBuilder $b): void
 }
 ```
 
-### 2. **Data Transformations**
+### 2. **Transformasi Data**
 ```php
 use App\Shared\Core\Enums\RecordStatus;
 
@@ -692,7 +692,7 @@ public function up(MigrationBuilder $b): void
 }
 ```
 
-### 3. **Batch Operations**
+### 3. **Operasi Batch**
 ```php
 public function up(MigrationBuilder $b): void
 {
@@ -711,63 +711,63 @@ public function up(MigrationBuilder $b): void
 
 ---
 
-## 🎯 Summary
+## 🎯 Ringkasan
 
-### Key Takeaways
+### Poin Penting
 
-1. **Separate Concerns**: Keep migrations for schema, seeds for data
-2. **Environment Safety**: Restrict seeding to development only
-3. **Reversible Operations**: Always implement rollback logic
-4. **Flexible Seeding**: Use console commands for reusable seeding
-5. **Error Handling**: Implement proper error handling and logging
+1. **Pisahkan Tanggung Jawab**: Gunakan migration untuk skema, seed untuk data
+2. **Keamanan Environment**: Batasi seeding hanya untuk development
+3. **Operasi Reversible**: Selalu implementasikan logika rollback
+4. **Seeding Fleksibel**: Gunakan perintah console untuk seeding yang dapat dipakai ulang
+5. **Error Handling**: Terapkan error handling dan logging yang baik
 
-### Recommended Workflow
+### Alur Kerja yang Direkomendasikan
 
 ```bash
 # Development
-./yii migrate:up                    # Apply schema changes
-./yii seed --module=example          # Refresh seed data
-./yii serve                         # Start development
+./yii migrate:up                    # Terapkan perubahan skema
+./yii seed --module=example          # Refresh data seed
+./yii serve                         # Jalankan development
 
 # Testing
-APP_ENV=test ./yii migrate:up        # Test schema
-composer test                        # Run tests
+APP_ENV=test ./yii migrate:up        # Skema test
+composer test                        # Jalankan test
 
 # Production
-APP_ENV=prod ./yii migrate:up         # Production schema only
-# No seeding in production
+APP_ENV=prod ./yii migrate:up         # Hanya skema production
+# Tidak ada seeding di production
 ```
 
 ---
 
-## 📞 Resources
+## 📞 Sumber Daya
 
-### Documentation
-- **[yiisoft/db-migration](https://github.com/yiisoft/db-migration)**: Migration package documentation
-- **[yiisoft/yii-console](https://github.com/yiisoft/yii-console)**: Console application package
-- **[nelmio/alice](https://github.com/nelmio/alice)**: Fixture generation library used by the seeders
+### Dokumentasi
+- **[yiisoft/db-migration](https://github.com/yiisoft/db-migration)**: Dokumentasi package migration
+- **[yiisoft/yii-console](https://github.com/yiisoft/yii-console)**: Package aplikasi console
+- **[nelmio/alice](https://github.com/nelmio/alice)**: Library generator fixture yang digunakan oleh seeder
 
 ### Tools
-- **[MigrationBuilder](../vendor/yiisoft/db-migration/src/MigrationBuilder.php)**: Available schema/data operations
-- **[AbstractSeederData](../src/Infrastructure/Core/Seeder/AbstractSeederData.php)**: Seeder base class
+- **[MigrationBuilder](../vendor/yiisoft/db-migration/src/MigrationBuilder.php)**: Operasi skema/data yang tersedia
+- **[AbstractSeederData](../src/Infrastructure/Core/Seeder/AbstractSeederData.php)**: Base class seeder
 
-### Examples
-- **[Project Examples](../src/Migration/)**: Migration examples in this project
-- **[Seed Examples](../src/Seeder/)**: Seeders, fixtures and Faker providers in this project
-- **[Console Examples](../src/Console/)**: Console command examples
+### Contoh
+- **[Project Examples](../src/Migration/)**: Contoh migration dalam proyek ini
+- **[Seed Examples](../src/Seeder/)**: Seeder, fixture, dan provider Faker dalam proyek ini
+- **[Console Examples](../src/Console/)**: Contoh perintah console
 
 ---
 
-## 🎉 Conclusion
+## 🎉 Kesimpulan
 
-Proper migration and seeding management is crucial for maintaining data consistency and supporting development workflows. By following the patterns and best practices outlined in this guide, you can ensure reliable database schema management and safe data seeding across different environments.
+Manajemen migration dan seeding yang tepat sangat penting untuk menjaga konsistensi data dan mendukung alur kerja development. Dengan mengikuti pola dan praktik terbaik yang diuraikan dalam panduan ini, Anda dapat memastikan manajemen skema database yang andal serta seeding data yang aman di berbagai environment.
 
-Key benefits of this approach:
+Manfaat utama dari pendekatan ini:
 
-- **🏗️ Clean Architecture**: Separated concerns for migrations and seeding
-- **🔒 Environment Safety**: Development-only seeding with proper checks
-- **🔄 Reversible Operations**: Full rollback support for all changes
-- **🚀 Flexible Seeding**: Reusable console commands with options
-- **📊 Consistent Data**: Reliable data population across environments
+- **🏗️ Arsitektur Bersih**: Pemisahan tanggung jawab untuk migration dan seeding
+- **🔒 Keamanan Environment**: Seeding khusus development dengan pemeriksaan yang tepat
+- **🔄 Operasi Reversible**: Dukungan rollback penuh untuk semua perubahan
+- **🚀 Seeding Fleksibel**: Perintah console yang dapat dipakai ulang dengan opsi
+- **📊 Data Konsisten**: Pengisian data yang andal di berbagai environment
 
-Implement these practices in your Yii3 API project for robust database management! 🚀
+Terapkan praktik-praktik ini dalam proyek Yii3 API Anda untuk manajemen database yang tangguh! 🚀

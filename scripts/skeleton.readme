@@ -36,7 +36,7 @@
   terautentikasi oleh middleware sebelumnya diteruskan (pass-through).
 - `resources/messages/{en,id}/error.php` — key `service_token.duplicate`
   (ikut skeleton sehingga konsumen menerimanya via `skeleton:update`).
-- `docs/system_service-token.md` — dokumentasi endpoint & middleware.
+- `docs-guide/23-system_service-token.md` — dokumentasi endpoint & middleware.
 
 ### Berubah
 - `config/web/di/application.php` — `ServiceTokenAuthMiddleware`
@@ -87,7 +87,7 @@
   (`StructuredLoggingMiddleware`, `MetricsMiddleware`,
   `ErrorMonitoringMiddleware`, `RequestIdMiddleware`) tanpa menyentuh
   file config.
-- `README-SKELETON.md` — section "Environment Configuration" baru yang
+- `docs-guide/24-skeleton-guide.md` — section "Environment Configuration" baru yang
   mendokumentasikan key `app.monitoring.*`.
 
 ## 1.2.8

@@ -11,7 +11,6 @@ yii3-api-boilerplate/
 ├── 📄 .php-cs-fixer.php - Konfigurasi PHP CS Fixer
 ├── 📄 Makefile - Otomasi build
 ├── 📄 QUALITY_SUMMARY.md - Ringkasan kualitas kode
-├── 📄 README-SKELETON.md - Dokumentasi skeleton
 ├── 📄 c3.php - Konfigurasi Codeception (coverage)
 ├── 📄 codeception.yml - Konfigurasi Codeception
 ├── 📄 composer-dependency-analyser.php - Analisis dependency

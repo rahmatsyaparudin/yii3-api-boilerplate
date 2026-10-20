@@ -1,14 +1,14 @@
-# Request Processing Guide
+# Panduan Pemrosesan Request
 
-## 📋 Overview
+## 📋 Gambaran Umum
 
-Request processing utilities provide a structured way to handle HTTP request data: query/body parsing, whitelisting, sanitization, pagination, sorting, and search criteria. `RequestParamsMiddleware` builds a `RequestParams` value object once per request and stores it in the `payload` request attribute; actions consume it and convert it to `SearchCriteria` via `SearchCriteriaFactory`.
+Utilitas pemrosesan request menyediakan cara terstruktur untuk menangani data HTTP request: parsing query/body, whitelisting, sanitasi, pagination, sorting, dan search criteria. `RequestParamsMiddleware` membangun value object `RequestParams` sekali per request dan menyimpannya di atribut request `payload`; action mengonsumsinya dan mengonversinya menjadi `SearchCriteria` melalui `SearchCriteriaFactory`.
 
 ---
 
-## 🏗️ Request Architecture
+## 🏗️ Arsitektur Request
 
-### Directory Structure
+### Struktur Direktori
 
 ```
 src/Shared/Core/Request/
@@ -30,33 +30,33 @@ src/Application/Shared/Core/Factory/
 └── SearchCriteriaFactory.php    # RequestParams -> SearchCriteria
 ```
 
-### Design Principles
+### Prinsip Desain
 
 #### **1. **Type Safety**
-- Strong typing with PHP 8+ features
-- `readonly` value objects (`RawParams`, `PaginationParams`, `SortParams`, `SearchCriteria`)
-- `BadRequestException` on invalid input
+- Pengetikan kuat dengan fitur PHP 8+
+- Value object `readonly` (`RawParams`, `PaginationParams`, `SortParams`, `SearchCriteria`)
+- `BadRequestException` untuk input yang tidak valid
 
 #### **2. **Consistency**
-- One `RequestParams` object per request, created by middleware
-- Uniform `filter` / `pagination` / `sort` payload shape
-- `SearchCriteria` is the single hand-off object to application/repository layers
+- Satu objek `RequestParams` per request, dibuat oleh middleware
+- Bentuk payload `filter` / `pagination` / `sort` yang seragam
+- `SearchCriteria` adalah objek hand-off tunggal ke layer application/repository
 
 #### **3. **Security**
-- `onlyAllowed()` rejects unknown parameter keys
-- `sanitize()` applies `InputSanitizer` to all values
-- Page size is capped (`maxPageSize`)
+- `onlyAllowed()` menolak key parameter yang tidak dikenal
+- `sanitize()` menerapkan `InputSanitizer` ke semua nilai
+- Page size dibatasi (`maxPageSize`)
 
 #### **4. **Performance**
-- Single parse pass in middleware
-- Immutable objects — safe to pass between layers
-- Lazy: no validation happens until an action opts in
+- Parsing sekali jalan di middleware
+- Objek immutable — aman diteruskan antar layer
+- Lazy: tidak ada validasi yang berjalan sampai sebuah action memilih untuk ikut serta
 
 ---
 
-## 📦 Request Payload Shape
+## 📦 Bentuk Payload Request
 
-`RequestParams` understands both nested and flat parameters:
+`RequestParams` memahami parameter nested maupun flat:
 
 ```json
 {
@@ -76,18 +76,18 @@ src/Application/Shared/Core/Factory/
 }
 ```
 
-Flat equivalents also work for pagination/sort: `?page=1&page_size=20&by=name&dir=desc`.
-Non-numeric `page`/`page_size` values throw `BadRequestException`; `page` is clamped to `>= 1` and `page_size` to `1..maxPageSize`.
+Padanan flat juga berfungsi untuk pagination/sort: `?page=1&page_size=20&by=name&dir=desc`.
+Nilai `page`/`page_size` yang non-numerik melempar `BadRequestException`; `page` dikunci ke `>= 1` dan `page_size` ke `1..maxPageSize`.
 
 ---
 
-## 📁 Request Components
+## 📁 Komponen Request
 
 ### 1. RequestParams
 
-**Purpose**: Aggregates all request parameters into typed sub-objects. Created by `RequestParamsMiddleware` and stored in the `payload` request attribute.
+**Tujuan**: Mengagregasi semua parameter request ke dalam sub-objek bertipe. Dibuat oleh `RequestParamsMiddleware` dan disimpan di atribut request `payload`.
 
-**Location**: `src/Shared/Core/Request/RequestParams.php`
+**Lokasi**: `src/Shared/Core/Request/RequestParams.php`
 
 ```php
 final readonly class RequestParams
@@ -130,7 +130,7 @@ final readonly class RequestParams
 }
 ```
 
-**Usage Example**:
+**Contoh Penggunaan**:
 ```php
 // In an action — RequestParams comes from the 'payload' attribute
 public function __invoke(ServerRequestInterface $request): ResponseInterface
@@ -153,7 +153,7 @@ public function __invoke(ServerRequestInterface $request): ResponseInterface
 
 ### 2. RawParams
 
-**Purpose**: Immutable parameter bag — the base value object for raw params and filters.
+**Tujuan**: Parameter bag immutable — value object dasar untuk raw params dan filter.
 
 ```php
 final readonly class RawParams
@@ -181,7 +181,7 @@ final readonly class RawParams
 }
 ```
 
-**Usage Example**:
+**Contoh Penggunaan**:
 ```php
 // In an action — typical create/update pipeline
 $params = $payload->getRawParams()
@@ -197,7 +197,7 @@ $lockVersion = $params->get('lock_version');
 
 ### 3. PaginationParams
 
-**Purpose**: Pagination value object — `page` + `page_size` with computed offset.
+**Tujuan**: Value object pagination — `page` + `page_size` dengan offset terhitung.
 
 ```php
 final readonly class PaginationParams
@@ -213,7 +213,7 @@ final readonly class PaginationParams
 }
 ```
 
-**Usage Example**:
+**Contoh Penggunaan**:
 ```php
 $pagination = $payload->getPagination();
 
@@ -225,7 +225,7 @@ $query->limit($pagination->getLimit())
 
 ### 4. SortParams
 
-**Purpose**: Sort value object — a single `by` field + `dir` direction.
+**Tujuan**: Value object sort — satu field `by` + arah `dir`.
 
 ```php
 final readonly class SortParams
@@ -241,7 +241,7 @@ final readonly class SortParams
 }
 ```
 
-**Usage Example**:
+**Contoh Penggunaan**:
 ```php
 $sort = $payload->getSort();
 
@@ -255,7 +255,7 @@ if ($sort->getSortBy()) {
 
 ### 5. DataParserInterface & RequestDataParser
 
-**Purpose**: Abstraction over "where the raw data comes from".
+**Tujuan**: Abstraksi atas "dari mana data mentah berasal".
 
 ```php
 interface DataParserInterface
@@ -265,7 +265,7 @@ interface DataParserInterface
 }
 ```
 
-`RequestDataParser` implements it for PSR-7 requests — merges query params and parsed body, body taking precedence:
+`RequestDataParser` mengimplementasikannya untuk request PSR-7 — menggabungkan query params dan parsed body, dengan body yang didahulukan:
 
 ```php
 final readonly class RequestDataParser implements DataParserInterface
@@ -280,7 +280,7 @@ final readonly class RequestDataParser implements DataParserInterface
 }
 ```
 
-**Usage Example**:
+**Contoh Penggunaan**:
 ```php
 // Standalone usage (outside the middleware pipeline)
 $parser = new RequestDataParser(request: $request);
@@ -290,15 +290,15 @@ $params = new RequestParams(parser: $parser);
 $params = RequestParams::from(['filter' => ['status' => 1], 'page' => 2]);
 ```
 
-> **Note**: `RequestParamsMiddleware` does not use `RequestDataParser` — it builds an anonymous `DataParserInterface` inline that performs the same query+body merge.
+> **Catatan**: `RequestParamsMiddleware` tidak menggunakan `RequestDataParser` — middleware membangun `DataParserInterface` anonim secara inline yang melakukan penggabungan query+body yang sama.
 
 ---
 
 ### 6. RequestParamsMiddleware
 
-**Purpose**: Builds `RequestParams` once per request and stores it in request attributes.
+**Tujuan**: Membangun `RequestParams` sekali per request dan menyimpannya di atribut request.
 
-**Location**: `src/Shared/Core/Middleware/RequestParamsMiddleware.php`
+**Lokasi**: `src/Shared/Core/Middleware/RequestParamsMiddleware.php`
 
 ```php
 final class RequestParamsMiddleware implements MiddlewareInterface
@@ -326,7 +326,7 @@ final class RequestParamsMiddleware implements MiddlewareInterface
 }
 ```
 
-Registered per-route-group in `config/common/routes.php` and configured via `app/pagination` params in `config/common/di/middleware-di.php`:
+Didaftarkan per-route-group di `config/common/routes.php` dan dikonfigurasi melalui params `app/pagination` di `config/common/di/middleware-di.php`:
 
 ```php
 Group::create('/v1')
@@ -349,9 +349,9 @@ RequestParamsMiddleware::class => static function () use ($params) {
 
 ### 7. SearchCriteria & SearchCriteriaFactory
 
-**Purpose**: `SearchCriteria` is the DTO handed to application services/repositories; `SearchCriteriaFactory` builds it from `RequestParams` with a whitelist of sortable columns.
+**Tujuan**: `SearchCriteria` adalah DTO yang diserahkan ke application service/repository; `SearchCriteriaFactory` membangunnya dari `RequestParams` dengan whitelist kolom yang dapat di-sort.
 
-**Locations**: `src/Shared/Core/Dto/SearchCriteria.php`, `src/Application/Shared/Core/Factory/SearchCriteriaFactory.php`
+**Lokasi**: `src/Shared/Core/Dto/SearchCriteria.php`, `src/Application/Shared/Core/Factory/SearchCriteriaFactory.php`
 
 ```php
 final readonly class SearchCriteria
@@ -402,7 +402,7 @@ final class SearchCriteriaFactory
 
 ---
 
-## 🔧 Integration Patterns
+## 🔧 Pola Integrasi
 
 ### 1. **List Endpoint** (`ExampleDataAction`)
 
@@ -456,7 +456,7 @@ final class ExampleDataAction
 }
 ```
 
-### 2. **Service Integration**
+### 2. **Integrasi Service**
 
 ```php
 final class ExampleApplicationService
@@ -468,7 +468,7 @@ final class ExampleApplicationService
 }
 ```
 
-### 3. **Repository Integration**
+### 3. **Integrasi Repository**
 
 ```php
 final class ExampleRepository
@@ -505,7 +505,7 @@ final class ExampleRepository
 
 ## 🚀 Best Practices
 
-### 1. **Always Go Through the Payload**
+### 1. **Selalu Melalui Payload**
 ```php
 // ✅ Use the middleware-built RequestParams
 $payload = $request->getAttribute('payload');
@@ -515,7 +515,7 @@ $params  = $payload->getRawParams()->onlyAllowed(self::ALLOWED_KEYS)->sanitize()
 $data = $request->getQueryParams();
 ```
 
-### 2. **Whitelist Before Use**
+### 2. **Whitelist Sebelum Digunakan**
 ```php
 // ✅ Reject unknown keys early
 $params = $payload->getRawParams()->onlyAllowed(['name', 'status']);
@@ -524,7 +524,7 @@ $params = $payload->getRawParams()->onlyAllowed(['name', 'status']);
 $params = $payload->getRawParams();
 ```
 
-### 3. **Whitelist Sortable Columns**
+### 3. **Whitelist Kolom yang Dapat Di-sort**
 ```php
 // ✅ Map client keys to DB columns — unknown sorts fall back safely
 $criteria = $this->factory->createFromRequest($payload, allowedSort: [
@@ -535,7 +535,7 @@ $criteria = $this->factory->createFromRequest($payload, allowedSort: [
 $query->orderBy([$sort->getSortBy() => SORT_ASC]);
 ```
 
-### 4. **Sanitize Input**
+### 4. **Sanitasi Input**
 ```php
 // ✅ Sanitize values that will be persisted
 $params = $payload->getRawParams()->onlyAllowed(self::ALLOWED_KEYS)->sanitize();
@@ -543,31 +543,31 @@ $params = $payload->getRawParams()->onlyAllowed(self::ALLOWED_KEYS)->sanitize();
 
 ---
 
-## 📊 Performance Considerations
+## 📊 Pertimbangan Performa
 
-### 1. **Memory Usage**
-- `readonly` value objects — no defensive copying needed
-- Params are parsed once in middleware, reused by all layers
+### 1. **Penggunaan Memori**
+- Value object `readonly` — tidak perlu defensive copying
+- Params di-parse sekali di middleware, dipakai ulang oleh semua layer
 
-### 2. **Validation Overhead**
-- `onlyAllowed()` fails fast on unknown keys
-- `page_size` is capped by `maxPageSize` to prevent heavy queries
+### 2. **Overhead Validasi**
+- `onlyAllowed()` gagal cepat pada key yang tidak dikenal
+- `page_size` dibatasi oleh `maxPageSize` untuk mencegah query berat
 
-### 3. **Parsing Performance**
-- Single `array_merge` of query + body per request
-- `SearchCriteria::getOrderClause()` resolves the column in O(1)
+### 3. **Performa Parsing**
+- Satu `array_merge` query + body per request
+- `SearchCriteria::getOrderClause()` me-resolve kolom dalam O(1)
 
 ---
 
-## 🎯 Summary
+## 🎯 Ringkasan
 
-Request processing utilities provide a structured, type-safe way to handle HTTP request data in the Yii3 API application. Key benefits include:
+Utilitas pemrosesan request menyediakan cara yang terstruktur dan type-safe untuk menangani data HTTP request di aplikasi Yii3 API. Manfaat utamanya meliputi:
 
-- **🛡️ Type Safety**: `readonly` value objects prevent runtime errors
-- **✅ Validation**: `onlyAllowed()` + input validators + `ensureExists()`
-- **🔄 Consistency**: One `RequestParams` in `payload`, one `SearchCriteria` to services
-- **🧪 Testability**: `RequestParams::from()` builds params from plain arrays
-- **📦 Modularity**: Each component has a single responsibility
-- **🚀 Performance**: Parse once, pass immutable objects between layers
+- **🛡️ Type Safety**: Value object `readonly` mencegah runtime error
+- **✅ Validation**: `onlyAllowed()` + input validator + `ensureExists()`
+- **🔄 Consistency**: Satu `RequestParams` di `payload`, satu `SearchCriteria` ke service
+- **🧪 Testability**: `RequestParams::from()` membangun params dari array biasa
+- **📦 Modularity**: Setiap komponen memiliki satu tanggung jawab
+- **🚀 Performance**: Parse sekali, teruskan objek immutable antar layer
 
-By following the patterns and best practices outlined in this guide, you can build robust, maintainable request processing for your Yii3 API application! 🚀
+Dengan mengikuti pola dan best practice yang diuraikan dalam panduan ini, Anda dapat membangun pemrosesan request yang robust dan mudah dipelihara untuk aplikasi Yii3 API Anda! 🚀

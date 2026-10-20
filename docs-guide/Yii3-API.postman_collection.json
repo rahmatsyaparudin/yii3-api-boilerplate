@@ -2,7 +2,7 @@
     "info": {
         "_postman_id": "yii3-api-boilerplate",
         "name": "Yii3 API",
-        "description": "Yii3 API boilerplate collection. Auth and variables are stored in the collection itself so all requests inherit them.",
+        "description": "Yii3 API boilerplate collection. Auth dan variable disimpan di level collection sehingga semua request mewarisinya. Set variable {{bearer-token}} dengan JWT dari SSO, atau service token (bila app.service_token.enabled=true).",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "auth": {
@@ -19,6 +19,7 @@
                     "name": "Index",
                     "request": {
                         "method": "GET",
+                        "description": "Health check root API (environment Local).\n\nMengembalikan info dasar API (name, version, environment). Path ini termasuk public path (app.jwt.publicPaths) sehingga bisa dipanggil tanpa Bearer token — berguna untuk smoke test bahwa server hidup.",
                         "url": {
                             "raw": "{{url-local}}/api/v1/",
                             "host": ["{{url-local}}"],
@@ -30,6 +31,7 @@
                     "name": "AnotherExample - List",
                     "request": {
                         "method": "GET",
+                        "description": "Daftar AnotherExample dengan paginasi (environment Local).\n\nPermission: another-example.index. Butuh Bearer token valid (JWT atau service token).\n\nQuery params opsional: page, page_size (1-200), sort_by, sort_dir (asc|desc), plus filter field seperti id, name, status, example_id.",
                         "url": {
                             "raw": "{{url-local}}/api/v1/another-example",
                             "host": ["{{url-local}}"],
@@ -41,6 +43,7 @@
                     "name": "AnotherExample - Create",
                     "request": {
                         "method": "POST",
+                        "description": "Buat record AnotherExample baru (environment Local).\n\nPermission: another-example.create. Field example_id adalah FK ke tabel example (parent) — harus merujuk record Example yang ada. detail_info audit (created_by, created_at, dst.) diisi otomatis oleh server dari actor yang terautentikasi; field ini boleh dikirim null.",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"name\": \"Another example\",\n    \"status\": 1,\n    \"example_id\": 1,\n    \"detail_info\": null\n}",
@@ -62,6 +65,7 @@
                     "name": "Index",
                     "request": {
                         "method": "GET",
+                        "description": "Health check root API (environment Dev).\n\nSama seperti Local/Index — endpoint public untuk memastikan server Dev merespons. Sesuaikan variable {{url-dev}} dengan domain Dev yang sebenarnya.",
                         "url": {
                             "raw": "{{url-dev}}/api/v1/",
                             "host": ["{{url-dev}}"],
@@ -73,6 +77,7 @@
                     "name": "AnotherExample - List",
                     "request": {
                         "method": "GET",
+                        "description": "Daftar AnotherExample dengan paginasi (environment Dev).\n\nPermission: another-example.index. Butuh Bearer token valid yang diterbitkan untuk environment Dev (issuer/audience JWT berbeda per environment — token Local belum tentu valid di Dev).",
                         "url": {
                             "raw": "{{url-dev}}/api/v1/another-example",
                             "host": ["{{url-dev}}"],
@@ -84,6 +89,7 @@
                     "name": "AnotherExample - Create",
                     "request": {
                         "method": "POST",
+                        "description": "Buat record AnotherExample baru (environment Dev).\n\nPermission: another-example.create. example_id harus merujuk record Example yang ada di database Dev, bukan Local. detail_info audit diisi otomatis dari actor yang terautentikasi.",
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"name\": \"Another example\",\n    \"status\": 1,\n    \"example_id\": 1,\n    \"detail_info\": null\n}",

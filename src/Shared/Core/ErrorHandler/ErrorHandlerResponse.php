@@ -180,10 +180,15 @@ final readonly class ErrorHandlerResponse implements ThrowableRendererInterface
      */
     private function formatErrorResponse(\Throwable $throwable, bool $verbose): array
     {
+        // Pesan DB bisa membocorkan kredensial (user@host) — generic di prod,
+        // mentah saat verbose (dev/debug).
+        $isDbError = $throwable instanceof \PDOException
+            || $throwable instanceof \Yiisoft\Db\Exception\Exception;
+
         $response = [
             'code'    => 500,
             'success' => false,
-            'message' => $throwable->getMessage(),
+            'message' => $isDbError && !$verbose ? 'Internal Server Error' : $throwable->getMessage(),
             'errors'  => [],
         ];
 

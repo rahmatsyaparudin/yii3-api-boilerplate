@@ -1,14 +1,14 @@
-# Enums Guide
+# Panduan Enum
 
-## 📋 Overview
+## 📋 Gambaran Umum
 
-Enumerations (Enums) provide a way to define a set of named constants that represent a fixed set of values. In this Yii3 API application, enums are used to define record status values, synchronization state, and shared field-name/pattern constants that are used across different layers.
+Enumeration (Enum) menyediakan cara untuk mendefinisikan sekumpulan konstanta bernama yang merepresentasikan sekumpulan nilai tetap. Di aplikasi Yii3 API ini, enum digunakan untuk mendefinisikan nilai status record, state sinkronisasi, dan konstanta field-name/pattern bersama yang dipakai lintas layer.
 
 ---
 
-## 🏗️ Enum Architecture
+## 🏗️ Arsitektur Enum
 
-### Directory Structure
+### Struktur Direktori
 
 ```
 src/Shared/Core/Enums/
@@ -20,39 +20,39 @@ src/Domain/Shared/Core/Enum/
 └── SyncDirection.php    # sync direction: NONE / MASTER_TO_ORIGIN / ORIGIN_TO_MASTER / BIDIRECTIONAL
 ```
 
-> Lihat `docs/sync-flag-guide.md` untuk detail lengkap modul sinkronisasi (`origin_id`/`sync_flag`).
+> Lihat `docs/22-sync-flag-guide.md` untuk detail lengkap modul sinkronisasi (`origin_id`/`sync_flag`).
 
-### Design Principles
+### Prinsip Desain
 
 #### **1. **Type Safety**
-- PHP 8.1+ enum features for strong typing
-- Prevents invalid values
-- Enables IDE auto-completion
+- Fitur enum PHP 8.1+ untuk pengetikan kuat
+- Mencegah nilai yang tidak valid
+- Memungkinkan auto-completion di IDE
 
 #### **2. **Immutability**
-- Enums are immutable by nature
-- Prevents accidental state changes
-- Ensures consistency
+- Enum bersifat immutable secara alami
+- Mencegah perubahan state yang tidak disengaja
+- Menjamin konsistensi
 
 #### **3. **Self-Documentation**
-- Named constants are self-explanatory
-- Reduces magic numbers and strings
-- Improves code readability
+- Konstanta bernama sudah menjelaskan dirinya sendiri
+- Mengurangi magic number dan magic string
+- Meningkatkan keterbacaan kode
 
 #### **4. **Extensibility**
-- Easy to add new values
-- Backward compatible changes
-- Centralized management
+- Mudah menambahkan nilai baru
+- Perubahan yang backward compatible
+- Pengelolaan terpusat
 
 ---
 
-## 📁 Enum Components
+## 📁 Komponen Enum
 
 ### 1. AppConstants
 
-**Purpose**: Centralized application-wide constants — field names for synchronization/optimistic locking, a decimal validation pattern, and a reusable "not deleted" query condition.
+**Tujuan**: Konstanta terpusat lingkup aplikasi — field name untuk sinkronisasi/optimistic locking, pattern validasi desimal, dan kondisi query "not deleted" yang dapat dipakai ulang.
 
-**Location**: `src/Shared/Core/Enums/AppConstants.php`
+**Lokasi**: `src/Shared/Core/Enums/AppConstants.php`
 
 ```php
 <?php
@@ -85,7 +85,7 @@ final class AppConstants
 }
 ```
 
-**Usage Example**:
+**Contoh Penggunaan**:
 ```php
 use App\Shared\Core\Enums\AppConstants;
 
@@ -106,9 +106,9 @@ $query->andWhere(AppConstants::statusNotDeleted());
 
 ### 2. RecordStatus
 
-**Purpose**: Int-backed enum for record status values. Stored in the `status` column (smallint) and wrapped by the `ResourceStatus` value object in domain entities.
+**Tujuan**: Enum int-backed untuk nilai status record. Disimpan di kolom `status` (smallint) dan dibungkus oleh value object `ResourceStatus` di domain entity.
 
-**Location**: `src/Shared/Core/Enums/RecordStatus.php`
+**Lokasi**: `src/Shared/Core/Enums/RecordStatus.php`
 
 ```php
 <?php
@@ -236,7 +236,7 @@ enum RecordStatus: int
 }
 ```
 
-**Usage Example**:
+**Contoh Penggunaan**:
 ```php
 use App\Shared\Core\Enums\RecordStatus;
 
@@ -268,19 +268,19 @@ if (!in_array($newStatus->value, $allowed, true)) {
 $isFinal = in_array($status->value, RecordStatus::IMMUTABLE_STATUSES, true);
 ```
 
-> **Note**: Domain entities do not expose `RecordStatus` directly. They wrap it in
-> `App\Domain\Shared\Core\ValueObject\ResourceStatus`, which adds business behaviour
+> **Catatan**: Domain entity tidak mengekspos `RecordStatus` secara langsung. Entity membungkusnya dalam
+> `App\Domain\Shared\Core\ValueObject\ResourceStatus`, yang menambahkan perilaku bisnis
 > (`canTransitionTo()`, `canBeDeleted()`, `isLocked()`, `isActive()`, `isDeleted()`,
-> `restored()`, etc.) on top of the enum. Use `ResourceStatus` inside the domain layer
-> and `RecordStatus` for DB values, validation rules, and filter lists.
+> `restored()`, dll.) di atas enum. Gunakan `ResourceStatus` di dalam domain layer
+> dan `RecordStatus` untuk nilai DB, rule validasi, dan daftar filter.
 
 ---
 
 ### 3. SyncStatus
 
-**Purpose**: Pure (non-backed) enum representing the `sync_flag` column state for master–origin synchronization. DB representation: `null` = synced, `1` = not synced (default `1`).
+**Tujuan**: Enum murni (non-backed) yang merepresentasikan state kolom `sync_flag` untuk sinkronisasi master–origin. Representasi DB: `null` = synced, `1` = not synced (default `1`).
 
-**Location**: `src/Domain/Shared/Core/Enum/SyncStatus.php`
+**Lokasi**: `src/Domain/Shared/Core/Enum/SyncStatus.php`
 
 ```php
 <?php
@@ -319,7 +319,7 @@ enum SyncStatus
 }
 ```
 
-**Usage Example**:
+**Contoh Penggunaan**:
 ```php
 use App\Domain\Shared\Core\Enum\SyncStatus;
 
@@ -339,9 +339,9 @@ $syncFlag = SyncStatus::SYNCED->dbValue();     // null
 
 ### 4. SyncDirection
 
-**Purpose**: Int-backed enum describing the direction of record synchronization between master and origin instances.
+**Tujuan**: Enum int-backed yang mendeskripsikan arah sinkronisasi record antara instance master dan origin.
 
-**Location**: `src/Domain/Shared/Core/Enum/SyncDirection.php`
+**Lokasi**: `src/Domain/Shared/Core/Enum/SyncDirection.php`
 
 ```php
 <?php
@@ -375,7 +375,7 @@ enum SyncDirection: int
 }
 ```
 
-**Usage Example**:
+**Contoh Penggunaan**:
 ```php
 use App\Domain\Shared\Core\Enum\SyncDirection;
 
@@ -388,9 +388,9 @@ if ($direction === SyncDirection::ORIGIN_TO_MASTER) {
 
 ---
 
-## 🔧 Integration Patterns
+## 🔧 Pola Integrasi
 
-### 1. **Entity Usage**
+### 1. **Penggunaan di Entity**
 ```php
 use App\Domain\Shared\Core\ValueObject\ResourceStatus;
 use App\Shared\Core\Enums\RecordStatus;
@@ -420,7 +420,7 @@ final class Example
 }
 ```
 
-### 2. **Repository Usage**
+### 2. **Penggunaan di Repository**
 ```php
 use App\Shared\Core\Enums\RecordStatus;
 
@@ -455,7 +455,7 @@ final class ExampleRepository
 }
 ```
 
-### 3. **Validation Usage**
+### 3. **Penggunaan di Validasi**
 ```php
 // src/Api/V1/Example/Validation/ExampleInputValidator.php
 protected function rules(string $context): array
@@ -479,7 +479,7 @@ protected function rules(string $context): array
 }
 ```
 
-### 4. **Action Usage**
+### 4. **Penggunaan di Action**
 ```php
 // src/Api/V1/Example/Action/ExampleCreateAction.php
 $params = $payload->getRawParams()
@@ -519,7 +519,7 @@ new In(RecordStatus::searchableStates())
 new In([0, 1, 2, 3, 5, 6, 7])
 ```
 
-### 3. **Constants Usage**
+### 3. **Penggunaan Konstanta**
 ```php
 // ✅ Use constants for shared field names
 $version = $params->get(AppConstants::OPTIMISTIC_LOCK);
@@ -530,7 +530,7 @@ $version = $params->get('lock_version');
 $query->andWhere(['<>', 'status', 4]);
 ```
 
-### 4. **Status Transitions**
+### 4. **Transisi Status**
 ```php
 // ✅ Use the transition map / ResourceStatus
 $allowed = RecordStatus::STATUS_TRANSITION_MAP[$current->value] ?? [];
@@ -546,33 +546,33 @@ if ($current === 1 && $new === 0) {
 
 ---
 
-## 📊 Performance Considerations
+## 📊 Pertimbangan Performa
 
-### 1. **Memory Usage**
-- Enums are memory-efficient (singletons per case)
-- Constants are loaded once
-- Avoid unnecessary object creation
+### 1. **Penggunaan Memori**
+- Enum hemat memori (singleton per case)
+- Konstanta dimuat sekali
+- Hindari pembuatan objek yang tidak perlu
 
-### 2. **Database Queries**
-- Use enum `->value` in database queries (`status` is a smallint column)
-- Index the `status` column for performance
-- Use `searchableStates()` / `statusNotDeleted()` to filter by status groups
+### 2. **Query Database**
+- Gunakan `->value` enum di query database (`status` adalah kolom smallint)
+- Beri index pada kolom `status` untuk performa
+- Gunakan `searchableStates()` / `statusNotDeleted()` untuk memfilter berdasarkan grup status
 
 ### 3. **Caching**
-- `RecordStatus::list()` is cheap to compute; cache it only if rendered frequently
-- Store enum values (ints) in the DB, not labels
+- `RecordStatus::list()` murah untuk dihitung; cache hanya jika sering dirender
+- Simpan nilai enum (int) di DB, bukan labelnya
 
 ---
 
-## 🎯 Summary
+## 🎯 Ringkasan
 
-Enums provide a type-safe, self-documenting way to define constants and status values in the Yii3 API application. Key benefits include:
+Enum menyediakan cara yang type-safe dan self-documenting untuk mendefinisikan konstanta dan nilai status di aplikasi Yii3 API. Manfaat utamanya meliputi:
 
-- **🛡️ Type Safety**: Strong typing prevents invalid values
-- **📖 Self-Documentation**: Named constants are self-explanatory
-- **🔄 Immutability**: Enums are immutable by nature
-- **🧪 Testability**: Easy to unit test with predictable behavior
-- **📦 Centralized Management**: All constants in one place
-- **🚀 Performance**: Efficient memory usage and fast access
+- **🛡️ Type Safety**: Pengetikan kuat mencegah nilai yang tidak valid
+- **📖 Self-Documentation**: Konstanta bernama sudah menjelaskan dirinya sendiri
+- **🔄 Immutability**: Enum bersifat immutable secara alami
+- **🧪 Testability**: Mudah di-unit test dengan perilaku yang dapat diprediksi
+- **📦 Centralized Management**: Semua konstanta di satu tempat
+- **🚀 Performance**: Penggunaan memori efisien dan akses cepat
 
-By following the patterns and best practices outlined in this guide, you can build robust, maintainable enums for your Yii3 API application! 🚀
+Dengan mengikuti pola dan best practice yang diuraikan dalam panduan ini, Anda dapat membangun enum yang robust dan mudah dipelihara untuk aplikasi Yii3 API Anda! 🚀

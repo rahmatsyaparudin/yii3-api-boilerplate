@@ -1,14 +1,14 @@
-# Architecture Guide
+# Panduan Arsitektur
 
-## 📋 Overview
+## 📋 Gambaran Umum
 
-This document provides a comprehensive overview of the Yii3 API project architecture, including design principles, directory structure, and component interactions.
+Dokumen ini memberikan gambaran menyeluruh tentang arsitektur proyek Yii3 API, termasuk prinsip desain, struktur direktori, dan interaksi antar komponen.
 
-## 🏗️ Architecture Overview
+## 🏗️ Gambaran Arsitektur
 
-### Design Principles
+### Prinsip Desain
 
-The Yii3 API follows Domain-Driven Design (DDD) principles with clean architecture layers:
+Yii3 API mengikuti prinsip Domain-Driven Design (DDD) dengan lapisan clean architecture:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -22,18 +22,18 @@ The Yii3 API follows Domain-Driven Design (DDD) principles with clean architectu
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### Key Architectural Patterns
+### Pola Arsitektur Utama
 
-- **Domain-Driven Design (DDD)**: Business logic separated from infrastructure concerns
-- **Clean Architecture**: Clear separation between layers
-- **Dependency Injection**: IoC container for managing dependencies
-- **Repository Pattern**: Abstract data access from domain logic
-- **Command Query Separation**: Read/write operations separated
-- **Value Objects & Enums**: Type-safe domain primitives (`ResourceStatus`, `DetailInfo`, `LockVersion`, `SyncMdb`, `SyncFlag`)
+- **Domain-Driven Design (DDD)**: Logika bisnis dipisahkan dari urusan infrastruktur
+- **Clean Architecture**: Pemisahan yang jelas antar lapisan
+- **Dependency Injection**: IoC container untuk mengelola dependensi
+- **Repository Pattern**: Abstraksi akses data dari logika domain
+- **Command Query Separation**: Operasi baca/tulis dipisahkan
+- **Value Objects & Enums**: Primitive domain yang type-safe (`ResourceStatus`, `DetailInfo`, `LockVersion`, `SyncMdb`, `SyncFlag`)
 
-## 📁 Directory Structure
+## 📁 Struktur Direktori
 
-### Root Directory Structure
+### Struktur Direktori Root
 
 ```
 yii3-api/
@@ -104,8 +104,8 @@ yii3-api/
 ├── docs/                   # Documentation and API reference
 │   ├── index.html          # API documentation page
 │   ├── Yii3-API.postman_collection.json # Postman collection
-│   ├── input-validator-guide.md # Input validator guide
-│   └── sync-flag-guide.md  # SyncFlag guide
+│   ├── 08-input-validator-guide.md # Input validator guide
+│   └── 22-sync-flag-guide.md  # SyncFlag guide
 ├── public/                 # Web root directory
 │   ├── index.php           # Application entry point
 │   ├── robots.txt          # Search engine directives
@@ -299,37 +299,37 @@ yii3-api/
     └── ...                 # Third-party packages
 ```
 
-### Layer Responsibilities
+### Tanggung Jawab Lapisan
 
 #### API Layer (`src/Api/`)
-- **Actions**: Invokable classes that handle HTTP requests and return PSR-7 responses
-- **Middleware**: Cross-cutting concerns (authentication, logging, etc.)
-- **Presenters/ResponseFactory**: Response formatting (`src/Api/Shared/`)
-- **Validation**: Input validation and sanitization (`*/Validation/*InputValidator.php`)
+- **Actions**: Kelas invokable yang menangani HTTP request dan mengembalikan response PSR-7
+- **Middleware**: Cross-cutting concern (authentication, logging, dll.)
+- **Presenters/ResponseFactory**: Pemformatan response (`src/Api/Shared/`)
+- **Validation**: Validasi dan sanitasi input (`*/Validation/*InputValidator.php`)
 
 #### Application Layer (`src/Application/`)
-- **Application Services**: Coordinate use cases and workflows
-- **Command/Response DTOs**: Input/output data transfer objects
+- **Application Services**: Mengoordinasikan use case dan workflow
+- **Command/Response DTOs**: Data transfer object untuk input/output
 - **Factories**: `DetailInfoFactory`, `SearchCriteriaFactory`, `SyncFlagFactory`
 
 #### Domain Layer (`src/Domain/`)
-- **Entities**: Core business objects with identity and behavior
-- **Value Objects**: Immutable data structures (`src/Domain/Shared/Core/ValueObject/`)
+- **Entities**: Objek bisnis inti dengan identity dan behavior
+- **Value Objects**: Struktur data immutable (`src/Domain/Shared/Core/ValueObject/`)
 - **Enums**: `SyncStatus`, `SyncDirection` (`src/Domain/Shared/Core/Enum/`)
-- **Domain Services**: Business logic that doesn't fit in entities
-- **Repositories**: Abstract data access interfaces
-- **Concerns**: Reusable entity/service traits (`Identifiable`, `Stateful`, `Descriptive`, `DomainValidator`)
+- **Domain Services**: Logika bisnis yang tidak cocok ditempatkan di entity
+- **Repositories**: Interface abstraksi akses data
+- **Concerns**: Trait entity/service yang dapat dipakai ulang (`Identifiable`, `Stateful`, `Descriptive`, `DomainValidator`)
 
 #### Infrastructure Layer (`src/Infrastructure/`)
-- **Repositories**: Concrete data access implementations (`src/Infrastructure/Common/Persistence/`)
-- **Database**: Yiisoft/Db connections, MongoDB and Redis services
-- **Security**: Authentication, authorization, actor/current-user providers
-- **Audit**: Logging and audit trails (`DatabaseAuditService`)
-- **Monitoring**: Request id, structured logging, metrics, error monitoring middleware
+- **Repositories**: Implementasi konkret akses data (`src/Infrastructure/Common/Persistence/`)
+- **Database**: Koneksi Yiisoft/Db, service MongoDB dan Redis
+- **Security**: Authentication, authorization, provider actor/current-user
+- **Audit**: Logging dan audit trail (`DatabaseAuditService`)
+- **Monitoring**: Request id, structured logging, metrics, middleware error monitoring
 
-## 🔄 Data Flow
+## 🔄 Alur Data
 
-### Request Processing Flow
+### Alur Pemrosesan Request
 
 ```
 HTTP Request
@@ -347,7 +347,7 @@ Database/External API
 Response
 ```
 
-### Example: Create Example Entity
+### Contoh: Membuat Entity Example
 
 ```
 1. HTTP POST /v1/example/create
@@ -361,9 +361,9 @@ Response
 8. ResponseFactory wraps ExampleResponse data in a success response
 ```
 
-## 🧩 Components
+## 🧩 Komponen
 
-### Core Components
+### Komponen Inti
 
 #### Domain Entities (`src/Domain/Example/Entity/Example.php`)
 ```php
@@ -409,9 +409,9 @@ final class Example
 }
 ```
 
-`src/Domain/AnotherExample/Entity/AnotherExample.php` follows the same pattern but
-additionally carries a `?SyncFlag $syncFlag` (the `origin_id` + `sync_flag` master/origin
-sync columns) and an `exampleId` reference to `Example`.
+`src/Domain/AnotherExample/Entity/AnotherExample.php` mengikuti pola yang sama namun
+juga membawa `?SyncFlag $syncFlag` (kolom sync master/origin `origin_id` + `sync_flag`)
+serta referensi `exampleId` ke `Example`.
 
 #### Application Service (`src/Application/Example/ExampleApplicationService.php`)
 ```php
@@ -446,8 +446,8 @@ final class ExampleApplicationService
 }
 ```
 
-`AnotherExampleApplicationService` additionally injects `SyncFlagFactory` and builds the
-master/origin sync flag from the command (`origin_id` + `sync_flag`, `1` = not synced):
+`AnotherExampleApplicationService` juga meng-inject `SyncFlagFactory` dan membangun
+sync flag master/origin dari command (`origin_id` + `sync_flag`, `1` = belum tersinkron):
 
 ```php
 $syncFlag = $this->syncFlagFactory->create(
@@ -508,10 +508,10 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
 }
 ```
 
-`AnotherExampleRepository` is identical in shape but also maps `origin_id` /
-`sync_flag` via `SyncFlag::fieldOriginId()` / `SyncFlag::fieldSyncFlag()`.
+`AnotherExampleRepository` identik bentuknya namun juga memetakan `origin_id` /
+`sync_flag` melalui `SyncFlag::fieldOriginId()` / `SyncFlag::fieldSyncFlag()`.
 
-## 🔌 Design Patterns
+## 🔌 Design Pattern
 
 ### Repository Pattern
 
@@ -543,12 +543,12 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
 }
 ```
 
-Interface → implementation bindings live in `config/common/repository.php`, which also
-wires `LockVersionConfig` and `CurrentUser` into the repositories via setter calls.
+Binding interface → implementasi berada di `config/common/repository.php`, yang juga
+me-wire `LockVersionConfig` dan `CurrentUser` ke dalam repository melalui pemanggilan setter.
 
 ### Factory Pattern
 
-Factories live in `src/Application/Shared/Core/Factory/` and `src/Application/AnotherExample/`:
+Factory berada di `src/Application/Shared/Core/Factory/` dan `src/Application/AnotherExample/`:
 
 ```php
 // DetailInfoFactory — builder-style factory that wraps payloads with change_log audit fields
@@ -636,7 +636,7 @@ final readonly class ExampleResponse
 // AnotherExampleResponse additionally exposes example_id, origin_id and sync_flag.
 ```
 
-## 🔐 Security Architecture
+## 🔐 Arsitektur Security
 
 ### Authentication & Authorization
 
@@ -664,7 +664,7 @@ final class RbacAuthorizer implements AuthorizerInterface
 }
 ```
 
-### Input Validation
+### Validasi Input
 
 ```php
 // Actions validate input via an AbstractValidator subclass + a ValidationContext
@@ -711,9 +711,9 @@ final class DatabaseAuditService implements AuditServiceInterface
 }
 ```
 
-## 🚀 Performance Considerations
+## 🚀 Pertimbangan Performa
 
-### Database Optimization
+### Optimasi Database
 
 #### Query Builder
 ```php
@@ -736,7 +736,7 @@ SchemaCache::class => [
 ],
 ```
 
-#### Caching Strategy
+#### Strategi Caching
 ```php
 // PSR-16 cache implementations are available:
 //   yiisoft/cache-file  → FileCache (used for DB schema cache)
@@ -747,7 +747,7 @@ SchemaCache::class => [
 
 ## 📊 Monitoring & Logging
 
-### Application Logging
+### Logging Aplikasi
 
 ```php
 // PSR-3 logger injection (yiisoft/log, file target)
@@ -760,16 +760,16 @@ $this->logger->info('User created', ['user_id' => $userId, 'ip' => $ip]);
 
 ### HTTP Monitoring Middleware
 
-Request-level observability is handled by middleware in
-`src/Infrastructure/Core/Monitoring/` (configured in `config/common/di/middleware-di.php`
-and tuned via the `app/monitoring` params):
+Observability pada level request ditangani oleh middleware di
+`src/Infrastructure/Core/Monitoring/` (dikonfigurasi di `config/common/di/middleware-di.php`
+dan diatur melalui params `app/monitoring`):
 
-- `RequestIdMiddleware` — assigns/propagates the `X-Request-Id` header
-- `StructuredLoggingMiddleware` — structured request/response logging
-- `MetricsMiddleware` — response time, request count, status code and memory metrics
-- `ErrorMonitoringMiddleware` — exception/error capture and reporting
+- `RequestIdMiddleware` — memberikan/meneruskan header `X-Request-Id`
+- `StructuredLoggingMiddleware` — structured logging untuk request/response
+- `MetricsMiddleware` — metric response time, jumlah request, status code, dan memori
+- `ErrorMonitoringMiddleware` — penangkapan dan pelaporan exception/error
 
-### Error Handling
+### Penanganan Error
 
 ```php
 try {
@@ -783,7 +783,7 @@ try {
 }
 ```
 
-### Performance Monitoring
+### Monitoring Performa
 
 ```php
 // Performance metrics
@@ -794,32 +794,32 @@ $duration = (microtime(true) - $startTime) * 1000; // milliseconds
 $this->logger->info('Operation completed', ['duration' => $duration]);
 ```
 
-## 🔧 Development Workflow
+## 🔧 Workflow Development
 
-### Local Development
+### Development Lokal
 
 ```bash
-# Start development server (composer script: @php ./yii serve)
+# Jalankan development server (composer script: @php ./yii serve)
 composer serve
 
-# Run all quality checks (PHP CS Fixer + Psalm + unit tests + composer audit)
+# Jalankan semua quality check (PHP CS Fixer + Psalm + unit test + composer audit)
 php quality quality:check
 
-# Fix code style issues automatically
+# Perbaiki masalah code style secara otomatis
 php quality quality:check --fix
 
-# Run tests (Codeception)
-composer test                       # codecept run — all suites
-vendor/bin/codecept run Unit        # unit suite only
-php quality test:run --unit         # same, via the quality runner
+# Jalankan test (Codeception)
+composer test                       # codecept run — semua suite
+vendor/bin/codecept run Unit        # hanya unit suite
+php quality test:run --unit         # sama, via quality runner
 
-# Generate coverage report
+# Generate laporan coverage
 php quality quality:check --coverage
 ```
 
-### Testing Strategy
+### Strategi Testing
 
-#### Unit Tests
+#### Unit Test
 ```php
 final class ExampleTest extends TestCase
 {
@@ -837,7 +837,7 @@ final class ExampleTest extends TestCase
 }
 ```
 
-#### API Tests (Codeception Cest format)
+#### API Test (format Cest Codeception)
 ```php
 final class IndexCest
 {
@@ -851,7 +851,7 @@ final class IndexCest
 }
 ```
 
-#### Functional Tests
+#### Functional Test
 ```php
 final class HomePageCest
 {
@@ -867,34 +867,34 @@ final class HomePageCest
 
 ## 🚀 Deployment
 
-### Environment Configuration
+### Konfigurasi Environment
 
-Environment variables are declared in `.env` (see `.env.example`) and read by
+Environment variable dideklarasikan di `.env` (lihat `.env.example`) dan dibaca oleh
 `App\Environment` / `config/common/params.php`.
 
-#### Development Environment
+#### Environment Development
 ```bash
-# Development configuration
+# Konfigurasi development
 APP_ENV=dev
 APP_DEBUG=1
 ```
 
-#### Production Environment
+#### Environment Production
 ```bash
-# Production configuration
+# Konfigurasi production
 APP_ENV=prod
 APP_DEBUG=0
 ```
 
-Other important variables: `db.default.*` (SQL driver/host/credentials),
-`db.mongodb.*` (MongoDB sync target), `redis.default.*`, `app.jwt.*`,
+Variabel penting lainnya: `db.default.*` (driver/host/kredensial SQL),
+`db.mongodb.*` (target sync MongoDB), `redis.default.*`, `app.jwt.*`,
 `app.cors.*`, `app.optimistic_lock.*`, `app.rateLimit.*`.
 
 ### Docker Deployment
 
 #### Dockerfile
 
-`docker/Dockerfile` is a multi-stage FrankenPHP build:
+`docker/Dockerfile` adalah multi-stage build FrankenPHP:
 
 ```dockerfile
 FROM dunglas/frankenphp:1-php8.2-bookworm AS base
@@ -914,54 +914,54 @@ ENV APP_ENV=prod
 
 #### Docker Compose
 
-`docker/compose.yml` is a minimal base definition; per-environment overlays live
-in `docker/dev/compose.yml`, `docker/test/compose.yml` and
-`docker/prod/compose.yml`. The `Makefile` wraps common tasks:
+`docker/compose.yml` adalah definisi dasar yang minimal; overlay per-environment berada
+di `docker/dev/compose.yml`, `docker/test/compose.yml` dan
+`docker/prod/compose.yml`. `Makefile` membungkus task-task umum:
 
 ```bash
 make up        # docker compose -f docker/compose.yml -f docker/dev/compose.yml up -d
-make down      # stop the dev environment
-make test      # run codecept inside the test environment
-make prod-build  # build the production image (docker/Dockerfile --target prod)
+make down      # hentikan environment dev
+make test      # jalankan codecept di dalam environment test
+make prod-build  # build image production (docker/Dockerfile --target prod)
 ```
 
 ### CI/CD Pipeline
 
-No CI pipeline is committed to this project template. A typical pipeline should
-run the same checks used locally:
+Tidak ada pipeline CI yang di-commit ke template proyek ini. Pipeline pada umumnya
+sebaiknya menjalankan pemeriksaan yang sama seperti yang dipakai secara lokal:
 
 ```bash
 composer install
-php quality quality:check            # cs-fixer + psalm + unit tests + composer audit
-php quality quality:check --coverage # with coverage report
+php quality quality:check            # cs-fixer + psalm + unit test + composer audit
+php quality quality:check --coverage # dengan laporan coverage
 composer test                        # codecept run
 ```
 
 ## 📚 Maintenance
 
-### Regular Tasks
+### Tugas Rutin
 
-#### Weekly
-- Update dependencies: `composer update`
-- Run quality checks: `php quality quality:check`
-- Review test coverage trends
-- Check security advisories: `composer audit`
+#### Mingguan
+- Update dependensi: `composer update`
+- Jalankan quality check: `php quality quality:check`
+- Tinjau tren test coverage
+- Periksa security advisory: `composer audit`
 
-#### Monthly
-- Review and update quality configuration
-- Update coding standards
-- Add new quality checks as needed
-- Performance optimization review
+#### Bulanan
+- Tinjau dan update konfigurasi quality
+- Update coding standard
+- Tambahkan quality check baru sesuai kebutuhan
+- Review optimasi performa
 
-#### Quarterly
-- Major dependency updates
-- Quality gate threshold reviews
-- Tool version upgrades
-- Architecture review meetings
+#### Kuartalan
+- Update dependensi mayor
+- Review threshold quality gate
+- Upgrade versi tool
+- Meeting review arsitektur
 
-### Version Updates
+### Update Versi
 
-#### Tool Updates
+#### Update Tool
 ```bash
 # Update PHP CS Fixer
 composer require --dev friendsofphp/php-cs-fixer
@@ -973,9 +973,9 @@ composer require --dev vimeo/psalm
 composer require --dev codeception/codeception phpunit/phpunit
 ```
 
-#### Configuration Updates
+#### Update Konfigurasi
 ```bash
-# Update quality configuration
+# Update konfigurasi quality
 vim .php-cs-fixer.php
 vim psalm.xml
 vim quality
@@ -983,16 +983,16 @@ vim quality
 
 ---
 
-## 🎯 Conclusion
+## 🎯 Kesimpulan
 
-The Yii3 API architecture follows clean architecture principles with clear separation of concerns and maintainable code structure. The DDD approach ensures business logic remains independent of infrastructure concerns, making the system more testable, maintainable, and scalable.
+Arsitektur Yii3 API mengikuti prinsip clean architecture dengan pemisahan concern yang jelas dan struktur kode yang maintainable. Pendekatan DDD memastikan logika bisnis tetap independen dari urusan infrastruktur, sehingga sistem menjadi lebih testable, maintainable, dan scalable.
 
-Key architectural benefits:
+Manfaat arsitektur utama:
 
-- **Maintainability**: Clear layer boundaries make changes easier
-- **Testability**: Business logic can be tested in isolation
-- **Scalability**: Clean architecture supports growth
-- **Flexibility**: Easy to modify and extend
-- **Quality**: Automated checks ensure code quality standards
+- **Maintainability**: Batas lapisan yang jelas memudahkan perubahan
+- **Testability**: Logika bisnis dapat diuji secara terisolasi
+- **Scalability**: Clean architecture mendukung pertumbuhan
+- **Flexibility**: Mudah dimodifikasi dan diperluas
+- **Quality**: Pemeriksaan otomatis memastikan standar kualitas kode
 
-This architecture provides a solid foundation for building robust and maintainable API applications with Yii3! 🚀
+Arsitektur ini menyediakan fondasi yang solid untuk membangun aplikasi API yang robust dan maintainable dengan Yii3! 🚀

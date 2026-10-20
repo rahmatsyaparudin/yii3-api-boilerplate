@@ -75,6 +75,10 @@ final readonly class ExceptionResponderFactory
         } elseif (UserException::isUserException($exception)) {
             $statusCode = 400;
             $message    = $exception->getMessage();
+        } elseif ($this->isDatabaseException($exception)) {
+            // Pesan DB bisa membocorkan kredensial (user@host, nama tabel,
+            // query). Tampilkan mentah hanya di dev+debug.
+            $message = $this->isDevDebug() ? $exception->getMessage() : 'Internal Server Error';
         } else {
             // Untuk exception lain seperti ParseError, RuntimeException, dll
             $message = $exception->getMessage();
@@ -123,16 +127,8 @@ final readonly class ExceptionResponderFactory
 
     private function shouldShowErrorDetails(\Throwable $exception): bool
     {
-        // Get environment variables dari $_ENV (lebih reliable)
-        $env   = $_ENV['APP_ENV'] ?? $_SERVER['APP_ENV'] ?? 'prod';
-        $debug = $_ENV['APP_DEBUG'] ?? $_SERVER['APP_DEBUG'] ?? '0';
-
-        // Convert to lowercase for comparison
-        $env   = \strtolower($env);
-        $debug = \strtolower($debug);
-
         // Hanya tampilkan detail error jika APP_ENV=dev DAN APP_DEBUG=1
-        $environmentAllowsDetails = $env === 'dev' && ($debug === '1' || $debug === 'true');
+        $environmentAllowsDetails = $this->isDevDebug();
 
         // Jika environment tidak memperbolehkan detail, langsung return false
         if (!$environmentAllowsDetails) {
@@ -151,6 +147,21 @@ final readonly class ExceptionResponderFactory
         $showDetails = $environmentAllowsDetails && (!$isBusinessException || $isValidationException);
 
         return $showDetails;
+    }
+
+    private function isDevDebug(): bool
+    {
+        // Get environment variables dari $_ENV (lebih reliable)
+        $env   = \strtolower($_ENV['APP_ENV'] ?? $_SERVER['APP_ENV'] ?? 'prod');
+        $debug = \strtolower($_ENV['APP_DEBUG'] ?? $_SERVER['APP_DEBUG'] ?? '0');
+
+        return $env === 'dev' && ($debug === '1' || $debug === 'true');
+    }
+
+    private function isDatabaseException(\Throwable $exception): bool
+    {
+        return $exception instanceof \PDOException
+            || $exception instanceof \Yiisoft\Db\Exception\Exception;
     }
 
     private function translateErrorMessage(string $message, array $params = []): string

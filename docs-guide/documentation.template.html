@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yii3 API — Dokumentasi</title>
+<style>
+:root{--bg:#0f1115;--panel:#171a21;--border:#262b36;--txt:#d7dce4;--muted:#8b93a3;--acc:#4f8ef7;--code:#1d2129}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--txt);display:flex;min-height:100vh}
+aside{width:270px;min-width:270px;background:var(--panel);border-right:1px solid var(--border);height:100vh;position:sticky;top:0;overflow-y:auto;padding:18px 12px}
+aside h1{font-size:15px;margin:4px 8px 12px;color:var(--acc)}
+aside input{width:100%;padding:7px 10px;margin:0 0 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--txt);font-size:13px}
+aside input:focus{outline:none;border-color:var(--acc)}
+nav a{display:block;padding:7px 10px;margin:1px 0;border-radius:6px;color:var(--txt);text-decoration:none;font-size:13px}
+nav a:hover{background:var(--code)}
+nav a.active{background:var(--acc);color:#fff}
+main{flex:1;max-width:980px;padding:32px 44px 80px}
+main h1{font-size:26px;margin:28px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+main h1:first-child{margin-top:0}
+main h2{font-size:20px;margin:26px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+main h3{font-size:16px;margin:22px 0 10px}
+main h4{font-size:14px;margin:18px 0 8px}
+main p{margin:10px 0;line-height:1.65;font-size:14px}
+main a{color:var(--acc)}
+main code{font-family:"Cascadia Code",Consolas,Menlo,monospace;font-size:12.5px;background:var(--code);padding:2px 6px;border-radius:4px}
+main pre{background:var(--code);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin:14px 0;overflow-x:auto}
+main pre code{background:none;padding:0;font-size:13px;line-height:1.55}
+main pre .k{color:#c678dd}
+main pre .s{color:#98c379}
+main pre .c{color:#7f848e;font-style:italic}
+main pre .v{color:#e06c75}
+main pre .n{color:#d19a66}
+main pre .t{color:#e5c07b}
+main pre .f{color:#61afef}
+main ul,main ol{margin:10px 0 10px 24px}
+main li{margin:5px 0;line-height:1.6;font-size:14px}
+main blockquote{border-left:3px solid var(--acc);background:var(--panel);padding:8px 14px;margin:14px 0;color:var(--muted);border-radius:0 6px 6px 0}
+main table{border-collapse:collapse;margin:14px 0;width:100%;font-size:13px}
+main th,main td{border:1px solid var(--border);padding:7px 11px;text-align:left}
+main th{background:var(--panel)}
+main hr{border:none;border-top:1px solid var(--border);margin:22px 0}
+.empty{color:var(--muted);padding:40px 0;text-align:center}
+.req{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin:12px 0}
+.reqhead{display:flex;align-items:center;gap:10px;font-size:14px}
+.method{font-family:"Cascadia Code",Consolas,monospace;font-size:11px;font-weight:700;border:1px solid;border-radius:4px;padding:2px 7px;letter-spacing:.5px}
+.requrl{display:block;font-family:"Cascadia Code",Consolas,monospace;font-size:12.5px;color:var(--muted);background:var(--code);border:1px solid var(--border);border-radius:6px;padding:7px 10px;margin:10px 0}
+.coldesc{color:var(--muted);font-size:13px;line-height:1.6;margin:8px 0}
+.dl{display:inline-block;margin:6px 0 16px;padding:7px 14px;background:var(--acc);color:#fff;border-radius:6px;font-size:13px;text-decoration:none}
+.dl:hover{filter:brightness(1.15)}
+header.top{position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--border);padding:14px 44px;display:flex;align-items:baseline;gap:12px;z-index:5}
+header.top .name{font-size:15px;font-weight:600;color:var(--txt);font-family:"Cascadia Code",Consolas,monospace}
+header.top .sub{font-size:12px;color:var(--muted)}
+.wrapper{flex:1;min-width:0}
+@media(max-width:800px){aside{position:fixed;z-index:9;left:-270px;transition:left .2s}aside.open{left:0}main{padding:20px}}
+</style>
+</head>
+<body>
+<aside>
+<h1>📚 Dokumentasi</h1>
+<input id="q" type="search" placeholder="Cari dokumen…" autocomplete="off">
+<nav id="menu"></nav>
+</aside>
+<div class="wrapper">
+<header class="top"><span class="name">__PROJECT__</span><span class="sub">dokumentasi</span></header>
+<main id="content"></main>
+</div>
+<script id="docs" type="application/json">__DOCS__</script>
+<script>
+const DOCS = JSON.parse(document.getElementById("docs").textContent);
+
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+
+function inline(s){
+  s = esc(s);
+  s = s.replace(/`([^`]+)`/g,"<code>$1</code>");
+  s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)[^)]*\)/g,'<img alt="$1" src="$2" style="max-width:100%">');
+  // link .md internal → hash viewer (tetap di halaman ini); link lain dibuka normal
+  s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function(m,t,href){
+    const clean = href.replace(/^\.{0,2}\//,"").split("/").pop();
+    if(/\.md$/i.test(clean)) return '<a href="#'+clean+'">'+t+'</a>';
+    return '<a href="'+href+'" target="_blank" rel="noopener">'+t+'</a>';
+  });
+  s = s.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");
+  s = s.replace(/(^|[\s(])\*([^*\n]+)\*/g,"$1<em>$2</em>");
+  return s;
+}
+
+// syntax highlighter ringan: php / bash-env / json-yaml
+function hl(code, lang){
+  let h = esc(code);
+  if(lang === "php"){
+    h = h.replace(/(&quot;|")([^"&<>\n]*)("|&quot;)/g,'<span class="s">$1$2$3</span>');
+    h = h.replace(/'([^'&<>\n]*)'/g,'<span class="s">\'$1\'</span>');
+    h = h.replace(/(\/\/[^\n]*|\/\*[\s\S]*?\*\/|#[^\n]*)/g,'<span class="c">$1</span>');
+    h = h.replace(/\b(declare|strict_types|namespace|use|final|readonly|class|interface|trait|enum|extends|implements|public|private|protected|static|function|return|new|fn|match|if|elseif|else|foreach|for|while|do|switch|case|default|break|continue|try|catch|finally|throw|self|parent|const|true|false|null|void|int|string|bool|float|array|object|iterable|callable|mixed|never|static|yield|from|as|instanceof|echo|print|require|include)\b/g,'<span class="k">$1</span>');
+    h = h.replace(/(\$[A-Za-z_]\w*)/g,'<span class="v">$1</span>');
+    h = h.replace(/\b([A-Z][A-Za-z0-9_\\]+)\b/g,'<span class="t">$1</span>');
+    h = h.replace(/\b(\d+(?:\.\d+)?)\b/g,'<span class="n">$1</span>');
+  } else if(lang === "bash" || lang === "sh" || lang === "env" || lang === "dotenv"){
+    h = h.replace(/(#[^\n]*)/g,'<span class="c">$1</span>');
+    h = h.replace(/^([A-Za-z_][\w.]*=)/gm,'<span class="v">$1</span>');
+    h = h.replace(/\b(composer|php|vendor\/bin\/\w+|codecept|psalm|yii|make|docker|curl|export|cd|rm|cp|mv|mkdir|git)\b/g,'<span class="k">$1</span>');
+  } else if(lang === "json"){
+    h = h.replace(/(&quot;|")([^"&<>\n]*)("|&quot;)(\s*:)?/g,'<span class="s">$1$2$3</span>$4');
+    h = h.replace(/\b(true|false|null|\d+(?:\.\d+)?)\b/g,'<span class="n">$1</span>');
+  } else if(lang === "yaml" || lang === "yml"){
+    h = h.replace(/(#[^\n]*)/g,'<span class="c">$1</span>');
+    h = h.replace(/^([\s-]*)([\w.-]+)(:)/gm,'$1<span class="v">$2</span>$3');
+  }
+  return h;
+}
+
+function md(src){
+  const lines = src.split(/\r?\n/);
+  let html = "", i = 0, list = null;
+
+  const closeList = () => { if(list){ html += "</"+list+">"; list=null; } };
+
+  while(i < lines.length){
+    let line = lines[i];
+
+    // fenced code block
+    let m = line.match(/^```(\w*)/);
+    if(m){
+      closeList();
+      let buf = []; i++;
+      while(i < lines.length && !/^```\s*$/.test(lines[i])) buf.push(lines[i++]);
+      i++;
+      html += "<pre><code>" + hl(buf.join("\n"), m[1].toLowerCase()) + "</code></pre>";
+      continue;
+    }
+
+    // table: header | --- | rows
+    if(/^\s*\|.*\|\s*$/.test(line) && i+1 < lines.length && /^\s*\|[\s:|-]+\|\s*$/.test(lines[i+1])){
+      closeList();
+      const cells = l => l.trim().replace(/^\||\|$/g,"").split("|").map(c=>c.trim());
+      html += "<table><thead><tr>" + cells(line).map(c=>"<th>"+inline(c)+"</th>").join("") + "</tr></thead><tbody>";
+      i += 2;
+      while(i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])){
+        html += "<tr>" + cells(lines[i]).map(c=>"<td>"+inline(c)+"</td>").join("") + "</tr>";
+        i++;
+      }
+      html += "</tbody></table>";
+      continue;
+    }
+
+    // heading
+    m = line.match(/^(#{1,6})\s+(.*)/);
+    if(m){ closeList(); const lv = m[1].length; html += `<h${lv}>`+inline(m[2])+`</h${lv}>`; i++; continue; }
+
+    // hr
+    if(/^\s*(-{3,}|\*{3,})\s*$/.test(line)){ closeList(); html += "<hr>"; i++; continue; }
+
+    // blockquote
+    if(/^\s*>\s?/.test(line)){
+      closeList();
+      let buf = [];
+      while(i < lines.length && /^\s*>\s?/.test(lines[i])) buf.push(lines[i++].replace(/^\s*>\s?/,""));
+      html += "<blockquote><p>"+inline(buf.join(" "))+"</p></blockquote>";
+      continue;
+    }
+
+    // unordered list
+    m = line.match(/^(\s*)[-*+]\s+(.*)/);
+    if(m){
+      if(list !== "ul"){ closeList(); html += "<ul>"; list = "ul"; }
+      html += "<li>"+inline(m[2])+"</li>"; i++; continue;
+    }
+
+    // ordered list
+    m = line.match(/^\s*\d+[.)]\s+(.*)/);
+    if(m){
+      if(list !== "ol"){ closeList(); html += "<ol>"; list = "ol"; }
+      html += "<li>"+inline(m[1])+"</li>"; i++; continue;
+    }
+
+    // blank
+    if(/^\s*$/.test(line)){ closeList(); i++; continue; }
+
+    // paragraph (merge until blank/structural line)
+    closeList();
+    let buf = [line];
+    i++;
+    while(i < lines.length && lines[i].trim() !== "" &&
+          !/^(#{1,6}\s|```|\s*[-*+]\s|\s*\d+[.)]\s|\s*>\s?|\s*\|.*\||\s*-{3,}\s*$)/.test(lines[i])){
+      buf.push(lines[i++]);
+    }
+    html += "<p>"+inline(buf.join(" "))+"</p>";
+  }
+  closeList();
+  return html;
+}
+
+// ---- postman collection viewer ----
+function methodBadge(m){
+  const colors={GET:"#61afef",POST:"#98c379",PUT:"#e5c07b",PATCH:"#e5c07b",DELETE:"#e06c75",HEAD:"#56b6c2",OPTIONS:"#c678dd"};
+  const c = colors[m] || "#abb2bf";
+  return '<span class="method" style="color:'+c+';border-color:'+c+'">'+esc(m)+'</span>';
+}
+
+function renderPostmanItems(items, lvl){
+  let html = "";
+  items.forEach(it=>{
+    if(it.item){
+      html += "<h"+lvl+">"+inline(it.name)+"</h"+lvl+">";
+      if(it.description) html += '<p class="coldesc">'+inline(it.description)+"</p>";
+      html += renderPostmanItems(it.item, Math.min(lvl+1,4));
+    } else if(it.request){
+      const r = it.request;
+      const url = typeof r.url === "string" ? r.url : (r.url && (r.url.raw || r.url.host)) || "";
+      html += '<div class="req"><div class="reqhead">'+methodBadge(r.method || "GET")+"<b>"+inline(it.name)+"</b></div>";
+      html += '<code class="requrl">'+esc(url)+"</code>";
+      if(r.description) html += '<p class="coldesc">'+inline(r.description).replace(/\n/g,"<br>")+"</p>";
+      if(r.body && r.body.raw) html += "<pre><code>"+hl(r.body.raw,"json")+"</code></pre>";
+      html += "</div>";
+    }
+  });
+  return html;
+}
+
+function renderPostman(col){
+  let html = "<h1>"+esc(col.info.name)+"</h1>";
+  if(col.info.description) html += '<p class="coldesc">'+inline(col.info.description).replace(/\n/g,"<br>")+"</p>";
+  if(col.variable && col.variable.length){
+    html += "<h3>Collection Variable</h3><table><thead><tr><th>Key</th><th>Value</th></tr></thead><tbody>";
+    col.variable.forEach(v=>{ html += "<tr><td><code>"+esc(v.key)+"</code></td><td><code>"+esc(String(v.value ?? ""))+"</code></td></tr>"; });
+    html += "</tbody></table>";
+  }
+  html += renderPostmanItems(col.item || [], 2);
+  return html;
+}
+
+// ---- sidebar + routing ----
+const menu = document.getElementById("menu");
+const content = document.getElementById("content");
+const files = Object.keys(DOCS);
+
+const title = f => f
+  .replace(/\.postman_collection\.json$/i," Postman")
+  .replace(/\.(md|json)$/i,"")
+  .replace(/^\d+-/,"")
+  .replace(/[-_]?guide$/i,"")
+  .replace(/[-_]/g," ")
+  .replace(/\b\w/g,c=>c.toUpperCase());
+
+files.forEach(f=>{
+  const a = document.createElement("a");
+  a.href = "#"+f; a.textContent = title(f); a.dataset.file = f;
+  menu.appendChild(a);
+});
+
+function show(f){
+  if(!DOCS[f]){ content.innerHTML = '<div class="empty"><h2>Pilih dokumen di menu kiri</h2><p>'+files.length+' guide tersedia.</p></div>'; return; }
+  let html;
+  if(/\.json$/i.test(f)){
+    let col = null;
+    try{ col = JSON.parse(DOCS[f]); }catch(e){}
+    html = (col && col.info && col.item) ? renderPostman(col) : "<pre><code>"+hl(DOCS[f],"json")+"</code></pre>";
+    const href = "data:application/json;charset=utf-8," + encodeURIComponent(DOCS[f]);
+    html = '<p><a class="dl" href="'+href+'" download="'+esc(f)+'">⬇ Download '+esc(f)+'</a></p>' + html;
+  } else {
+    html = md(DOCS[f]);
+  }
+  content.innerHTML = html;
+  menu.querySelectorAll("a").forEach(a=>a.classList.toggle("active", a.dataset.file===f));
+  window.scrollTo(0,0);
+}
+
+window.addEventListener("hashchange",()=>show(location.hash.slice(1)));
+show(location.hash.slice(1) || "");
+
+document.getElementById("q").addEventListener("input",e=>{
+  const q = e.target.value.toLowerCase();
+  menu.querySelectorAll("a").forEach(a=>{
+    a.style.display = a.textContent.toLowerCase().includes(q) ? "" : "none";
+  });
+});
+</script>
+</body>
+</html>

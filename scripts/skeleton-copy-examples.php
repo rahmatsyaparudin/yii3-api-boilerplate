@@ -76,9 +76,9 @@ class SkeletonExamplesCopier
         echo "5. Run: ./yii serve\n";
         echo "\n🌐 Your API will be available at: http://localhost:8080\n";
         echo "\n📚 Documentation:\n";
-        echo "- Architecture Guide: docs/architecture-guide.md\n";
-        echo "- Quality Guide: docs/quality-guide.md\n";
-        echo "- Setup Guide: docs/setup-guide.md\n";
+        echo "- Architecture Guide: docs-guide/02-architecture-guide.md\n";
+        echo "- Quality Guide: docs-guide/21-quality-guide.md\n";
+        echo "- Setup Guide: docs-guide/01-setup-guide.md\n";
     }
     
     private function copyItem(string $source, string $target): void

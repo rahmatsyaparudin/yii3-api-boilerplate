@@ -1,14 +1,14 @@
-# Validation Guide
+# Panduan Validasi
 
-## 📋 Overview
+## 📋 Gambaran Umum
 
-Input validation in this application is built on top of [`yiisoft/validator`](https://github.com/yiisoft/validator). Each API module defines an `*InputValidator` that extends `App\Shared\Core\Validation\AbstractValidator` and declares per-context rule sets (`CREATE`, `UPDATE`, `DELETE`, `SEARCH`, ...) using Yiisoft rule objects. On failure a `ValidationException` (HTTP 422) with a normalized error list is thrown.
+Validasi input di aplikasi ini dibangun di atas [`yiisoft/validator`](https://github.com/yiisoft/validator). Setiap modul API mendefinisikan sebuah `*InputValidator` yang meng-extend `App\Shared\Core\Validation\AbstractValidator` dan mendeklarasikan kumpulan rule per context (`CREATE`, `UPDATE`, `DELETE`, `SEARCH`, ...) menggunakan rule object Yiisoft. Saat gagal, sebuah `ValidationException` (HTTP 422) dengan daftar error yang ternormalisasi akan dilempar.
 
 ---
 
-## 🏗️ Validation Architecture
+## 🏗️ Arsitektur Validasi
 
-### Directory Structure
+### Struktur Direktori
 
 ```
 src/Shared/Core/Validation/
@@ -27,36 +27,36 @@ src/Api/V1/{Module}/Validation/
 └── {Module}InputValidator.php         # Per-module validators, e.g. ExampleInputValidator
 ```
 
-### Design Principles
+### Prinsip Desain
 
 #### **1. **Context Awareness**
-- Validation rules are selected by `ValidationContext` constant
-- Different rules per operation (create vs update vs search)
-- Custom contexts can be added per module
+- Rule validasi dipilih berdasarkan konstanta `ValidationContext`
+- Rule berbeda per operasi (create vs update vs search)
+- Context kustom dapat ditambahkan per modul
 
 #### **2. **Fail-Fast**
-- `validate()` throws `ValidationException` on the first invalid payload
-- `StopOnError` rule group stops a field's rules at the first error
+- `validate()` melempar `ValidationException` pada payload invalid pertama
+- Rule group `StopOnError` menghentikan rule sebuah field pada error pertama
 
 #### **3. **Error Handling**
-- Errors are normalized to `[['field' => ..., 'message' => ...], ...]`
-- `ValidationException` maps to HTTP 422 automatically
-- `Message` value objects provide localization keys
+- Error dinormalisasi menjadi `[['field' => ..., 'message' => ...], ...]`
+- `ValidationException` secara otomatis dipetakan ke HTTP 422
+- Value object `Message` menyediakan key lokalisasi
 
 #### **4. **Performance**
-- Rules are plain objects — cheap to build per request
-- `skipOnEmpty` skips expensive rules for absent values
-- `StopOnError` avoids running heavy rules (e.g. DB lookups) when cheap checks already failed
+- Rule adalah objek biasa — murah untuk dibuat per request
+- `skipOnEmpty` melewati rule mahal untuk nilai yang tidak ada
+- `StopOnError` menghindari menjalankan rule berat (mis. lookup DB) ketika pengecekan murah sudah gagal
 
 ---
 
-## 📁 Validation Components
+## 📁 Komponen Validasi
 
 ### 1. AbstractValidator
 
-**Purpose**: Base class for all input validators. Wraps `Yiisoft\Validator\ValidatorInterface`, exposes a `validate()` entry point and normalizes errors.
+**Tujuan**: Base class untuk semua input validator. Membungkus `Yiisoft\Validator\ValidatorInterface`, menyediakan entry point `validate()` dan menormalisasi error.
 
-**Location**: `src/Shared/Core/Validation/AbstractValidator.php`
+**Lokasi**: `src/Shared/Core/Validation/AbstractValidator.php`
 
 ```php
 <?php
@@ -109,19 +109,19 @@ abstract class AbstractValidator
 }
 ```
 
-**Key points**:
+**Poin penting**:
 
-- `validate()` signature: `validate(string $context, RawParams $data): void` — note the argument order: **context first, then a `RawParams` object** (actions pass the filtered `RawParams`, e.g. `$params` from `RequestParams`).
-- `$this->data` holds the payload array; `$this->id` is `$data['id'] ?? null` — use it in rules such as `UniqueValue(ignoreId: $this->data['id'] ?? null)` to exclude the record being updated.
-- `shouldValidateOptimisticLock()` consults `LockVersionConfig` (params `app/optimisticLock`: `enabled` + `disabledValues`) — use it with `new Required(when: fn () => $this->shouldValidateOptimisticLock())` for `lock_version`.
+- Signature `validate()`: `validate(string $context, RawParams $data): void` — perhatikan urutan argumennya: **context dulu, lalu objek `RawParams`** (action meneruskan `RawParams` yang sudah difilter, mis. `$params` dari `RequestParams`).
+- `$this->data` menampung array payload; `$this->id` adalah `$data['id'] ?? null` — gunakan di rule seperti `UniqueValue(ignoreId: $this->data['id'] ?? null)` untuk mengecualikan record yang sedang di-update.
+- `shouldValidateOptimisticLock()` membaca `LockVersionConfig` (params `app/optimisticLock`: `enabled` + `disabledValues`) — gunakan bersama `new Required(when: fn () => $this->shouldValidateOptimisticLock())` untuk `lock_version`.
 
 ---
 
 ### 2. ValidationContext
 
-**Purpose**: Constants that select which rule set a validator applies.
+**Tujuan**: Konstanta yang memilih kumpulan rule mana yang diterapkan validator.
 
-**Locations**: `src/Shared/Core/Validation/ValidationContextInterface.php` and `src/Shared/Common/Context/ValidationContext.php`
+**Lokasi**: `src/Shared/Core/Validation/ValidationContextInterface.php` dan `src/Shared/Common/Context/ValidationContext.php`
 
 ```php
 namespace App\Shared\Core\Validation;
@@ -150,7 +150,7 @@ final class ValidationContext implements ValidationContextInterface
 }
 ```
 
-Use `App\Shared\Common\Context\ValidationContext` in validators and actions:
+Gunakan `App\Shared\Common\Context\ValidationContext` di validator dan action:
 
 ```php
 $this->inputValidator->validate(
@@ -161,13 +161,13 @@ $this->inputValidator->validate(
 
 ---
 
-### 3. Custom Rules
+### 3. Custom Rule
 
-Two custom `Yiisoft\Validator\RuleInterface` rules ship in `src/Shared/Core/Validation/Rules/`:
+Dua custom rule `Yiisoft\Validator\RuleInterface` tersedia di `src/Shared/Core/Validation/Rules/`:
 
 #### UniqueValue
 
-Checks that a column value does not already exist in a table.
+Memeriksa bahwa nilai sebuah kolom belum ada di tabel.
 
 ```php
 final class UniqueValue implements RuleInterface
@@ -187,7 +187,7 @@ final class UniqueValue implements RuleInterface
 
 #### HasNoDependencies
 
-Checks (on delete) that no other table rows reference the record. `map` is `table => [fk columns]`.
+Memeriksa (saat delete) bahwa tidak ada baris tabel lain yang mereferensikan record tersebut. `map` berbentuk `table => [fk columns]`.
 
 ```php
 #[\Attribute(\Attribute::TARGET_PROPERTY)]
@@ -203,7 +203,7 @@ final class HasNoDependencies implements RuleInterface
 }
 ```
 
-**Handler registration** (`config/common/di/validator.php`):
+**Registrasi handler** (`config/common/di/validator.php`):
 
 ```php
 return [
@@ -227,9 +227,9 @@ return [
 
 ### 4. Module Input Validator
 
-**Purpose**: Concrete per-module validator declaring rules per context.
+**Tujuan**: Validator konkret per modul yang mendeklarasikan rule per context.
 
-**Example** (condensed from `src/Api/V1/Example/Validation/ExampleInputValidator.php`):
+**Contoh** (diringkas dari `src/Api/V1/Example/Validation/ExampleInputValidator.php`):
 
 ```php
 <?php
@@ -327,11 +327,11 @@ final class ExampleInputValidator extends AbstractValidator
 
 ---
 
-## 🔧 Integration Patterns
+## 🔧 Pola Integrasi
 
-### 1. **Action Validation**
+### 1. **Validasi di Action**
 
-Actions receive a `RequestParams` object from the `payload` request attribute (set by `RequestParamsMiddleware`), narrow it with `onlyAllowed()`, then validate.
+Action menerima objek `RequestParams` dari atribut request `payload` (diset oleh `RequestParamsMiddleware`), mempersempitnya dengan `onlyAllowed()`, lalu memvalidasinya.
 
 **Create** (`src/Api/V1/Example/Action/ExampleCreateAction.php`):
 
@@ -368,7 +368,7 @@ final class ExampleCreateAction
 }
 ```
 
-**Update** (`ExampleUpdateAction.php`) — merges the route `id` into the payload so `UniqueValue` can exclude the current record:
+**Update** (`ExampleUpdateAction.php`) — menggabungkan `id` dari route ke dalam payload agar `UniqueValue` dapat mengecualikan record saat ini:
 
 ```php
 $id      = $currentRoute->getArgument('id');
@@ -387,7 +387,7 @@ $this->inputValidator->validate(
 );
 ```
 
-**Search** (`ExampleDataAction.php`) — validates the `filter` block, not the raw params:
+**Search** (`ExampleDataAction.php`) — memvalidasi blok `filter`, bukan raw params:
 
 ```php
 $filter = $payload->getFilter()
@@ -400,9 +400,9 @@ $this->inputValidator->validate(
 );
 ```
 
-### 2. **Optimistic Lock Validation**
+### 2. **Validasi Optimistic Lock**
 
-`lock_version` is only required when optimistic locking is enabled for the validator (`LockVersionConfig`, params `app/optimisticLock`):
+`lock_version` hanya wajib diisi ketika optimistic locking diaktifkan untuk validator (`LockVersionConfig`, params `app/optimisticLock`):
 
 ```php
 'lock_version' => [
@@ -411,9 +411,9 @@ $this->inputValidator->validate(
 ],
 ```
 
-### 3. **Delete Guard**
+### 3. **Proteksi Delete**
 
-Prevent deleting a record that is still referenced:
+Mencegah penghapusan record yang masih direferensikan:
 
 ```php
 ValidationContext::DELETE => [
@@ -435,7 +435,7 @@ ValidationContext::DELETE => [
 
 ## 🚀 Best Practices
 
-### 1. **Validator Design**
+### 1. **Desain Validator**
 ```php
 // ✅ Extend AbstractValidator and declare rules per context
 final class ProductInputValidator extends AbstractValidator
@@ -453,7 +453,7 @@ final class ProductInputValidator extends AbstractValidator
 if (strlen($data['name']) < 3) { /* ... */ }
 ```
 
-### 2. **Optional Fields**
+### 2. **Field Opsional**
 ```php
 // ✅ Use skipOnEmpty for optional fields
 'name' => [
@@ -486,31 +486,31 @@ try { /* validate */ } catch (ValidationException $e) { /* wrap */ }
 
 ---
 
-## 📊 Performance Considerations
+## 📊 Pertimbangan Performa
 
-### 1. **Validation Overhead**
-- Use `StopOnError` so `UniqueValue`/`HasNoDependencies` DB checks only run when cheap rules pass
-- Use `skipOnEmpty` to skip rules for absent optional fields
+### 1. **Overhead Validasi**
+- Gunakan `StopOnError` agar pengecekan DB `UniqueValue`/`HasNoDependencies` hanya berjalan ketika rule murah lolos
+- Gunakan `skipOnEmpty` untuk melewati rule pada field opsional yang tidak diisi
 
-### 2. **Memory Usage**
-- Rule objects are created per `rules()` call — keep them lightweight
-- `validate()` stores only the payload array in `$this->data`
+### 2. **Penggunaan Memori**
+- Rule object dibuat per pemanggilan `rules()` — jaga agar tetap ringan
+- `validate()` hanya menyimpan array payload di `$this->data`
 
-### 3. **Processing Speed**
-- Put cheap rules (`Required`, `Integer`, `Length`) before expensive ones inside `StopOnError`
-- Restrict `SEARCH` filters with `onlyAllowed()` before validating
+### 3. **Kecepatan Pemrosesan**
+- Letakkan rule murah (`Required`, `Integer`, `Length`) sebelum rule mahal di dalam `StopOnError`
+- Batasi filter `SEARCH` dengan `onlyAllowed()` sebelum memvalidasi
 
 ---
 
-## 🎯 Summary
+## 🎯 Ringkasan
 
-Validation in this application is context-driven and built on `yiisoft/validator`. Key points:
+Validasi di aplikasi ini digerakkan oleh context dan dibangun di atas `yiisoft/validator`. Poin utamanya:
 
-- **🔍 Extensibility**: New modules add an `*InputValidator` extending `AbstractValidator`
-- **📝 Context Awareness**: Rule sets are keyed by `ValidationContext` constants
-- **🌐 Localization**: Errors flow through `ValidationException`/`Message` translation keys
-- **🧪 Testability**: Rules are declarative arrays — easy to assert per context
-- **📦 Composability**: Mix built-in Yiisoft rules with custom `UniqueValue`/`HasNoDependencies`
-- **⚡ Performance**: `StopOnError` + `skipOnEmpty` keep validation cheap
+- **🔍 Extensibility**: Modul baru menambahkan `*InputValidator` yang meng-extend `AbstractValidator`
+- **📝 Context Awareness**: Kumpulan rule dikunci oleh konstanta `ValidationContext`
+- **🌐 Localization**: Error mengalir melalui key translasi `ValidationException`/`Message`
+- **🧪 Testability**: Rule berupa array deklaratif — mudah di-assert per context
+- **📦 Composability**: Gabungkan rule bawaan Yiisoft dengan custom `UniqueValue`/`HasNoDependencies`
+- **⚡ Performance**: `StopOnError` + `skipOnEmpty` menjaga validasi tetap murah
 
-By following the patterns and best practices outlined in this guide, you can build robust, maintainable validation for your Yii3 API application! 🚀
+Dengan mengikuti pola dan best practice yang diuraikan dalam panduan ini, Anda dapat membangun validasi yang robust dan mudah dipelihara untuk aplikasi Yii3 API Anda! 🚀

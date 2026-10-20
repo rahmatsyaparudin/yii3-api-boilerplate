@@ -1,14 +1,14 @@
-# Shared Components Guide
+# Panduan Shared Components
 
-## 📋 Overview
+## 📋 Gambaran Umum
 
-This guide covers the shared components in `src/Shared/` (plus shared kernel code in `src/Domain/Shared/` and `src/Infrastructure/Core/`). These components provide reusable functionality across the application layers, following Domain-Driven Design (DDD) principles and promoting code reusability.
+Panduan ini mencakup shared components di `src/Shared/` (ditambah kode shared kernel di `src/Domain/Shared/` dan `src/Infrastructure/Core/`). Komponen-komponen ini menyediakan fungsionalitas yang dapat digunakan kembali di seluruh layer aplikasi, mengikuti prinsip Domain-Driven Design (DDD) dan mendorong reusabilitas kode.
 
 ---
 
-## 🏗️ Shared Architecture Overview
+## 🏗️ Gambaran Umum Arsitektur Shared
 
-### Directory Structure
+### Struktur Direktori
 
 ```
 src/Shared/
@@ -44,74 +44,74 @@ src/Infrastructure/Core/
 └── Security/               # Actor, CurrentUser, JwtService, AccessChecker, ...
 ```
 
-### Component Categories
+### Kategori Komponen
 
 #### **1. Data Management**
-- **Dto/**: `SearchCriteria`, `PaginatedResult` for list endpoints
-- **ValueObject/**: Immutable value objects (`Message`, `LockVersion`, `ResourceStatus`, `DetailInfo`, `SyncFlag`, `SyncMdb`, `LockVersionConfig`)
-- **Query/**: `QueryConditionApplier` static condition helpers
+- **Dto/**: `SearchCriteria`, `PaginatedResult` untuk endpoint list
+- **ValueObject/**: Value object immutable (`Message`, `LockVersion`, `ResourceStatus`, `DetailInfo`, `SyncFlag`, `SyncMdb`, `LockVersionConfig`)
+- **Query/**: Helper kondisi static `QueryConditionApplier`
 
 #### **2. Request & Response**
 - **Request/**: `RawParams`, `RequestParams`, `PaginationParams`, `SortParams`, `RequestDataParser`
-- **Middleware/**: PSR-15 middleware for the request pipeline
+- **Middleware/**: Middleware PSR-15 untuk request pipeline
 
 #### **3. Error Handling**
-- **Exception/**: `HttpException` hierarchy
-- **ErrorHandler/**: `ErrorHandlerResponse` JSON renderer
+- **Exception/**: Hierarki `HttpException`
+- **ErrorHandler/**: Renderer JSON `ErrorHandlerResponse`
 
 #### **4. Business Logic**
-- **Enums/**: `RecordStatus` enum, `AppConstants` constants
+- **Enums/**: Enum `RecordStatus`, konstanta `AppConstants`
 - **Domain Enum/**: `SyncStatus`, `SyncDirection`
-- **Validation/**: `AbstractValidator`, `ValidationContextInterface`, custom rules (`UniqueValue`, `HasNoDependencies`)
+- **Validation/**: `AbstractValidator`, `ValidationContextInterface`, rule kustom (`UniqueValue`, `HasNoDependencies`)
 
 #### **5. Infrastructure**
-- **Security/**: `InputSanitizer` (input scrubbing)
+- **Security/**: `InputSanitizer` (pembersihan input)
 - **Utility/**: `Arrays`, `FieldMapper`, `JsonHandler`
-- **Concerns/**: entity/repository traits (`HasCoreFeatures`, `ManagesPersistence`, `HasMongoDBSync`, `Auditable`)
+- **Concerns/**: Trait entity/repository (`HasCoreFeatures`, `ManagesPersistence`, `HasMongoDBSync`, `Auditable`)
 
 ---
 
-## 📚 Individual Component Guides
+## 📚 Panduan Komponen Individual
 
-### 1. [Data Transfer Objects (Dto)](dto-guide.md)
-Purpose: Data structures for API communication and data transfer between layers.
+### 1. [Data Transfer Objects (Dto)](09-dto-guide.md)
+Tujuan: Struktur data untuk komunikasi API dan transfer data antar layer.
 
-### 2. [Enumerations (Enums)](enums-guide.md)
-Purpose: Shared enumerations and constants used across the application.
+### 2. [Enumerations (Enums)](11-enums-guide.md)
+Tujuan: Enumerasi dan konstanta bersama yang digunakan di seluruh aplikasi.
 
-### 3. [Error Handling](error-handling-guide.md)
-Purpose: Error handling utilities and exception management.
+### 3. [Error Handling](13-error-handling-guide.md)
+Tujuan: Utility error handling dan manajemen exception.
 
-### 4. [Exceptions](exceptions-guide.md)
-Purpose: Custom exception classes for different error scenarios.
+### 4. [Exceptions](14-exceptions-guide.md)
+Tujuan: Class exception kustom untuk berbagai skenario error.
 
-### 5. [Middleware](middleware-guide.md)
-Purpose: HTTP middleware components for request processing pipeline.
+### 5. [Middleware](16-middleware-guide.md)
+Tujuan: Komponen middleware HTTP untuk pipeline pemrosesan request.
 
-### 6. [Query Building](query-guide.md)
-Purpose: Query building utilities for database operations.
+### 6. [Query Building](10-query-guide.md)
+Tujuan: Utility query building untuk operasi database.
 
-### 7. [Request Processing](request-guide.md)
-Purpose: HTTP request processing and validation utilities.
+### 7. [Request Processing](06-request-guide.md)
+Tujuan: Pemrosesan request HTTP dan utility validasi.
 
-### 8. [Security](security-guide.md)
-Purpose: Security utilities and authentication helpers.
+### 8. [Security](15-security-guide.md)
+Tujuan: Utility keamanan dan helper autentikasi.
 
-### 9. [Utilities](utility-guide.md)
-Purpose: General utility functions and helper classes.
+### 9. [Utilities](20-utility-guide.md)
+Tujuan: Fungsi utility umum dan class helper.
 
-### 10. [Validation](validation-guide.md)
-Purpose: Validation rules and data validation utilities.
+### 10. [Validation](07-validation-guide.md)
+Tujuan: Rule validasi dan utility validasi data.
 
-### 11. [Value Objects](value-object-guide.md)
-Purpose: Immutable value objects with built-in validation.
+### 11. [Value Objects](12-value-object-guide.md)
+Tujuan: Value object immutable dengan validasi bawaan.
 
-### 12. [Application Parameters](application-params-guide.md)
-Purpose: Application parameters management and configuration.
+### 12. [Application Parameters](04-application-params-guide.md)
+Tujuan: Manajemen dan konfigurasi parameter aplikasi.
 
 ---
 
-## 🔧 Usage Patterns
+## 🔧 Pola Penggunaan
 
 ### 1. **Dependency Injection**
 ```php
@@ -164,33 +164,33 @@ throw new NotFoundException(
 
 ---
 
-## 🎯 Design Principles
+## 🎯 Prinsip Desain
 
 ### 1. **Single Responsibility**
-- Each component has a single, well-defined purpose
-- Components are focused and maintainable
+- Setiap komponen memiliki satu tujuan yang jelas dan terdefinisi
+- Komponen fokus dan mudah dipelihara
 
 ### 2. **Reusability**
-- Components are designed to be reused across different layers
-- No coupling to specific domain logic
+- Komponen dirancang untuk digunakan kembali di berbagai layer
+- Tidak ada coupling ke logika domain tertentu
 
 ### 3. **Type Safety**
-- Strong typing with PHP 8+ features
-- Value objects ensure data integrity
+- Pengetikan kuat dengan fitur PHP 8+
+- Value object memastikan integritas data
 
 ### 4. **Immutability**
-- Value objects and DTOs are `readonly`
-- Prevents accidental state changes
+- Value object dan DTO bersifat `readonly`
+- Mencegah perubahan state yang tidak disengaja
 
 ### 5. **Testability**
-- Components are easily testable
-- Dependency injection enables mocking
+- Komponen mudah diuji
+- Dependency injection memungkinkan mocking
 
 ---
 
-## 📊 Integration Examples
+## 📊 Contoh Integrasi
 
-### 1. **Action Integration**
+### 1. **Integrasi Action**
 ```php
 final class ExampleDataAction
 {
@@ -220,7 +220,7 @@ final class ExampleDataAction
 }
 ```
 
-### 2. **Service Integration**
+### 2. **Integrasi Service**
 ```php
 final class ExampleApplicationService
 {
@@ -243,7 +243,7 @@ final class ExampleApplicationService
 }
 ```
 
-### 3. **Repository Integration**
+### 3. **Integrasi Repository**
 ```php
 final class ExampleRepository implements ExampleRepositoryInterface, CurrentUserAwareInterface
 {
@@ -267,9 +267,9 @@ final class ExampleRepository implements ExampleRepositoryInterface, CurrentUser
 
 ---
 
-## 🚀 Best Practices
+## 🚀 Praktik Terbaik
 
-### 1. **Component Usage**
+### 1. **Penggunaan Komponen**
 ```php
 // ✅ Use dependency injection
 public function __construct(
@@ -318,25 +318,25 @@ $data = ['name' => $name, 'status' => $status];
 
 ---
 
-## 📚 Related Documentation
+## 📚 Dokumentasi Terkait
 
-- **[Architecture Guide](architecture-guide.md)**: Complete architecture overview
-- **[DI Configuration Guide](di-configuration-guide.md)**: Dependency injection setup
-- **[Migration & Seeding Guide](migration-seeding-guide.md)**: Database migrations and seeders
-- **[Quality Guide](quality-guide.md)**: Code quality tooling and standards
-- **[Setup Guide](setup-guide.md)**: Project setup and environment configuration
+- **[Architecture Guide](02-architecture-guide.md)**: Gambaran umum arsitektur lengkap
+- **[DI Configuration Guide](05-di-configuration-guide.md)**: Setup dependency injection
+- **[Migration & Seeding Guide](17-migration-seeding-guide.md)**: Migrasi database dan seeder
+- **[Quality Guide](21-quality-guide.md)**: Tooling dan standar kualitas kode
+- **[Setup Guide](01-setup-guide.md)**: Setup proyek dan konfigurasi environment
 
 ---
 
-## 🎯 Summary
+## 🎯 Ringkasan
 
-The shared components provide a robust foundation for building maintainable, testable, and reusable code in the Yii3 API application. Key benefits include:
+Shared components menyediakan fondasi yang kuat untuk membangun kode yang mudah dipelihara, dapat diuji, dan dapat digunakan kembali di aplikasi Yii3 API. Manfaat utamanya meliputi:
 
-- **🔄 Reusability**: Components can be used across different layers
-- **🛡️ Type Safety**: Strong typing prevents runtime errors
-- **🧪 Testability**: Easy to unit test with dependency injection
-- **📦 Modularity**: Each component has a single responsibility
-- **🔧 Maintainability**: Clear separation of concerns
-- **🚀 Performance**: Optimized for common use cases
+- **🔄 Reusability**: Komponen dapat digunakan di berbagai layer
+- **🛡️ Type Safety**: Pengetikan kuat mencegah runtime error
+- **🧪 Testability**: Mudah di-unit test dengan dependency injection
+- **📦 Modularity**: Setiap komponen memiliki single responsibility
+- **🔧 Maintainability**: Separation of concerns yang jelas
+- **🚀 Performance**: Dioptimalkan untuk kasus penggunaan umum
 
-By following the patterns and best practices outlined in this guide, you can build robust, maintainable shared components for your Yii3 API application! 🚀
+Dengan mengikuti pola dan praktik terbaik yang diuraikan dalam panduan ini, Anda dapat membangun shared components yang robust dan mudah dipelihara untuk aplikasi Yii3 API Anda! 🚀

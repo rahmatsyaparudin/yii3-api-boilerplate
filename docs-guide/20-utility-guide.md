@@ -1,14 +1,14 @@
-# Utility Guide
+# Panduan Utility
 
-## 📋 Overview
+## 📋 Gambaran Umum
 
-Utility functions provide helpful, reusable functionality for common operations throughout the Yii3 API application. These utilities simplify complex operations and ensure consistent behavior across the codebase.
+Fungsi-fungsi utility menyediakan fungsionalitas bermanfaat yang dapat digunakan kembali untuk operasi-operasi umum di seluruh aplikasi Yii3 API. Utility ini menyederhanakan operasi yang kompleks dan memastikan perilaku yang konsisten di seluruh codebase.
 
 ---
 
-## 🏗️ Utility Architecture
+## 🏗️ Arsitektur Utility
 
-### Directory Structure
+### Struktur Direktori
 
 ```
 src/Shared/Core/Utility/
@@ -17,39 +17,39 @@ src/Shared/Core/Utility/
 └── JsonHandler.php   # JSON field encoding, decoding, and transformation
 ```
 
-All utilities live in the `App\Shared\Core\Utility` namespace and are shared across every layer of the application.
+Semua utility berada di namespace `App\Shared\Core\Utility` dan digunakan bersama di setiap layer aplikasi.
 
-### Design Principles
+### Prinsip Desain
 
 #### **1. **Reusability**
-- Generic utility functions
-- No coupling to specific domains
-- Easy to use across different contexts
+- Fungsi-fungsi utility generik
+- Tidak ada coupling ke domain tertentu
+- Mudah digunakan di berbagai konteks
 
 #### **2. **Performance**
-- Optimized algorithms
-- Minimal memory usage
-- Efficient data processing
+- Algoritma yang dioptimalkan
+- Penggunaan memori minimal
+- Pemrosesan data yang efisien
 
 #### **3. **Type Safety**
-- Strong typing with PHP 8+ features
-- Proper parameter validation
-- Clear return types
+- Pengetikan kuat dengan fitur PHP 8+
+- Validasi parameter yang tepat
+- Return type yang jelas
 
 #### **4. **Error Handling**
-- Graceful error handling
-- Meaningful error messages
-- Fail-safe behavior (`JsonHandler` returns safe fallbacks instead of throwing)
+- Penanganan error yang graceful
+- Pesan error yang bermakna
+- Perilaku fail-safe (`JsonHandler` mengembalikan fallback yang aman alih-alih melempar exception)
 
 ---
 
-## 📁 Utility Components
+## 📁 Komponen Utility
 
 ### 1. Arrays
 
-**Purpose**: Array diffing and "dirty data" detection used to decide whether an update actually changed anything.
+**Tujuan**: Diffing array dan deteksi "dirty data" yang digunakan untuk memutuskan apakah sebuah update benar-benar mengubah sesuatu.
 
-`Arrays` is a `final` class with **static** methods only:
+`Arrays` adalah class `final` yang hanya berisi method **static**:
 
 ```php
 use App\Shared\Core\Utility\Arrays;
@@ -84,11 +84,11 @@ public static function hasChanges(array $after, array $before): bool
 public static function getDifferences(array $after, array $before): array
 ```
 
-**Notes**:
-- `getDirtyData` / `hasDirtyData` support **dot-notation excludes** such as `detail_info.change_log`, which skips the parent field when the excluded nested key is present — used to avoid false positives from audit-trail updates.
-- `getDifferences` returns `['field' => ['old' => ..., 'new' => ...]]`, which is convenient for change logs.
+**Catatan**:
+- `getDirtyData` / `hasDirtyData` mendukung **exclude dot-notation** seperti `detail_info.change_log`, yang melewatkan field parent ketika nested key yang dikecualikan ada — digunakan untuk menghindari false positive dari update audit-trail.
+- `getDifferences` mengembalikan `['field' => ['old' => ..., 'new' => ...]]`, yang praktis untuk change log.
 
-**Real Usage** — the `Stateful` entity concern uses these helpers to detect whether an update payload changes anything:
+**Penggunaan Nyata** — concern entity `Stateful` menggunakan helper ini untuk mendeteksi apakah payload update mengubah sesuatu:
 
 ```php
 // src/Domain/Shared/Core/Concerns/Entity/Stateful.php
@@ -111,7 +111,7 @@ public function hasFieldChanges(array $data, bool $removeNulls = true): bool
 
 ### 2. FieldMapper
 
-**Purpose**: Stateless helpers for generic database-row field transformations — renaming keys and normalizing zero values.
+**Tujuan**: Helper stateless untuk transformasi field baris database secara generik — mengganti nama key dan menormalisasi nilai nol.
 
 ```php
 use App\Shared\Core\Utility\FieldMapper;
@@ -137,16 +137,16 @@ public static function nullWhenZero(array $row, array $columns): array
 public static function map(array $row, array $rename, array $nullWhenZero = []): array
 ```
 
-**Notes**:
-- `rename` only renames keys that actually exist in the row.
-- `nullWhenZero` only converts strict `0` or `'0'` values — `false`, `''`, and missing keys are untouched.
-- `map` applies `rename` first, then `nullWhenZero` against the **renamed** column names.
+**Catatan**:
+- `rename` hanya mengganti nama key yang benar-benar ada di baris.
+- `nullWhenZero` hanya mengonversi nilai strict `0` atau `'0'` — `false`, `''`, dan key yang tidak ada dibiarkan utuh.
+- `map` menerapkan `rename` terlebih dahulu, lalu `nullWhenZero` terhadap nama kolom yang **sudah diganti**.
 
 ---
 
 ### 3. JsonHandler
 
-**Purpose**: Encoding, decoding, and transforming JSON column data. Unlike `Arrays` and `FieldMapper`, `JsonHandler` is an **instance** class — call its methods on an object.
+**Tujuan**: Encoding, decoding, dan transformasi data kolom JSON. Berbeda dengan `Arrays` dan `FieldMapper`, `JsonHandler` adalah class **instance** — panggil method-nya pada objek.
 
 ```php
 use App\Shared\Core\Utility\JsonHandler;
@@ -164,7 +164,7 @@ $rows = $jsonHandler->handle($rows, ['detail_info', 'sync_mdb']);
 $rows = $jsonHandler->castFields($rows, ['detail_info']);
 ```
 
-`handle(array $data, array $jsonFields): array` detects list-of-rows data (when `$data[0]` is an array) and processes each row; each listed field that holds a JSON string is decoded into an array.
+`handle(array $data, array $jsonFields): array` mendeteksi data berupa list-of-rows (ketika `$data[0]` adalah array) dan memproses setiap baris; setiap field yang terdaftar dan berisi string JSON di-decode menjadi array.
 
 #### **Encoding / decoding**
 
@@ -237,16 +237,16 @@ public function looksLikeJson(mixed $value): bool
 public function wrap(mixed $value): array
 ```
 
-**Notes**:
-- `decode`, `encode`, and `merge` never throw — invalid input returns the fallback (`[]` by default) so callers get fail-safe behavior.
-- `merge` uses `array_replace_recursive`, so nested keys are merged rather than overwritten wholesale.
-- `mask` lowercases each key before comparing, so `Password`, `TOKEN`, etc. are all masked.
+**Catatan**:
+- `decode`, `encode`, dan `merge` tidak pernah melempar exception — input yang tidak valid mengembalikan fallback (`[]` secara default) sehingga caller mendapat perilaku fail-safe.
+- `merge` menggunakan `array_replace_recursive`, sehingga nested key digabungkan, bukan ditimpa sepenuhnya.
+- `mask` mengubah setiap key menjadi huruf kecil sebelum membandingkan, sehingga `Password`, `TOKEN`, dll. semuanya ikut di-mask.
 
 ---
 
-## 🔧 Integration Patterns
+## 🔧 Pola Integrasi
 
-### 1. **Entity Integration — dirty checking**
+### 1. **Integrasi Entity — dirty checking**
 
 ```php
 use App\Domain\Shared\Core\Concerns\Entity\Stateful;
@@ -269,7 +269,7 @@ final class Example
 }
 ```
 
-### 2. **Repository Integration — JSON columns**
+### 2. **Integrasi Repository — kolom JSON**
 
 ```php
 use App\Shared\Core\Utility\FieldMapper;
@@ -306,7 +306,7 @@ final class ExampleRepository
 }
 ```
 
-### 3. **Service Integration — audit diffs**
+### 3. **Integrasi Service — audit diff**
 
 ```php
 use App\Shared\Core\Utility\Arrays;
@@ -327,7 +327,7 @@ final class ExampleService
 
 ---
 
-## 🚀 Best Practices
+## 🚀 Praktik Terbaik
 
 ### 1. **Change Detection**
 ```php
@@ -371,39 +371,39 @@ if ($row['parent_id'] === 0) {
 
 ---
 
-## 📊 Performance Considerations
+## 📊 Pertimbangan Performa
 
-### 1. **Memory Usage**
-- `Arrays::getDirtyData` / `getDifferences` only iterate `$after` — keep update payloads small.
-- `JsonHandler::handle` maps rows without copying unchanged fields.
+### 1. **Penggunaan Memori**
+- `Arrays::getDirtyData` / `getDifferences` hanya mengiterasi `$after` — jaga payload update tetap kecil.
+- `JsonHandler::handle` memetakan baris tanpa menyalin field yang tidak berubah.
 
-### 2. **Processing Speed**
-- Prefer `JsonHandler::looksLikeJson()` over `isValid()` when you only need a shape check — it skips full parsing.
-- Use `JsonHandler::get()` to read a single value instead of decoding a whole document yourself.
+### 2. **Kecepatan Pemrosesan**
+- Utamakan `JsonHandler::looksLikeJson()` daripada `isValid()` ketika Anda hanya butuh pemeriksaan bentuk — method ini melewatkan parsing penuh.
+- Gunakan `JsonHandler::get()` untuk membaca satu nilai, alih-alih men-decode seluruh dokumen sendiri.
 
-### 3. **JSON Processing**
-- `decode()` never throws — always pass a meaningful `fallback` instead of checking for exceptions.
-- Use `filter()` before persisting JSON to MongoDB to drop null/empty values.
+### 3. **Pemrosesan JSON**
+- `decode()` tidak pernah melempar exception — selalu berikan `fallback` yang bermakna alih-alih memeriksa exception.
+- Gunakan `filter()` sebelum menyimpan JSON ke MongoDB untuk membuang nilai null/kosong.
 
 ---
 
-## 🎯 Summary
+## 🎯 Ringkasan
 
-Utility functions provide essential, reusable functionality for the Yii3 API application. Key benefits include:
+Fungsi-fungsi utility menyediakan fungsionalitas esensial yang dapat digunakan kembali untuk aplikasi Yii3 API. Manfaat utamanya meliputi:
 
-- **🔄 Reusability**: Generic functions for common tasks
-- **🛡️ Type Safety**: Strong typing and validation
-- **⚡ Performance**: Optimized algorithms
-- **🧪 Testability**: Easy to unit test
-- **📦 Modularity**: Focused, single-purpose functions
-- **🚀 Efficiency**: Minimal overhead and fast execution
+- **🔄 Reusability**: Fungsi generik untuk tugas-tugas umum
+- **🛡️ Type Safety**: Pengetikan kuat dan validasi
+- **⚡ Performance**: Algoritma yang dioptimalkan
+- **🧪 Testability**: Mudah di-unit test
+- **📦 Modularity**: Fungsi yang fokus dan single-purpose
+- **🚀 Efficiency**: Overhead minimal dan eksekusi cepat
 
-The three utilities cover distinct concerns:
+Ketiga utility mencakup concern yang berbeda:
 
-| Utility | Style | Purpose |
+| Utility | Gaya | Tujuan |
 |---|---|---|
-| `Arrays` | static | Dirty-data detection and array diffing |
-| `FieldMapper` | static | Row field renaming and zero-to-null normalization |
-| `JsonHandler` | instance | JSON column casting, encoding, and transformation |
+| `Arrays` | static | Deteksi dirty-data dan diffing array |
+| `FieldMapper` | static | Penggantian nama field baris dan normalisasi nol-ke-null |
+| `JsonHandler` | instance | Casting, encoding, dan transformasi kolom JSON |
 
-By following the patterns and best practices outlined in this guide, you can build efficient, maintainable utility functions for your Yii3 API application! 🚀
+Dengan mengikuti pola dan praktik terbaik yang diuraikan dalam panduan ini, Anda dapat membangun fungsi utility yang efisien dan mudah dipelihara untuk aplikasi Yii3 API Anda! 🚀

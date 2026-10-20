@@ -1,14 +1,14 @@
-# Query Building Guide
+# Panduan Query Building
 
-## 📋 Overview
+## 📋 Gambaran Umum
 
-Query building utilities provide a structured way to build and execute database queries in the Yii3 API application. These components ensure consistent query construction and prevent SQL injection.
+Utility query building menyediakan cara terstruktur untuk membangun dan mengeksekusi query database di aplikasi Yii3 API. Komponen-komponen ini memastikan konstruksi query yang konsisten dan mencegah SQL injection.
 
 ---
 
-## 🏗️ Query Architecture
+## 🏗️ Arsitektur Query
 
-### Directory Structure
+### Struktur Direktori
 
 ```
 src/Shared/Core/Query/
@@ -30,35 +30,35 @@ src/Application/Shared/Core/Factory/
 └── SearchCriteriaFactory.php    # Builds SearchCriteria from RequestParams
 ```
 
-### Design Principles
+### Prinsip Desain
 
 #### **1. Type Safety**
-- Strong typing with PHP 8+ features
-- Parameter binding via `Query::andWhere()` prevents SQL injection
-- `readonly` DTOs for criteria and results
+- Pengetikan kuat dengan fitur PHP 8+
+- Parameter binding via `Query::andWhere()` mencegah SQL injection
+- DTO `readonly` untuk criteria dan result
 
 #### **2. Flexibility**
-- Composable static condition methods — mix and match `andWhere`/`orLike`/`andIn`/`andRange`
-- Column whitelisting for request-driven filters
+- Method kondisi static yang composable — padu padankan `andWhere`/`orLike`/`andIn`/`andRange`
+- Column whitelisting untuk filter yang digerakkan oleh request
 
 #### **3. Security**
-- `filterByExactMatch()` / `filterByLike()` only apply whitelisted columns
-- Empty (`null`/`''`) values are skipped automatically
-- Parameterized conditions throughout
+- `filterByExactMatch()` / `filterByLike()` hanya menerapkan kolom yang di-whitelist
+- Nilai kosong (`null`/`''`) dilewati secara otomatis
+- Kondisi terparameterisasi di seluruh kode
 
 #### **4. Performance**
-- Minimal overhead — thin wrappers around `Query::andWhere()`
-- Repositories stream rows and clone the query for `count()`
+- Overhead minimal — wrapper tipis di atas `Query::andWhere()`
+- Repository melakukan streaming baris dan meng-clone query untuk `count()`
 
 ---
 
-## 📁 Query Components
+## 📁 Komponen Query
 
 ### QueryConditionApplier
 
-**Location**: `src/Shared/Core/Query/QueryConditionApplier.php`
+**Lokasi**: `src/Shared/Core/Query/QueryConditionApplier.php`
 
-**Purpose**: Static helpers that apply conditional filters to `Yiisoft\Db\Query\Query` objects. All methods accept and return the `Query` instance (the object is mutated; the return is for chaining convenience).
+**Tujuan**: Helper static yang menerapkan filter kondisional ke objek `Yiisoft\Db\Query\Query`. Semua method menerima dan mengembalikan instance `Query` (objek di-mutate; nilai kembalian disediakan untuk kemudahan chaining).
 
 ```php
 final class QueryConditionApplier
@@ -92,14 +92,14 @@ final class QueryConditionApplier
 }
 ```
 
-**Behavior notes**:
-- `andWhere`, `orWhere`, `andLike`, `orLike` skip values where `isFilled()` is false (`null` or `''`)
-- `andIn`/`orIn` skip non-arrays and empty arrays
-- `andRange` applies `>=` for `min` and `<=` for `max`, each optional
-- `orWhere`/`orLike`/`orIn` wrap the OR group in a single `andWhere(['or', ...])` clause
-- `filterByExactMatch`/`filterByLike` intersect `$filters` with `array_flip($allowedColumns)` — non-whitelisted keys are ignored
+**Catatan perilaku**:
+- `andWhere`, `orWhere`, `andLike`, `orLike` melewatkan nilai di mana `isFilled()` bernilai false (`null` atau `''`)
+- `andIn`/`orIn` melewatkan non-array dan array kosong
+- `andRange` menerapkan `>=` untuk `min` dan `<=` untuk `max`, masing-masing opsional
+- `orWhere`/`orLike`/`orIn` membungkus grup OR dalam satu klausa `andWhere(['or', ...])`
+- `filterByExactMatch`/`filterByLike` meng-intersect `$filters` dengan `array_flip($allowedColumns)` — key yang tidak di-whitelist diabaikan
 
-**Usage Examples**:
+**Contoh Penggunaan**:
 ```php
 use App\Shared\Core\Query\QueryConditionApplier;
 use Yiisoft\Db\Query\Query;
@@ -130,7 +130,7 @@ QueryConditionApplier::andRange($query, [
 
 ### SearchCriteria
 
-**Location**: `src/Shared/Core/Dto/SearchCriteria.php`
+**Lokasi**: `src/Shared/Core/Dto/SearchCriteria.php`
 
 ```php
 final readonly class SearchCriteria
@@ -150,12 +150,12 @@ final readonly class SearchCriteria
 }
 ```
 
-- `getOrderClause()` maps `sortBy` through `allowedSort` (whitelist → real column); unknown fields fall back to the first allowed column. `sortDir` of `'desc'` → `SORT_DESC`, anything else → `SORT_ASC`.
-- Expected request payload: `{ "filter": {...}, "pagination": {"page": 1, "page_size": 10}, "sort": {"by": "name", "dir": "desc"} }`
+- `getOrderClause()` memetakan `sortBy` melalui `allowedSort` (whitelist → kolom asli); field yang tidak dikenal jatuh kembali ke kolom pertama yang diizinkan. `sortDir` bernilai `'desc'` → `SORT_DESC`, selain itu → `SORT_ASC`.
+- Payload request yang diharapkan: `{ "filter": {...}, "pagination": {"page": 1, "page_size": 10}, "sort": {"by": "name", "dir": "desc"} }`
 
 ### PaginatedResult
 
-**Location**: `src/Shared/Core/Dto/PaginatedResult.php`
+**Lokasi**: `src/Shared/Core/Dto/PaginatedResult.php`
 
 ```php
 final readonly class PaginatedResult
@@ -177,7 +177,7 @@ final readonly class PaginatedResult
 
 ### SearchCriteriaFactory
 
-**Location**: `src/Application/Shared/Core/Factory/SearchCriteriaFactory.php`
+**Lokasi**: `src/Application/Shared/Core/Factory/SearchCriteriaFactory.php`
 
 ```php
 final class SearchCriteriaFactory
@@ -190,13 +190,13 @@ final class SearchCriteriaFactory
 }
 ```
 
-Builds `SearchCriteria` from `RequestParams` (produced by `RequestParamsMiddleware`): `filter` from `getFilter()->toArray()`, `page`/`pageSize` from `getPagination()`, `sortBy`/`sortDir` from `getSort()` (default dir `'desc'`).
+Membangun `SearchCriteria` dari `RequestParams` (dihasilkan oleh `RequestParamsMiddleware`): `filter` dari `getFilter()->toArray()`, `page`/`pageSize` dari `getPagination()`, `sortBy`/`sortDir` dari `getSort()` (dir default `'desc'`).
 
 ---
 
-## 🔧 Integration Patterns
+## 🔧 Pola Integrasi
 
-### 1. **Repository Usage** (actual pattern from `ExampleRepository`)
+### 1. **Penggunaan Repository** (pola nyata dari `ExampleRepository`)
 
 ```php
 use App\Shared\Core\Dto\PaginatedResult;
@@ -255,7 +255,7 @@ final class ExampleRepository implements ExampleRepositoryInterface
 }
 ```
 
-### 2. **Action / Service Usage**
+### 2. **Penggunaan Action / Service**
 
 ```php
 // Action: RequestParams is set as the 'payload' attribute by RequestParamsMiddleware
@@ -281,7 +281,7 @@ final class ExampleDataAction
 }
 ```
 
-### 3. **Composing Conditions Manually**
+### 3. **Menyusun Kondisi Secara Manual**
 
 ```php
 $query = (new Query($this->db))->from('example');
@@ -296,9 +296,9 @@ $rows = $query->all();
 
 ---
 
-## 🚀 Best Practices
+## 🚀 Praktik Terbaik
 
-### 1. **Whitelist Request Filters**
+### 1. **Whitelist Filter Request**
 ```php
 // ✅ Only whitelisted columns can be filtered from request input
 QueryConditionApplier::filterByExactMatch($query, $criteria->filter, ['id', 'status']);
@@ -327,32 +327,32 @@ $query->orderBy([$request->get('sort') => SORT_ASC]);
 
 ---
 
-## 📊 Performance Considerations
+## 📊 Pertimbangan Performa
 
-### 1. **Query Optimization**
-- Use appropriate indexes for filtered fields
-- Count with a cloned query *before* applying limit/offset: `(clone $query)->count()`
-- Select only needed columns
+### 1. **Optimasi Query**
+- Gunakan index yang sesuai untuk field yang difilter
+- Lakukan count dengan query yang di-clone *sebelum* menerapkan limit/offset: `(clone $query)->count()`
+- Select hanya kolom yang dibutuhkan
 
-### 2. **Condition Application**
-- Whitelist filters; skip empty values automatically via `isFilled`
-- Prefer `andIn` over many `orWhere` equality checks
+### 2. **Penerapan Kondisi**
+- Whitelist filter; lewati nilai kosong secara otomatis via `isFilled`
+- Utamakan `andIn` daripada banyak pemeriksaan equality `orWhere`
 
-### 3. **Memory Usage**
-- Repositories stream rows (`streamRows()`) instead of loading everything
-- Keep `pageSize` bounded — `app/pagination.maxPageSize` caps it via `RequestParamsMiddleware`
+### 3. **Penggunaan Memori**
+- Repository melakukan streaming baris (`streamRows()`) alih-alih memuat semuanya
+- Jaga `pageSize` tetap terbatas — `app/pagination.maxPageSize` membatasinya via `RequestParamsMiddleware`
 
 ---
 
-## 🎯 Summary
+## 🎯 Ringkasan
 
-Query building utilities provide a structured, type-safe way to build database queries in the Yii3 API application. Key benefits include:
+Utility query building menyediakan cara yang terstruktur dan type-safe untuk membangun query database di aplikasi Yii3 API. Manfaat utamanya meliputi:
 
-- **🛡️ Security**: Parameterized conditions + column whitelists prevent SQL injection
-- **🔧 Flexibility**: Composable static helpers (exact match, LIKE/ILIKE, IN, ranges)
-- **📝 Type Safety**: `SearchCriteria`/`PaginatedResult` readonly DTOs
-- **🧪 Testability**: Pure static methods are easy to unit test
-- **⚡ Performance**: Clone-for-count, streaming rows, bounded page sizes
-- **🔄 Reusability**: Shared across repositories via injected `QueryConditionApplier`
+- **🛡️ Security**: Kondisi terparameterisasi + whitelist kolom mencegah SQL injection
+- **🔧 Flexibility**: Helper static yang composable (exact match, LIKE/ILIKE, IN, range)
+- **📝 Type Safety**: DTO readonly `SearchCriteria`/`PaginatedResult`
+- **🧪 Testability**: Method static murni yang mudah di-unit test
+- **⚡ Performance**: Clone-untuk-count, streaming baris, ukuran halaman terbatas
+- **🔄 Reusability**: Digunakan bersama antar repository via `QueryConditionApplier` yang di-inject
 
-By following the patterns and best practices outlined in this guide, you can build robust, maintainable query building for your Yii3 API application! 🚀
+Dengan mengikuti pola dan praktik terbaik yang diuraikan dalam panduan ini, Anda dapat membangun query building yang robust dan mudah dipelihara untuk aplikasi Yii3 API Anda! 🚀

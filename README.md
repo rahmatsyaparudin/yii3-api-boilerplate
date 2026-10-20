@@ -266,7 +266,7 @@ Skeleton sudah menyertakan modul berikut:
 #### **✅ Modul System — Service Token** (Termasuk)
 - **Tujuan:** Bearer token opaque long-lived untuk service eksternal (POS, script, integrasi) — alternatif JWT tanpa akun SSO
 - **Endpoint:** `/v1/system/service-token/*`
-- **Dokumentasi:** [`docs/system_service-token.md`](docs/system_service-token.md)
+- **Dokumentasi:** [`docs-guide/23-system_service-token.md`](docs-guide/23-system_service-token.md)
 
 #### **🔧 Modul Custom** (Generate sesuai kebutuhan)
 - **Product, Category, Brand, Order, User, dll.**
@@ -302,10 +302,11 @@ yii3-api/
 │   ├── console/            # Konfigurasi console
 │   ├── environments/       # Konfigurasi environment
 │   └── web/                # Konfigurasi web
-├── docs/                   # Dokumentasi
-│   ├── architecture-guide.md # Dokumentasi arsitektur
-│   ├── quality-guide.md    # Panduan quality assurance
-│   └── setup-guide.md      # Panduan setup
+├── docs-guide/             # Dokumentasi
+│   ├── documentation.html  # Viewer standalone (buka langsung di browser)
+│   ├── 02-architecture-guide.md # Dokumentasi arsitektur
+│   ├── 21-quality-guide.md    # Panduan quality assurance
+│   └── 01-setup-guide.md      # Panduan setup
 ├── public/                 # Web root
 │   └── index.php           # Entry point aplikasi
 ├── resources/              # Resource aplikasi
@@ -888,7 +889,7 @@ Selain JWT, skeleton menyediakan **Service Token** — bearer token opaque long-
 
 Fitur ini **opt-in** lewat `app.service_token.enabled` di `.env` (default `false`) — saat off, middleware langsung skip ke `JwtMiddleware` tanpa query DB, jadi tidak ada overhead kalau tidak dipakai.
 
-Token yang valid berjalan **atas nama user penerbit** (SSO-style): permission, audit, dan changelog `detail_info` semua tercatat sebagai user itu. Mendukung `whitelist_host` (exact / `*` / prefix `x.*` / suffix `*.x`), `expires_at`, dan revoke instan via soft delete. Detail lengkap: [`docs/system_service-token.md`](docs/system_service-token.md).
+Token yang valid berjalan **atas nama user penerbit** (SSO-style): permission, audit, dan changelog `detail_info` semua tercatat sebagai user itu. Mendukung `whitelist_host` (exact / `*` / prefix `x.*` / suffix `*.x`), `expires_at`, dan revoke instan via soft delete. Detail lengkap: [`docs-guide/23-system_service-token.md`](docs-guide/23-system_service-token.md).
 
 ```bash
 # Issue token baru (plaintext hanya muncul sekali di data.token)
@@ -1143,12 +1144,12 @@ docker-compose -f docker/prod/compose.yml logs -f
 
 ### Dokumentasi Tersedia
 
-- **[Architecture Guide](architecture-guide.md)**: Gambaran arsitektur lengkap
-- **[Quality Guide](quality-guide.md)**: Prosedur quality assurance
-- **[Dokumentasi API](docs/api/)**: Dokumentasi endpoint API
-- **[Panduan Sync Flag](docs/sync-flag-guide.md)**: Sinkronisasi record master–origin (`origin_id`/`sync_flag`)
-- **[Panduan Service Token](docs/system_service-token.md)**: Bearer token opaque untuk service eksternal
-- **[Panduan Development](docs/development/)**: Setup dan pedoman development
+- **[Architecture Guide](02-architecture-guide.md)**: Gambaran arsitektur lengkap
+- **[Quality Guide](21-quality-guide.md)**: Prosedur quality assurance
+- **[Dokumentasi API](docs-guide/Yii3-API.postman_collection.json)**: Postman collection endpoint API
+- **[Panduan Sync Flag](docs-guide/22-sync-flag-guide.md)**: Sinkronisasi record master–origin (`origin_id`/`sync_flag`)
+- **[Panduan Service Token](docs-guide/23-system_service-token.md)**: Bearer token opaque untuk service eksternal
+- **[Viewer Dokumentasi](docs-guide/documentation.html)**: Semua guide dalam satu file — buka langsung di browser
 
 ### Generate Dokumentasi
 

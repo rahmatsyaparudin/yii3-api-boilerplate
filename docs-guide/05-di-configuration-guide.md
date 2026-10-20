@@ -1,14 +1,14 @@
-# Dependency Injection Configuration Guide
+# Panduan Konfigurasi Dependency Injection
 
-## 📋 Overview
+## 📋 Gambaran Umum
 
-This guide covers the Dependency Injection (DI) configuration files in `config/common/di/`. These files define how services, repositories, and infrastructure components are wired together in the Yii3 API application using the Domain-Driven Design (DDD) architecture.
+Panduan ini membahas file konfigurasi Dependency Injection (DI) di `config/common/di/`. File-file ini mendefinisikan bagaimana service, repository, dan komponen infrastruktur di-wire bersama dalam aplikasi Yii3 API menggunakan arsitektur Domain-Driven Design (DDD).
 
 ---
 
-## 🏗️ DI Architecture Overview
+## 🏗️ Gambaran Arsitektur DI
 
-### Configuration Structure
+### Struktur Konfigurasi
 
 ```
 config/common/di/
@@ -36,26 +36,26 @@ config/common/di/
 └── validator.php           # ValidatorInterface + rule handler resolver
 ```
 
-All `config/common/di/*.php` files are merged into the `di` group by `config/configuration.php` (which also merges `common/repository.php` first). `config/web/di/*.php` files (`application.php`, `psr17.php`) extend `di` for the web application.
+Semua file `config/common/di/*.php` digabungkan ke dalam grup `di` oleh `config/configuration.php` (yang juga menggabungkan `common/repository.php` terlebih dahulu). File `config/web/di/*.php` (`application.php`, `psr17.php`) memperluas `di` untuk aplikasi web.
 
-Several `*-di.php` files additionally merge **project-owned override files** from `config/common/`:
+Beberapa file `*-di.php` juga menggabungkan **file override milik proyek** dari `config/common/`:
 
-| DI file | Project override file |
+| File DI | File override proyek |
 |---------|----------------------|
 | `infrastructure-di.php` | `config/common/infrastructure.php` |
 | `security-di.php` | `config/common/security.php` |
 | `service-di.php` | `config/common/service.php` |
 | `translator-di.php` | `config/common/translator.php` |
 | `db-redis.php` | `config/common/redis.php` |
-| `repository-di.php` | `config/common/repository.php` (full definition lives there) |
+| `repository-di.php` | `config/common/repository.php` (definisi lengkap berada di sana) |
 
 ---
 
-## 🔧 Configuration Files
+## 🔧 File Konfigurasi
 
 ### access-di.php
 
-**Purpose**: Access control and Role-Based Access Control (RBAC) configuration
+**Tujuan**: Konfigurasi access control dan Role-Based Access Control (RBAC)
 
 ```php
 <?php
@@ -92,13 +92,13 @@ return [
 ];
 ```
 
-**Key Components**:
-- `AccessChecker` (`Yiisoft\Access\AccessChecker`): Package access checker built from `Assignment` + `RuleFactory`
-- `Assignment`: Role and permission assignment
-- `RuleFactory`: Rule factory for access control
-- `PermissionMapRule` (`App\Infrastructure\Core\Security\Rule\PermissionMapRule`): Permission mapping rule backed by `config/common/access.php`
+**Komponen Utama**:
+- `AccessChecker` (`Yiisoft\Access\AccessChecker`): Access checker dari package yang dibangun dari `Assignment` + `RuleFactory`
+- `Assignment`: Penugasan role dan permission
+- `RuleFactory`: Factory rule untuk access control
+- `PermissionMapRule` (`App\Infrastructure\Core\Security\Rule\PermissionMapRule`): Rule pemetaan permission yang didukung `config/common/access.php`
 
-**Usage Example**:
+**Contoh Penggunaan**:
 ```php
 // The project also provides App\Infrastructure\Core\Security\AccessChecker,
 // used by AccessMiddleware / AuthorizerInterface (RbacAuthorizer):
@@ -112,7 +112,7 @@ public function can(string $permission): bool
 
 ### jwt.php
 
-**Purpose**: JWT (JSON Web Token) authentication configuration
+**Tujuan**: Konfigurasi autentikasi JWT (JSON Web Token)
 
 ```php
 <?php
@@ -150,13 +150,13 @@ return [
 ];
 ```
 
-**Key Components**:
-- `JwtService` (`App\Infrastructure\Core\Security\JwtService`): JWT token generation and validation
-- `JwtMiddleware` (`App\Presentation\Core\Http\Middleware\JwtMiddleware`): request authentication middleware (part of the web middleware stack in `config/web/di/application.php`)
+**Komponen Utama**:
+- `JwtService` (`App\Infrastructure\Core\Security\JwtService`): Pembuatan dan validasi token JWT
+- `JwtMiddleware` (`App\Presentation\Core\Http\Middleware\JwtMiddleware`): Middleware autentikasi request (bagian dari stack middleware web di `config/web/di/application.php`)
 
-**Configuration Parameters**:
+**Parameter Konfigurasi**:
 ```bash
-# In .env file
+# Di file .env
 app.jwt.secret=secret-key-harus-panjang-256-bit
 app.jwt.algorithm=HS256
 app.jwt.issuer=https://sso.example.com
@@ -164,7 +164,7 @@ app.jwt.audience=https://sso.example.com
 app.jwt.publicPaths=["/","/auth/login","/auth/refresh"]
 ```
 
-**Usage Example**:
+**Contoh Penggunaan**:
 ```php
 // Decoding and validating a JWT token (throws UnauthorizedException on failure)
 $payload = $this->jwtService->decode($token);
@@ -174,7 +174,7 @@ $payload = $this->jwtService->decode($token);
 
 ### middleware-di.php
 
-**Purpose**: DI definitions for the HTTP middleware used by the request processing pipeline
+**Tujuan**: Definisi DI untuk HTTP middleware yang digunakan oleh pipeline pemrosesan request
 
 ```php
 <?php
@@ -277,34 +277,34 @@ return [
 ];
 ```
 
-**Key Components**:
-- `RequestParamsMiddleware`: Request parameter processing
-- `CorsMiddleware`: CORS handling
-- `RateLimitMiddleware`: Rate limiting
-- `SecureHeadersMiddleware`: Security headers
+**Komponen Utama**:
+- `RequestParamsMiddleware`: Pemrosesan parameter request
+- `CorsMiddleware`: Penanganan CORS
+- `RateLimitMiddleware`: Pembatasan rate request
+- `SecureHeadersMiddleware`: Security header
 - `HstsMiddleware`: HTTP Strict Transport Security
-- `RequestIdMiddleware`: Request ID tracking
+- `RequestIdMiddleware`: Pelacakan Request ID
 - `StructuredLoggingMiddleware`: Structured logging
-- `MetricsMiddleware`: Application metrics
-- `ErrorMonitoringMiddleware`: Error monitoring
+- `MetricsMiddleware`: Metric aplikasi
+- `ErrorMonitoringMiddleware`: Monitoring error
 - `AccessMiddleware`: Access control
 
 **Middleware Stack**:
 
-These are only DI definitions — the actual execution order is assembled in `config/web/di/application.php` (`Application::class` → `MiddlewareDispatcher::withMiddlewares()`):
+Ini hanyalah definisi DI — urutan eksekusi sebenarnya dirakit di `config/web/di/application.php` (`Application::class` → `MiddlewareDispatcher::withMiddlewares()`):
 
-1. `FormatDataResponseAsJson` + `ContentNegotiator`: JSON (and optional XML) responses
-2. `ErrorCatcher` + `ExceptionResponderFactory`: error catching and API error responses
-3. `TrustedHostMiddleware` (`App\Presentation\Core\Http\Middleware\TrustedHostMiddleware`): host allowlist
-4. `CorsMiddleware`: CORS handling
-5. `JwtMiddleware`: JWT authentication
-6. `RequestIdMiddleware`, `StructuredLoggingMiddleware`, `MetricsMiddleware`: observability
+1. `FormatDataResponseAsJson` + `ContentNegotiator`: Response JSON (dan opsional XML)
+2. `ErrorCatcher` + `ExceptionResponderFactory`: Penangkapan error dan response error API
+3. `TrustedHostMiddleware` (`App\Presentation\Core\Http\Middleware\TrustedHostMiddleware`): Allowlist host
+4. `CorsMiddleware`: Penanganan CORS
+5. `JwtMiddleware`: Autentikasi JWT
+6. `RequestIdMiddleware`, `StructuredLoggingMiddleware`, `MetricsMiddleware`: Observability
 7. `RateLimitMiddleware`, `SecureHeadersMiddleware`, `ErrorMonitoringMiddleware`
 8. `RequestBodyParser`, `AccessMiddleware`, `Router`, `NotFoundMiddleware`
 
-Extra middleware can be listed in `config/common/middleware.php` (project-owned stack).
+Middleware tambahan dapat dicantumkan di `config/common/middleware.php` (stack milik proyek).
 
-**Usage Example**:
+**Contoh Penggunaan**:
 ```php
 // Middleware are resolved through the container — e.g. AccessMiddleware gets:
 AccessMiddleware::class => static fn (
@@ -318,7 +318,7 @@ AccessMiddleware::class => static fn (
 
 ### monitoring.php
 
-**Purpose**: Application monitoring and performance tracking configuration
+**Tujuan**: Konfigurasi monitoring aplikasi dan pelacakan performa
 
 ```php
 <?php
@@ -342,22 +342,22 @@ return [
 ];
 ```
 
-**Key Components**:
-- `CustomMonitoringService` (`App\Infrastructure\Core\Monitoring\CustomMonitoringService`): monitoring implementation
-- `MonitoringServiceInterface` (`App\Infrastructure\Core\Monitoring\MonitoringServiceInterface`): monitoring contract
+**Komponen Utama**:
+- `CustomMonitoringService` (`App\Infrastructure\Core\Monitoring\CustomMonitoringService`): Implementasi monitoring
+- `MonitoringServiceInterface` (`App\Infrastructure\Core\Monitoring\MonitoringServiceInterface`): Kontrak monitoring
 
-**Features**:
-- Performance metrics tracking (`MetricsMiddleware`, `app/monitoring` params)
-- Error monitoring (`ErrorMonitoringMiddleware`)
-- Request logging (`StructuredLoggingMiddleware`, `RequestIdMiddleware`)
+**Fitur**:
+- Pelacakan metric performa (`MetricsMiddleware`, params `app/monitoring`)
+- Monitoring error (`ErrorMonitoringMiddleware`)
+- Logging request (`StructuredLoggingMiddleware`, `RequestIdMiddleware`)
 
 ---
 
 ### repository-di.php
 
-**Purpose**: Repository pattern configuration for data access layer
+**Tujuan**: Konfigurasi repository pattern untuk lapisan akses data
 
-`repository-di.php` simply delegates to the project-owned `config/common/repository.php`:
+`repository-di.php` hanya mendelegasikan ke `config/common/repository.php` milik proyek:
 
 ```php
 <?php
@@ -369,7 +369,7 @@ declare(strict_types=1);
 return require \dirname(__DIR__) . '/repository.php';
 ```
 
-The actual bindings live in `config/common/repository.php`:
+Binding yang sebenarnya berada di `config/common/repository.php`:
 
 ```php
 use App\Domain\AnotherExample\Repository\AnotherExampleRepositoryInterface;
@@ -400,17 +400,17 @@ return [
 ];
 ```
 
-**Key Components**:
-- `ExampleRepository` / `AnotherExampleRepository` (`App\Infrastructure\Common\Persistence\...`): Repository implementations
-- `ExampleRepositoryInterface` / `AnotherExampleRepositoryInterface` (`App\Domain\...\Repository\...`): Repository contracts
-- `LockVersionConfig` + `CurrentUser` are injected via setters for optimistic locking and audit fields
+**Komponen Utama**:
+- `ExampleRepository` / `AnotherExampleRepository` (`App\Infrastructure\Common\Persistence\...`): Implementasi repository
+- `ExampleRepositoryInterface` / `AnotherExampleRepositoryInterface` (`App\Domain\...\Repository\...`): Kontrak repository
+- `LockVersionConfig` + `CurrentUser` di-inject melalui setter untuk optimistic locking dan field audit
 
-**Features**:
-- Data access abstraction
-- Optimistic locking via `LockVersionConfig` (`app/optimisticLock` params)
-- MongoDB sync support
+**Fitur**:
+- Abstraksi akses data
+- Optimistic locking via `LockVersionConfig` (params `app/optimisticLock`)
+- Dukungan sync MongoDB
 
-**Usage Example**:
+**Contoh Penggunaan**:
 ```php
 // Using repository in application service
 $example = $this->repository->findById(id: $id);
@@ -425,7 +425,7 @@ $this->repository->restore(id: $id);
 
 ### security-di.php
 
-**Purpose**: Security bindings — current user, actor, access checker and authorizer
+**Tujuan**: Binding security — current user, actor, access checker dan authorizer
 
 ```php
 <?php
@@ -466,13 +466,13 @@ return array_merge([
 ], file_exists($projectBindings) ? require $projectBindings : []);
 ```
 
-**Key Components**:
-- `CurrentUser`: current user context; `allow_god_mode` comes from `app.config.allow_god_mode`
-- `Actor`: the actor derived from `CurrentUser`
-- `AccessChecker` / `PermissionChecker`: check permissions against `config/common/access.php`
-- `AuthorizerInterface → RbacAuthorizer`: domain-facing authorization contract
+**Komponen Utama**:
+- `CurrentUser`: Konteks user saat ini; `allow_god_mode` berasal dari `app.config.allow_god_mode`
+- `Actor`: Actor yang diturunkan dari `CurrentUser`
+- `AccessChecker` / `PermissionChecker`: Memeriksa permission terhadap `config/common/access.php`
+- `AuthorizerInterface → RbacAuthorizer`: Kontrak otorisasi untuk sisi domain
 
-**Usage Example**:
+**Contoh Penggunaan**:
 ```php
 // In an application service / domain service
 if (!$this->auth->can('example.delete')) {
@@ -484,7 +484,7 @@ if (!$this->auth->can('example.delete')) {
 
 ### service-di.php
 
-**Purpose**: Application services configuration placeholder
+**Tujuan**: Placeholder konfigurasi application service
 
 ```php
 <?php
@@ -504,7 +504,7 @@ return array_merge([
 ], file_exists($projectBindings) ? require $projectBindings : []);
 ```
 
-**Usage Example**:
+**Contoh Penggunaan**:
 ```php
 // config/common/service.php — add application services here
 return [
@@ -516,7 +516,7 @@ return [
 
 ### translator-di.php
 
-**Purpose**: Translation and localization configuration for multi-language support
+**Tujuan**: Konfigurasi translasi dan lokalisasi untuk dukungan multi-bahasa
 
 ```php
 <?php
@@ -555,13 +555,13 @@ return array_merge([
 ], file_exists($projectBindings) ? require $projectBindings : []);
 ```
 
-**Key Components**:
-- `TranslatorInterface → Translator`: Translation service (default locale `en`)
-- `MessageSource`: PHP message source reading `resources/messages/{locale}/{category}.php`
-- `IntlMessageFormatter`: intl-based message formatting
-- Categories: `app`, `validation`, `error`, `success`
+**Komponen Utama**:
+- `TranslatorInterface → Translator`: Service translasi (default locale `en`)
+- `MessageSource`: Message source PHP yang membaca `resources/messages/{locale}/{category}.php`
+- `IntlMessageFormatter`: Pemformatan pesan berbasis intl
+- Kategori: `app`, `validation`, `error`, `success`
 
-**Usage Example**:
+**Contoh Penggunaan**:
 ```php
 // Translating messages
 $translated = $this->translator->translate('Welcome!', [], 'app', 'en');
@@ -570,28 +570,28 @@ $translated = $this->translator->translate('Welcome!', [], 'app', 'id');
 
 ---
 
-### Other DI Files
+### File DI Lainnya
 
-Brief reference for the remaining files in `config/common/di/`:
+Referensi singkat untuk file-file lainnya di `config/common/di/`:
 
-- **`application.php`**: binds `App\Shared\ApplicationParams` (name/version/language/environment) from `$params['application']` (`config/common/application.php`).
-- **`audit.php`**: `CurrentUserInterface → CurrentUser`; `AuditServiceInterface → DatabaseAuditService` (writes to the `audit_logs` table).
-- **`db-mysql.php` / `db-pgsql.php`**: `ConnectionInterface` bound to `Yiisoft\Db\Mysql\Connection` or `Yiisoft\Db\Pgsql\Connection` depending on `$params['yiisoft/db']['driver']`; both register `FileCache` (`@runtime/cache`) and an enabled `SchemaCache`. Inactive driver file returns `[]`.
-- **`db-mongodb.php`**: `MongoDB\Client` + `MongoDBService` from `mongodb/mongodb` params; when MongoDB is disabled (or the extension missing) a disabled `MongoDBService` is bound instead.
-- **`db-redis.php`**: `RedisService` (host/port from `redis.default.*` env) merged with project bindings from `config/common/redis.php`, which are loaded *after* `common/repository.php` and can override repository bindings.
-- **`error-handler.php`**: `HtmlRenderer` `traceLink` closure (uses `$params['traceLink']`, e.g. `phpstorm://open?...` set in `environments/dev/params.php`, and `APP_HOST_PATH` path remapping).
+- **`application.php`**: Mem-bind `App\Shared\ApplicationParams` (name/version/language/environment) dari `$params['application']` (`config/common/application.php`).
+- **`audit.php`**: `CurrentUserInterface → CurrentUser`; `AuditServiceInterface → DatabaseAuditService` (menulis ke tabel `audit_logs`).
+- **`db-mysql.php` / `db-pgsql.php`**: `ConnectionInterface` di-bind ke `Yiisoft\Db\Mysql\Connection` atau `Yiisoft\Db\Pgsql\Connection` tergantung `$params['yiisoft/db']['driver']`; keduanya meregistrasi `FileCache` (`@runtime/cache`) dan `SchemaCache` yang aktif. File driver yang tidak aktif mengembalikan `[]`.
+- **`db-mongodb.php`**: `MongoDB\Client` + `MongoDBService` dari params `mongodb/mongodb`; ketika MongoDB dinonaktifkan (atau extension tidak tersedia), `MongoDBService` yang dinonaktifkan yang di-bind.
+- **`db-redis.php`**: `RedisService` (host/port dari env `redis.default.*`) digabung dengan binding proyek dari `config/common/redis.php`, yang dimuat *setelah* `common/repository.php` dan dapat meng-override binding repository.
+- **`error-handler.php`**: Closure `traceLink` `HtmlRenderer` (menggunakan `$params['traceLink']`, mis. `phpstorm://open?...` yang diset di `environments/dev/params.php`, dan remapping path `APP_HOST_PATH`).
 - **`hydrator.php`**: `AttributeResolverFactoryInterface → ContainerAttributeResolverFactory`, `ObjectFactoryInterface → ContainerObjectFactory`.
-- **`json.php`**: `App\Shared\Core\Utility\JsonHandler` binding.
-- **`logger.php`**: `LoggerInterface → Yiisoft\Log\Logger` with `FileTarget`, `StreamTarget` and a `log.target.security` `FileTarget` (`@runtime/logs/security/security.log`, category `security`).
-- **`optimistic-lock.php`**: `LockVersionConfig` from `app/optimisticLock` (`enabled`, `disabledValues`).
-- **`router.php`**: `RouteCollectionInterface` built from `$config->get('routes')` (`config/common/routes.php`).
-- **`validator.php`**: `RuleHandlerResolverInterface → SimpleRuleHandlerContainer` (with `UniqueValueHandler`), `UniqueValueHandler` gets `ConnectionInterface` + `TranslatorInterface`, `ValidatorInterface → Validator`.
+- **`json.php`**: Binding `App\Shared\Core\Utility\JsonHandler`.
+- **`logger.php`**: `LoggerInterface → Yiisoft\Log\Logger` dengan `FileTarget`, `StreamTarget` dan `FileTarget` `log.target.security` (`@runtime/logs/security/security.log`, kategori `security`).
+- **`optimistic-lock.php`**: `LockVersionConfig` dari `app/optimisticLock` (`enabled`, `disabledValues`).
+- **`router.php`**: `RouteCollectionInterface` dibangun dari `$config->get('routes')` (`config/common/routes.php`).
+- **`validator.php`**: `RuleHandlerResolverInterface → SimpleRuleHandlerContainer` (dengan `UniqueValueHandler`), `UniqueValueHandler` mendapatkan `ConnectionInterface` + `TranslatorInterface`, `ValidatorInterface → Validator`.
 
 ---
 
-## 🔧 Configuration Best Practices
+## 🔧 Best Practice Konfigurasi
 
-### 1. **Dependency Injection Patterns**
+### 1. **Pattern Dependency Injection**
 
 #### **Constructor Injection**
 ```php
@@ -613,9 +613,9 @@ interface RepositoryInterface { /* ... */ }
 interface CacheableRepositoryInterface { /* ... */ }
 ```
 
-### 2. **Configuration Organization**
+### 2. **Organisasi Konfigurasi**
 
-#### **Environment-Specific Configuration**
+#### **Konfigurasi Spesifik Environment**
 ```php
 // ✅ Use params groups populated from .env (config/common/params.php)
 return [
@@ -628,16 +628,16 @@ return [
 ];
 ```
 
-#### **Reference Usage**
+#### **Penggunaan Reference**
 ```php
 // ✅ Use references for dependencies
 Reference::to(ConnectionInterface::class)
 Reference::to(LoggerInterface::class)
 ```
 
-### 3. **Security Considerations**
+### 3. **Pertimbangan Keamanan**
 
-#### **Sensitive Data**
+#### **Data Sensitif**
 ```php
 // ✅ Store secrets in environment variables, surfaced via params groups
 'secret' => $params['app/jwt']['secret'],
@@ -651,9 +651,9 @@ AuthorizerInterface::class => RbacAuthorizer::class,
 
 ---
 
-## 📊 Configuration Dependencies
+## 📊 Dependensi Konfigurasi
 
-### Dependency Graph
+### Grafik Dependensi
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -667,9 +667,9 @@ AuthorizerInterface::class => RbacAuthorizer::class,
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### Key Dependencies
+### Dependensi Utama
 
-#### **PSR Interfaces**
+#### **Interface PSR**
 - `PSR-3`: Logger Interface
 - `PSR-7`: HTTP Message Interface
 - `PSR-11`: Container Interface
@@ -677,23 +677,23 @@ AuthorizerInterface::class => RbacAuthorizer::class,
 - `PSR-17`: HTTP Factories
 - `PSR-20`: Clock Interface
 
-#### **Yii3 Components**
-- `yiisoft/db`: Database abstraction
-- `yiisoft/cache`: Caching system
-- `yiisoft/translator`: Translation system
+#### **Komponen Yii3**
+- `yiisoft/db`: Abstraksi database
+- `yiisoft/cache`: Sistem caching
+- `yiisoft/translator`: Sistem translasi
 - `yiisoft/access`: Access control
 - `yiisoft/middleware`: Middleware dispatcher
 
-#### **Custom Components**
-- Domain layer interfaces
-- Infrastructure implementations
-- Application services
+#### **Komponen Kustom**
+- Interface domain layer
+- Implementasi infrastructure
+- Application service
 
 ---
 
-## 🚀 Usage Examples
+## 🚀 Contoh Penggunaan
 
-### 1. **Service Registration**
+### 1. **Registrasi Service**
 
 ```php
 // In application service (real constructor)
@@ -709,7 +709,7 @@ final class ExampleApplicationService
 }
 ```
 
-### 2. **Repository Usage**
+### 2. **Penggunaan Repository**
 
 ```php
 // In application service
@@ -722,7 +722,7 @@ if ($example === null) {
 }
 ```
 
-### 3. **Security Integration**
+### 3. **Integrasi Security**
 
 ```php
 // In application service (AuthorizerInterface → RbacAuthorizer)
@@ -750,9 +750,9 @@ $this->auditService->log(
 
 ## 🔍 Troubleshooting
 
-### Common Issues
+### Masalah Umum
 
-#### **1. **Circular Dependencies**
+#### **1. **Circular Dependency**
 ```php
 // ❌ Avoid circular references
 ServiceA -> ServiceB -> ServiceA
@@ -761,7 +761,7 @@ ServiceA -> ServiceB -> ServiceA
 ServiceA -> ServiceBInterface -> ServiceB
 ```
 
-#### **2. **Missing Dependencies**
+#### **2. **Dependensi yang Hilang**
 ```php
 // ❌ Undefined reference
 Reference::to(MissingInterface::class)
@@ -770,7 +770,7 @@ Reference::to(MissingInterface::class)
 Reference::to(DependencyInterface::class)
 ```
 
-#### **3. **Configuration Conflicts**
+#### **3. **Konflik Konfigurasi**
 ```php
 // ❌ Duplicate definitions
 Interface::class => [ /* ... */ ],
@@ -780,9 +780,9 @@ Interface::class => [ /* ... */ ],
 Interface::class => [ /* ... */ ],
 ```
 
-### Debugging Tools
+### Tool Debugging
 
-#### **1. **Container Inspection**
+#### **1. **Inspeksi Container**
 ```php
 // Check if service is registered
 $container->has(ServiceInterface::class);
@@ -791,7 +791,7 @@ $container->has(ServiceInterface::class);
 $service = $container->get(ServiceInterface::class);
 ```
 
-#### **2. **Configuration Validation**
+#### **2. **Validasi Konfigurasi**
 ```php
 // Validate configuration
 $config = require 'config/common/di/service-di.php';
@@ -802,30 +802,30 @@ if (!is_array($config)) {
 
 ---
 
-## 📚 References
+## 📚 Referensi
 
-### Documentation
+### Dokumentasi
 - **[yiisoft/di](https://github.com/yiisoft/di)**: Dependency injection container
-- **[yiisoft/definitions](https://github.com/yiisoft/definitions)**: Definition format (`Reference`, `DynamicReference`, `ReferencesArray`)
-- **[PSR-11 Documentation](https://www.php-fig.org/psr/psr-11/)**: Container interface
-- **[PSR-20 Documentation](https://www.php-fig.org/psr/psr-20/)**: Clock interface
+- **[yiisoft/definitions](https://github.com/yiisoft/definitions)**: Format definisi (`Reference`, `DynamicReference`, `ReferencesArray`)
+- **[PSR-11 Documentation](https://www.php-fig.org/psr/psr-11/)**: Interface container
+- **[PSR-20 Documentation](https://www.php-fig.org/psr/psr-20/)**: Interface clock
 
-### Related Guides
-- **[Architecture Guide](architecture-guide.md)**: Complete architecture overview
-- **[Migration Guide](migration-seeding-guide.md)**: Database management
-- **[Quality Guide](quality-guide.md)**: Quality assurance procedures
+### Panduan Terkait
+- **[Architecture Guide](02-architecture-guide.md)**: Gambaran arsitektur lengkap
+- **[Migration Guide](17-migration-seeding-guide.md)**: Manajemen database
+- **[Quality Guide](21-quality-guide.md)**: Prosedur quality assurance
 
 ---
 
-## 🎯 Summary
+## 🎯 Ringkasan
 
-The DI configuration files provide a robust foundation for dependency injection in the Yii3 API application. Key benefits include:
+File konfigurasi DI menyediakan fondasi yang kuat untuk dependency injection dalam aplikasi Yii3 API. Manfaat utamanya meliputi:
 
-- **🏗️ Clean Architecture**: Clear separation between layers
-- **🔒 Type Safety**: Interface-based dependency management
-- **🧪 Testability**: Easy to mock and test dependencies
-- **📦 Modularity**: Each configuration file handles specific concerns
-- **🔧 Flexibility**: Environment-specific configurations
-- **🛡️ Security**: Proper access control and encryption
+- **🏗️ Clean Architecture**: Pemisahan yang jelas antar lapisan
+- **🔒 Type Safety**: Pengelolaan dependensi berbasis interface
+- **🧪 Testability**: Dependensi mudah di-mock dan diuji
+- **📦 Modularity**: Setiap file konfigurasi menangani concern spesifik
+- **🔧 Flexibility**: Konfigurasi spesifik environment
+- **🛡️ Security**: Access control dan enkripsi yang tepat
 
-By following the patterns and best practices outlined in this guide, you can maintain a clean, testable, and secure dependency injection configuration for your Yii3 API application! 🚀
+Dengan mengikuti pattern dan best practice yang diuraikan dalam panduan ini, Anda dapat memelihara konfigurasi dependency injection yang bersih, testable, dan aman untuk aplikasi Yii3 API Anda! 🚀

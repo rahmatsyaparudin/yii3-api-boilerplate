@@ -1,12 +1,12 @@
-# Yii3 API Skeleton Setup Guide
+# Panduan Setup Yii3 API Skeleton
 
-**Yii3 API Boilerplate** (`rahmatsyaparudin/yii3-api-boilerplate`) is a starter project for building RESTful APIs using Yii3 with Domain-Driven Design (DDD) architecture. It provides a ready-to-use structure, helper scripts (`scripts/skeleton-*.php`), and example configurations to accelerate your API development with clean architecture principles.
+**Yii3 API Boilerplate** (`rahmatsyaparudin/yii3-api-boilerplate`) adalah starter project untuk membangun RESTful API menggunakan Yii3 dengan arsitektur Domain-Driven Design (DDD). Menyediakan struktur siap pakai, script helper (`scripts/skeleton-*.php`), dan contoh konfigurasi untuk mempercepat development API dengan prinsip clean architecture.
 
 ---
 
-## 🏗️ Architecture Overview
+## 🏗️ Gambaran Arsitektur
 
-This skeleton follows **Domain-Driven Design (DDD)** principles with clean architecture layers:
+Skeleton ini mengikuti prinsip **Domain-Driven Design (DDD)** dengan layer clean architecture:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -20,42 +20,42 @@ This skeleton follows **Domain-Driven Design (DDD)** principles with clean archi
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### Key Features
+### Fitur Utama
 
-- **🎯 Domain-Driven Design**: Clean separation of business logic
-- **🔧 Type Safety**: Full Psalm static analysis integration
-- **🧪 Testing Ready**: Complete test suite setup
-- **🔒 Security**: Authentication, authorization, and audit trail
-- **📊 Quality Assurance**: Automated code quality checks
-- **🐳 Docker Ready**: Complete containerization setup
-- **📚 Documentation**: Comprehensive documentation included
+- **🎯 Domain-Driven Design**: Pemisahan business logic yang bersih
+- **🔧 Type Safety**: Integrasi static analysis Psalm penuh
+- **🧪 Testing Ready**: Setup test suite lengkap
+- **🔒 Security**: Authentication, authorization, dan audit trail
+- **📊 Quality Assurance**: Pengecekan kualitas kode otomatis
+- **🐳 Docker Ready**: Setup containerization lengkap
+- **📚 Dokumentasi**: Dokumentasi komprehensif sudah termasuk
 
 ---
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Prasyarat
 
-- **PHP 8.2 - 8.5** with required extensions
-- **Composer** for dependency management
-- **PostgreSQL** (or **MySQL/MariaDB** via `db.default.driver`)
-- **MongoDB** (optional, for audit trails)
-- **Redis** (optional, cache/side service)
-- **Docker** (optional, for containerized development)
+- **PHP 8.2 - 8.5** dengan extension yang dibutuhkan
+- **Composer** untuk dependency management
+- **PostgreSQL** (atau **MySQL/MariaDB** via `db.default.driver`)
+- **MongoDB** (opsional, untuk audit trail)
+- **Redis** (opsional, cache/side service)
+- **Docker** (opsional, untuk development tercontainer)
 
-### 1. Create New Project
+### 1. Buat Project Baru
 
 ```bash
-# Create new project from the boilerplate
+# Buat project baru dari boilerplate
 composer create-project rahmatsyaparudin/yii3-api-boilerplate yii3-api
 
-# Navigate to project directory
+# Masuk ke direktori project
 cd yii3-api
 ```
 
-### 2. Add Skeleton Repository
+### 2. Tambahkan Repository Skeleton
 
-To consume the boilerplate as an updatable package, add this to your `composer.json`:
+Untuk memakai boilerplate sebagai package yang bisa di-update, tambahkan ini ke `composer.json` project kamu:
 
 ```json
 {
@@ -92,92 +92,92 @@ To consume the boilerplate as an updatable package, add this to your `composer.j
 # Update dependencies
 composer update --ignore-platform-reqs
 
-# Install skeleton structure (shared classes, config, console commands, quality script)
+# Install struktur skeleton (shared classes, config, console commands, quality script)
 composer skeleton:update
 
-# Copy config files (first time only)
+# Salin file config (hanya pertama kali)
 composer skeleton:copy-config
 
-# Copy example files (first time only)
+# Salin file contoh (hanya pertama kali)
 composer skeleton:copy-examples
 ```
 
-The current skeleton version is tracked in `scripts/skeleton.version` (currently `1.1.0`). A new module can also be generated with `php scripts/skeleton-generate-module.php --module=Product` (optionally `--table=<name>` and `--db=<connection>` to migrate on a non-default database).
+Versi skeleton saat ini dicatat di `scripts/skeleton.version` (saat ini `1.1.0`). Modul baru juga bisa digenerate dengan `php scripts/skeleton-generate-module.php --module=Product` (opsional `--table=<name>` dan `--db=<connection>` untuk migrasi di database non-default).
 
 ---
 
-## 📁 Project Structure
+## 📁 Struktur Project
 
-After installation, your project will have this structure:
+Setelah instalasi, project kamu akan punya struktur ini:
 
 ```
 yii3-api/
-├── config/                 # Application configuration
-│   ├── common/             # Shared configuration (params, routes, access, ...)
-│   │   └── di/             # DI definitions (db-*, jwt, middleware-di, ...)
-│   ├── console/            # Console configuration (commands.php)
-│   ├── environments/       # Environment configs (dev, test, prod)
-│   ├── web/                # Web configuration
-│   │   └── di/             # Web DI (application.php, psr17.php)
-│   └── configuration.php   # yiisoft/config plugin map
-├── docs/                   # Documentation
+├── config/                 # Konfigurasi aplikasi
+│   ├── common/             # Konfigurasi bersama (params, routes, access, ...)
+│   │   └── di/             # Definisi DI (db-*, jwt, middleware-di, ...)
+│   ├── console/            # Konfigurasi console (commands.php)
+│   ├── environments/       # Konfigurasi environment (dev, test, prod)
+│   ├── web/                # Konfigurasi web
+│   │   └── di/             # DI web (application.php, psr17.php)
+│   └── configuration.php   # Peta plugin yiisoft/config
+├── docs-guide/             # Dokumentasi
 ├── public/                 # Web root
-│   └── index.php           # Application entry point
-├── resources/              # Application resources
-│   └── messages/           # Translation files (en, id)
-├── scripts/                # Skeleton & generator scripts
+│   └── index.php           # Entry point aplikasi
+├── resources/              # Resource aplikasi
+│   └── messages/           # File translasi (en, id)
+├── scripts/                # Script skeleton & generator
 │   ├── skeleton-update.php
 │   ├── skeleton-copy-config.php
 │   ├── skeleton-copy-examples.php
 │   ├── skeleton-generate-module.php
-│   └── skeleton.version    # Current skeleton version
+│   └── skeleton.version    # Versi skeleton saat ini
 ├── src/                    # Source code
-│   ├── Api/                # API layer
-│   │   ├── IndexAction.php # GET / action
-│   │   ├── Shared/         # Shared API components (ResponseFactory, presenters)
-│   │   └── V1/             # API version 1 (Example, AnotherExample)
-│   ├── Application/        # Application layer
-│   │   ├── Example/        # Application services, commands, DTOs
-│   │   └── Shared/         # Shared application components (factories)
-│   ├── Console/            # Console commands (hello, migrate:module, seed)
-│   ├── Domain/             # Domain layer
-│   │   ├── Example/        # Domain entities, repository contracts, services
-│   │   └── Shared/         # Shared domain components
-│   ├── Infrastructure/     # Infrastructure layer
-│   │   ├── Common/Persistence/  # Repository implementations
+│   ├── Api/                # Layer API
+│   │   ├── IndexAction.php # Action GET /
+│   │   ├── Shared/         # Komponen API bersama (ResponseFactory, presenters)
+│   │   └── V1/             # API versi 1 (Example, AnotherExample)
+│   ├── Application/        # Layer Application
+│   │   ├── Example/        # Application service, command, DTO
+│   │   └── Shared/         # Komponen application bersama (factory)
+│   ├── Console/            # Console command (hello, migrate:module, seed)
+│   ├── Domain/             # Layer Domain
+│   │   ├── Example/        # Entity domain, kontrak repository, service
+│   │   └── Shared/         # Komponen domain bersama
+│   ├── Infrastructure/     # Layer Infrastructure
+│   │   ├── Common/Persistence/  # Implementasi repository
 │   │   └── Core/           # Audit, Clock, Database, Monitoring, Security, Seeder, Time
-│   ├── Migration/          # Migrations, grouped per module namespace
-│   ├── Seeder/             # Seeders, YAML fixtures, Faker providers
-│   ├── Shared/             # Shared utilities (middleware, exceptions, value objects)
-│   ├── Environment.php     # APP_ENV handling (dev/test/prod)
-│   └── bootstrap.php       # Bootstrap: loads vendor autoload + .env
-├── tests/                  # Codeception test suites
-│   ├── Api/                # API tests (REST module)
-│   ├── Console/            # Console tests
-│   ├── Functional/         # Functional tests
-│   ├── Support/            # Test support classes
-│   └── Unit/               # Unit tests
+│   ├── Migration/          # Migration, dikelompokkan per namespace modul
+│   ├── Seeder/             # Seeder, fixture YAML, provider Faker
+│   ├── Shared/             # Utility bersama (middleware, exception, value object)
+│   ├── Environment.php     # Penanganan APP_ENV (dev/test/prod)
+│   └── bootstrap.php       # Bootstrap: load vendor autoload + .env
+├── tests/                  # Test suite Codeception
+│   ├── Api/                # Test API (REST module)
+│   ├── Console/            # Test console
+│   ├── Functional/         # Test functional
+│   ├── Support/            # Kelas pendukung test
+│   └── Unit/               # Unit test
 ├── quality                 # QA runner (quality:check, test:run)
-├── yii                     # Console entry point
+├── yii                     # Entry point console
 └── vendor/                 # Dependencies
 ```
 
 ---
 
-## 🔧 Configuration
+## 🔧 Konfigurasi
 
-### Environment Setup
+### Setup Environment
 
-#### 1. Copy Environment Files
+#### 1. Salin File Environment
 
 ```bash
-# Copy environment configuration
+# Salin konfigurasi environment
 cp .env.example .env
 ```
 
-#### 2. Configure Environment
+#### 2. Konfigurasi Environment
 
-Edit `.env` file:
+Edit file `.env`:
 
 ```bash
 # Application Environment
@@ -204,6 +204,9 @@ app.cors.allowedMethods=["GET","POST","PUT","PATCH","DELETE","OPTIONS"]
 app.cors.allowedHeaders=["Content-Type","Authorization","X-Requested-With","Accept","Origin"]
 app.cors.exposedHeaders=["X-Pagination-Total-Count","X-Pagination-Page-Count"]
 app.trusted_hosts.allowedHosts=["127.0.0.1","::1","localhost"]
+
+# Service Token auth (opt-in): opaque bearer via tabel service_tokens
+app.service_token.enabled=false
 
 # Optimistic Lock Configuration
 app.optimistic_lock.enabled=true
@@ -238,82 +241,82 @@ redis.default.password=null
 #### 3. Database Migration
 
 ```bash
-# Run database migrations
+# Jalankan migration
 ./yii migrate:up
 
-# Or per module (e.g. only App\Migration\Example)
+# Atau per modul (mis. hanya App\Migration\Example)
 ./yii migrate:module example
 
-# Seed initial data (development only)
+# Seed data awal (hanya development)
 ./yii seed --module=example
 
-# Or seed all modules with a custom count (development only)
+# Atau seed semua modul dengan jumlah custom (hanya development)
 ./yii seed --count=10
 
-# Note: Seed commands only work in development environment (APP_ENV=dev)
+# Catatan: command seed hanya jalan di environment development (APP_ENV=dev)
 ```
 
 ---
 
-## 🎯 Development Workflow
+## 🎯 Workflow Development
 
 ### Quality Assurance
 
-The skeleton includes comprehensive quality assurance tools:
+Skeleton menyertakan tool quality assurance lengkap:
 
 ```bash
-# Run complete quality check suite (php-cs-fixer, psalm, codecept Unit, composer audit)
+# Jalankan quality check lengkap (php-cs-fixer, psalm, codecept Unit, composer audit)
 php quality quality:check
 
-# Auto-fix code style issues
+# Auto-fix masalah code style
 php quality quality:check --fix
 
-# Generate test coverage reports
+# Generate laporan coverage test
 php quality quality:check --coverage
 
-# Generate detailed analysis reports
+# Generate laporan analisis detail
 php quality quality:check --report
 ```
 
 ### Testing
 
 ```bash
-# Run all Codeception suites (Unit, Functional, Api, Console)
-composer test            # alias for `codecept run`
+# Jalankan semua suite Codeception (Unit, Functional, Api, Console)
+composer test            # alias untuk `codecept run`
 vendor/bin/codecept run
 
-# Run a specific suite
+# Jalankan suite tertentu
 vendor/bin/codecept run Unit
 vendor/bin/codecept run Functional
 vendor/bin/codecept run Api
 vendor/bin/codecept run Console
 
-# Or through the quality script
+# Atau lewat quality script
 php quality test:run --unit
-php quality test:run --integration   # runs the Functional suite
+php quality test:run --integration   # menjalankan suite Functional
 php quality test:run --coverage
 ```
 
 ### Static Analysis
 
 ```bash
-# Run Psalm static analysis
+# Jalankan static analysis Psalm
 vendor/bin/psalm
 
-# Clear cache and re-run
+# Bersihkan cache lalu jalankan ulang
 vendor/bin/psalm --clear-cache
 
-# Check specific file
+# Cek file tertentu
 vendor/bin/psalm src/Domain/Example/Entity/Example.php
 ```
 
 ---
 
-## 🏗️ Architecture Components
+## 🏗️ Komponen Arsitektur
 
 ### Domain Layer
 
-The domain layer contains business logic and entities:
+Domain layer berisi business logic dan entity:
 
 ```php
 // src/Domain/Example/Entity/Example.php
@@ -340,7 +343,7 @@ final class Example
 
 ### Application Layer
 
-Application services coordinate use cases:
+Application service mengoordinasi use case:
 
 ```php
 // src/Application/Example/ExampleApplicationService.php
@@ -365,7 +368,7 @@ final class ExampleApplicationService
 
 ### Infrastructure Layer
 
-Repository implementations handle data persistence:
+Implementasi repository menangani persistensi data:
 
 ```php
 // src/Infrastructure/Common/Persistence/Example/ExampleRepository.php
@@ -373,14 +376,14 @@ final class ExampleRepository implements ExampleRepositoryInterface
 {
     public function insert(Example $example): Example
     {
-        // Database operations with MongoDB sync / optimistic locking
+        // Operasi database dengan MongoDB sync / optimistic locking
     }
 }
 ```
 
 ### API Layer
 
-Actions handle HTTP requests:
+Action menangani HTTP request:
 
 ```php
 // src/Api/V1/Example/Action/ExampleCreateAction.php
@@ -403,20 +406,20 @@ final class ExampleCreateAction
 
 ---
 
-## 🔒 Security Features
+## 🔒 Fitur Security
 
 ### Authentication & Authorization
 
-The middleware stack is assembled in `config/web/di/application.php`:
+Middleware stack dirangkai di `config/web/di/application.php`:
 
 ```php
-// JWT authentication and RBAC access control run as middleware
+// Authentication JWT dan access control RBAC berjalan sebagai middleware
 JwtMiddleware::class,      // App\Presentation\Core\Http\Middleware\JwtMiddleware
 // ...
 AccessMiddleware::class,   // App\Presentation\Core\Http\Middleware\AccessMiddleware
 ```
 
-Authorization checks go through `AuthorizerInterface` (bound to `App\Infrastructure\Core\Security\RbacAuthorizer` in `config/common/di/security-di.php`), with the permission map in `config/common/access.php`.
+Pengecekan authorization lewat `AuthorizerInterface` (di-bind ke `App\Infrastructure\Core\Security\RbacAuthorizer` di `config/common/di/security-di.php`), dengan permission map di `config/common/access.php`.
 
 ### Input Validation
 
@@ -444,14 +447,14 @@ final class DatabaseAuditService implements AuditServiceInterface
         ?string $ipAddress = null,
         ?string $userAgent = null,
     ): void {
-        // Writes to the audit_logs table with actor information
+        // Menulis ke tabel audit_logs dengan info actor
     }
 }
 ```
 
 ---
 
-## 🚀 API Usage Examples
+## 🚀 Contoh Penggunaan API
 
 ### Create Resource
 
@@ -468,7 +471,7 @@ curl -X POST http://localhost:8080/v1/example/create \
   }'
 ```
 
-### List Resources
+### List Resource
 
 ```bash
 curl -X GET "http://localhost:8080/v1/example?page=1&pageSize=10&sort=name&dir=asc" \
@@ -494,39 +497,39 @@ curl -X DELETE http://localhost:8080/v1/example/1 \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-Routes are declared in `config/common/routes.php` (group `/v1`, e.g. `GET /v1/example`, `POST /v1/example/create`, `PUT /v1/example/{id}`, `DELETE /v1/example/{id}`, `POST /v1/example/{id}/restore`).
+Route dideklarasikan di `config/common/routes.php` (group `/v1`, mis. `GET /v1/example`, `POST /v1/example/create`, `PUT /v1/example/{id}`, `DELETE /v1/example/{id}`, `POST /v1/example/{id}/restore`).
 
 ---
 
-## 🐳 Docker Development
+## 🐳 Development dengan Docker
 
-The `Makefile` wraps `docker compose` with the files in `docker/` (`compose.yml` plus `dev/`, `test/`, `prod/` overrides).
+`Makefile` membungkus `docker compose` dengan file di `docker/` (`compose.yml` plus override `dev/`, `test/`, `prod/`).
 
-### Development Environment
+### Environment Development
 
 ```bash
-# Start development containers
+# Jalankan container development
 make up
 
-# Get a shell / run commands in the app container
+# Dapatkan shell / jalankan command di container app
 make shell
 make yii migrate:up
 make yii seed
 
-# Other helpers
-make composer <args>                  # run Composer in the container
-make cs-fix                           # run PHP CS Fixer
-make psalm                            # run Psalm
-make rector                           # run Rector
-make test                             # run Codeception in the test stack
-make test-coverage                    # tests with coverage
-make composer-dependency-analyser     # dependency analysis
+# Helper lain
+make composer <args>                  # jalankan Composer di container
+make cs-fix                           # jalankan PHP CS Fixer
+make psalm                            # jalankan Psalm
+make rector                           # jalankan Rector
+make test                             # jalankan Codeception di stack test
+make test-coverage                    # test dengan coverage
+make composer-dependency-analyser     # analisis dependency
 ```
 
-### Production Environment
+### Environment Production
 
 ```bash
-# Build and push the production image, then deploy the stack
+# Build dan push image production, lalu deploy stack
 make prod-build
 make prod-push
 make prod-deploy
@@ -534,57 +537,57 @@ make prod-deploy
 
 ---
 
-## 📚 Documentation
+## 📚 Dokumentasi
 
-### Available Documentation
+### Dokumentasi yang Tersedia
 
-- **[Architecture Guide](architecture-guide.md)**: Complete architecture overview
-- **[Quality Guide](quality-guide.md)**: Quality assurance procedures
-- **[Input Validator Guide](../docs/input-validator-guide.md)**: Request validation guide
-- **[Sync Flag Guide](../docs/sync-flag-guide.md)**: `sync_flag` / `sync_mdb` field semantics
-- **Postman collection**: `docs/Yii3-API.postman_collection.json`
+- **[Architecture Guide](02-architecture-guide.md)**: Gambaran arsitektur lengkap
+- **[Quality Guide](21-quality-guide.md)**: Prosedur quality assurance
+- **[Input Validator Guide](08-input-validator-guide.md)**: Panduan validasi request
+- **[Sync Flag Guide](22-sync-flag-guide.md)**: Semantik field `sync_flag` / `sync_mdb`
+- **Postman collection**: `docs-guide/Yii3-API.postman_collection.json`
 
-### Generating Reports
+### Generate Laporan
 
 ```bash
-# Generate coverage reports
+# Generate laporan coverage
 php quality quality:check --coverage
 
-# Generate quality reports
+# Generate laporan quality
 php quality quality:check --report
 ```
 
 ---
 
-## 🧪 Testing Strategy
+## 🧪 Strategi Testing
 
-### Test Types
+### Tipe Test
 
-The project uses **Codeception** (`codeception.yml`, `composer test` → `codecept run`) with these suites:
+Project memakai **Codeception** (`codeception.yml`, `composer test` → `codecept run`) dengan suite:
 
-1. **Unit** (`tests/Unit`): Test individual classes and methods
-2. **Functional** (`tests/Functional`): Test application workflows
-3. **Api** (`tests/Api`): Test API endpoints via the REST module (starts `composer serve` on `http://127.0.0.1:8080`)
-4. **Console** (`tests/Console`): Test console commands via the Cli module
+1. **Unit** (`tests/Unit`): Test class dan method individual
+2. **Functional** (`tests/Functional`): Test workflow aplikasi
+3. **Api** (`tests/Api`): Test endpoint API via REST module (menjalankan `composer serve` di `http://127.0.0.1:8080`)
+4. **Console** (`tests/Console`): Test console command via Cli module
 
-### Running Tests
+### Menjalankan Test
 
 ```bash
-# Run all tests
+# Jalankan semua test
 composer test
 
-# Run a single suite or test
+# Jalankan satu suite atau test
 vendor/bin/codecept run Unit
 vendor/bin/codecept run Unit tests/Unit/Domain/Example/ExampleTest.php
 
-# Run with coverage
+# Jalankan dengan coverage
 vendor/bin/codecept run --coverage-html
 ```
 
-### Test Examples
+### Contoh Test
 
 ```php
-// Unit Test Example (tests/Unit)
+// Contoh Unit Test (tests/Unit)
 final class ExampleTest extends \Codeception\Test\Unit
 {
     public function testCreateExample(): void
@@ -600,7 +603,7 @@ final class ExampleTest extends \Codeception\Test\Unit
     }
 }
 
-// API Test Example (tests/Api)
+// Contoh API Test (tests/Api)
 final class ExampleApiCest
 {
     public function testCreateExample(ApiTester $I): void
@@ -620,9 +623,9 @@ final class ExampleApiCest
 
 ## 📊 Monitoring & Logging
 
-### Application Logging
+### Logging Aplikasi
 
-Logging goes through `Psr\Log\LoggerInterface` (bound to `Yiisoft\Log\Logger` with file/stream/security targets in `config/common/di/logger.php`):
+Logging lewat `Psr\Log\LoggerInterface` (di-bind ke `Yiisoft\Log\Logger` dengan target file/stream/security di `config/common/di/logger.php`):
 
 ```php
 // Structured logging
@@ -636,8 +639,8 @@ $this->logger->info('User created example', [
 ### Performance Monitoring
 
 ```php
-// Performance metrics are collected by MetricsMiddleware / CustomMonitoringService
-// (see src/Infrastructure/Core/Monitoring and the app/monitoring params group)
+// Metrik performa dikumpulkan oleh MetricsMiddleware / CustomMonitoringService
+// (lihat src/Infrastructure/Core/Monitoring dan params group app/monitoring)
 $startTime = microtime(true);
 $result = $this->complexOperation();
 $duration = (microtime(true) - $startTime) * 1000;
@@ -663,12 +666,12 @@ try {
 
 ## 🚀 Deployment
 
-### Production Deployment
+### Deployment Production
 
-#### 1. Environment Setup
+#### 1. Setup Environment
 
 ```bash
-# Set production environment (valid values: dev, test, prod)
+# Set environment production (nilai valid: dev, test, prod)
 export APP_ENV=prod
 export APP_DEBUG=0
 ```
@@ -676,31 +679,31 @@ export APP_DEBUG=0
 #### 2. Dependencies
 
 ```bash
-# Install production dependencies
+# Install dependency production
 composer install --no-dev --optimize-autoloader
 ```
 
 #### 3. Database
 
 ```bash
-# Run migrations without interactive confirmation
+# Jalankan migration tanpa konfirmasi interaktif
 ./yii migrate:up --force-yes
 ```
 
-#### 4. Docker Deployment
+#### 4. Deployment Docker
 
 ```bash
-# Build the production image
+# Build image production
 make prod-build
 
-# Push and deploy
+# Push dan deploy
 make prod-push
 make prod-deploy
 ```
 
 ### CI/CD Pipeline
 
-#### GitHub Actions Example
+#### Contoh GitHub Actions
 
 ```yaml
 name: Deploy to Production
@@ -719,112 +722,111 @@ jobs:
       - run: php yii migrate:up --force-yes
       - name: Deploy to production
         run: |
-          # Deployment commands
+          # Command deployment
 ```
 
 ---
 
 ## 🔧 Maintenance
 
-### Regular Tasks
+### Tugas Rutin
 
-#### Weekly
-- Update dependencies: `composer update`
-- Run quality checks: `php quality quality:check`
-- Review test coverage trends
-- Check security advisories: `composer audit`
+#### Mingguan
+- Update dependency: `composer update`
+- Jalankan quality check: `php quality quality:check`
+- Review tren coverage test
 
-#### Monthly
-- Review and update quality configuration
-- Update coding standards
-- Add new quality checks as needed
-- Performance optimization review
+#### Bulanan
+- Review dan update konfigurasi quality
+- Update coding standard
+- Tambahkan quality check baru bila perlu
+- Review optimasi performa
 
-#### Quarterly
-- Major dependency updates
-- Quality gate threshold reviews
-- Tool version upgrades
-- Architecture review meetings
+#### Kuartalan
+- Update dependency mayor
+- Review threshold quality gate
+- Upgrade versi tool
+- Meeting review arsitektur
 
 ### Troubleshooting
 
-#### Common Issues
+#### Masalah Umum
 
 ```bash
-# Clear caches
+# Bersihkan cache
 rm -rf runtime/cache/*
 vendor/bin/psalm --clear-cache
 
-# Reinstall dependencies
+# Install ulang dependency
 composer install --no-dev --optimize-autoloader
 
-# Check console configuration / available commands
+# Cek konfigurasi console / command yang tersedia
 ./yii list
 
-# Verify pending migrations and seeder discovery
+# Verifikasi migration pending dan discovery seeder
 ./yii migrate:new
 ```
 
 ---
 
-## 📞 Support & Resources
+## 📞 Support & Resource
 
-### Documentation
+### Dokumentasi
 
-- **[Yii3 Documentation](https://www.yiiframework.com/doc/guide/)**: Official Yii3 guide
-- **[Psalm Documentation](https://psalm.dev/)**: Static analysis tool
-- **[PHPUnit Documentation](https://phpunit.de/)**: Testing framework
+- **[Dokumentasi Yii3](https://www.yiiframework.com/doc/guide/)**: Guide resmi Yii3
+- **[Dokumentasi Psalm](https://psalm.dev/)**: Tool static analysis
+- **[Dokumentasi PHPUnit](https://phpunit.de/)**: Testing framework
 
-### Community
+### Komunitas
 
-- **[Yii3 GitHub](https://github.com/yiisoft/app)**: Official repository
-- **[Yii3 Discord](https://discord.gg/yiisoft)**: Community chat
+- **[Yii3 GitHub](https://github.com/yiisoft/app)**: Repository resmi
+- **[Yii3 Discord](https://discord.gg/yiisoft)**: Chat komunitas
 - **[Stack Overflow](https://stackoverflow.com/questions/tagged/yii3)**: Q&A
 
-### Quality Tools
+### Quality Tool
 
-- **[PHP CS Fixer](https://cs.symfony.com/)**: Code style fixer
+- **[PHP CS Fixer](https://cs.symfony.com/)**: Fixer code style
 - **[Composer Audit](https://github.com/composer/composer/blob/main/src/Composer/Command/AuditCommand.php)**: Security audit
 - **[Codeception](https://codeception.com/)**: Testing framework
 
 ---
 
-## 🎯 Best Practices
+## 🎯 Best Practice
 
-### Code Quality
+### Kualitas Kode
 
-- **Type Safety**: Always use strict types and type annotations
-- **Error Handling**: Implement proper exception handling
-- **Testing**: Maintain high test coverage (>80%)
-- **Documentation**: Keep documentation up-to-date
+- **Type Safety**: Selalu pakai strict types dan type annotation
+- **Error Handling**: Implementasikan exception handling yang benar
+- **Testing**: Jaga coverage test tinggi (>80%)
+- **Dokumentasi**: Jaga dokumentasi tetap up-to-date
 
 ### Security
 
-- **Input Validation**: Validate all user inputs
-- **Authentication**: Use JWT tokens for API authentication
-- **Authorization**: Implement RBAC for access control
-- **Audit Trail**: Log all important operations
+- **Input Validation**: Validasi semua input user
+- **Authentication**: Pakai JWT token untuk autentikasi API
+- **Authorization**: Implementasikan RBAC untuk access control
+- **Audit Trail**: Log semua operasi penting
 
-### Performance
+### Performa
 
-- **Database Optimization**: Use proper indexes and query optimization
-- **Caching**: Implement multi-level caching strategy
-- **Async Processing**: Use queues for long-running operations
-- **Monitoring**: Monitor application performance
+- **Optimasi Database**: Pakai index dan optimasi query yang tepat
+- **Caching**: Implementasikan strategi caching multi-level
+- **Async Processing**: Pakai queue untuk operasi long-running
+- **Monitoring**: Monitor performa aplikasi
 
 ---
 
-## 🎉 Conclusion
+## 🎉 Kesimpulan
 
-The Yii3 API Skeleton provides a solid foundation for building modern, scalable, and maintainable RESTful APIs with Domain-Driven Design principles. The included quality assurance tools, comprehensive documentation, and clean architecture patterns ensure that your API development follows best practices from day one.
+Yii3 API Skeleton menyediakan fondasi solid untuk membangun RESTful API modern, scalable, dan maintainable dengan prinsip Domain-Driven Design. Tool quality assurance, dokumentasi komprehensif, dan pola clean architecture yang disertakan memastikan development API kamu mengikuti best practice sejak hari pertama.
 
-Key benefits:
+Manfaat utama:
 
-- **🏗️ Clean Architecture**: DDD principles for maintainable code
-- **🔒 Type Safety**: Full static analysis with Psalm
-- **🧪 Testing Ready**: Complete test suite setup
-- **📊 Quality Assurance**: Automated quality checks
-- **🐳 Docker Ready**: Containerization support
-- **📚 Comprehensive Docs**: Complete documentation included
+- **🏗️ Clean Architecture**: Prinsip DDD untuk kode yang maintainable
+- **🔒 Type Safety**: Static analysis penuh dengan Psalm
+- **🧪 Testing Ready**: Setup test suite lengkap
+- **📊 Quality Assurance**: Quality check otomatis
+- **🐳 Docker Ready**: Dukungan containerization
+- **📚 Dokumentasi Lengkap**: Dokumentasi komplit sudah termasuk
 
-Start building your next API project with confidence using the Yii3 API Skeleton! 🚀
+Mulai bangun project API kamu berikutnya dengan percaya diri memakai Yii3 API Skeleton! 🚀

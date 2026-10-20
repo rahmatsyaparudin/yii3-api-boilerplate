@@ -32,7 +32,7 @@ Catatan perubahan per versi skeleton (`scripts/skeleton.version`).
     adanya.
   - `resources/messages/{en,id}/error.php` — key `service_token.duplicate`
     (ikut skeleton, tersinkron via `skeleton:update`).
-  - `docs/system_service-token.md` — dokumentasi endpoint & middleware.
+  - `docs/23-system_service-token.md` — dokumentasi endpoint & middleware.
 
 ### Changed
 - `config/web/di/application.php` — `ServiceTokenAuthMiddleware`
@@ -62,14 +62,14 @@ Catatan perubahan per versi skeleton (`scripts/skeleton.version`).
   fallback ke default sebelumnya.
 - `.env.example` — block baru "Monitoring & Structured Logging" berisi
   key di atas.
-- `README-SKELETON.md` — section baru "Environment Configuration".
+- `docs-guide/24-skeleton-guide.md` — section baru "Environment Configuration".
 - `composer.json`/`composer.lock` — bump `firebase/php-jwt`,
   `sentry/sentry`, `symfony/console`, `codeception/module-rest`,
   `friendsofphp/php-cs-fixer`, `rector/rector`,
   `roave/infection-static-analysis-plugin`, `vimeo/psalm`.
 - `scripts/skeleton-update.php`, `.dockerignore`,
-  `PROJECT_STRUCTURE.md`, docs-code (application-params, architecture,
-  setup) — penyesuaian mengikuti rename bootstrap.
+  `docs-guide/03-project-structure-guide.md`, docs-code (application-params,
+  architecture, setup) — penyesuaian mengikuti rename bootstrap.
 
 ## [1.2.8] - 2026-09-18
 

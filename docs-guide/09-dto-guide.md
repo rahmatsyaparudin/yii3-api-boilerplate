@@ -1,14 +1,14 @@
-# Data Transfer Objects (Dto) Guide
+# Panduan Data Transfer Objects (Dto)
 
-## 📋 Overview
+## 📋 Gambaran Umum
 
-Data Transfer Objects (DTOs) are simple data structures used to transfer data between processes or layers. In this Yii3 API application, DTOs provide a clean way to structure data for API communication and internal data transfer.
+Data Transfer Objects (DTO) adalah struktur data sederhana yang digunakan untuk mentransfer data antar proses atau layer. Dalam aplikasi Yii3 API ini, DTO menyediakan cara yang bersih untuk menstrukturkan data bagi komunikasi API dan transfer data internal.
 
 ---
 
-## 🏗️ DTO Architecture
+## 🏗️ Arsitektur DTO
 
-### Directory Structure
+### Struktur Direktori
 
 ```
 src/Shared/Core/Dto/
@@ -31,35 +31,35 @@ src/Application/AnotherExample/
     └── AnotherExampleDetailInfo.php   # detail_info payload DTO
 ```
 
-### Design Principles
+### Prinsip Desain
 
 #### **1. **Immutability**
-- DTOs are immutable using PHP 8+ readonly properties
-- Prevents accidental state changes
-- Ensures data integrity
+- DTO bersifat immutable menggunakan readonly properties PHP 8+
+- Mencegah perubahan state yang tidak disengaja
+- Memastikan integritas data
 
 #### **2. **Type Safety**
-- Strong typing with PHP 8+ features
-- Prevents runtime errors
-- Enables IDE auto-completion
+- Strong typing dengan fitur PHP 8+
+- Mencegah runtime error
+- Memungkinkan auto-completion di IDE
 
 #### **3. **Validation**
-- Built-in validation in constructors
-- Type hints enforce data types
-- Optional validation methods
+- Validasi bawaan di constructor
+- Type hint menegakkan tipe data
+- Metode validasi opsional
 
 #### **4. **Serialization**
-- Easy conversion to/from arrays
-- JSON serialization support
-- API response formatting
+- Konversi mudah ke/dari array
+- Dukungan serialisasi JSON
+- Pemformatan respons API
 
 ---
 
-## 📁 DTO Components
+## 📁 Komponen DTO
 
 ### 1. PaginatedResult
 
-**Purpose**: Standardized structure for paginated query results
+**Tujuan**: Struktur standar untuk hasil query terpaginasi
 
 ```php
 <?php
@@ -121,7 +121,7 @@ final readonly class PaginatedResult
 }
 ```
 
-**Usage Example**:
+**Contoh Penggunaan**:
 ```php
 // In repository — ExampleRepository::list()
 return new PaginatedResult(
@@ -153,7 +153,7 @@ return $this->responseFactory->success(
 
 ### 2. SearchCriteria
 
-**Purpose**: Standardized structure for search, filtering, and pagination parameters
+**Tujuan**: Struktur standar untuk parameter pencarian, filtering, dan pagination
 
 ```php
 <?php
@@ -209,9 +209,9 @@ final readonly class SearchCriteria
 }
 ```
 
-`SearchCriteria` is normally not constructed by hand — actions build it through
+`SearchCriteria` biasanya tidak dibuat secara manual — action membangunnya melalui
 `SearchCriteriaFactory` (`src/Application/Shared/Core/Factory/SearchCriteriaFactory.php`)
-from the `RequestParams` payload parsed by `RequestParamsMiddleware`:
+dari payload `RequestParams` yang di-parse oleh `RequestParamsMiddleware`:
 
 ```php
 final class SearchCriteriaFactory
@@ -236,7 +236,7 @@ final class SearchCriteriaFactory
 }
 ```
 
-**Usage Example**:
+**Contoh Penggunaan**:
 ```php
 // In action (see ExampleDataAction)
 /** @var RequestParams $payload */
@@ -271,9 +271,9 @@ $query->orderBy($criteria->getOrderClause())
 
 ---
 
-## 🔧 Integration Patterns
+## 🔧 Pola Integrasi
 
-### 1. **Action Usage**
+### 1. **Penggunaan di Action**
 ```php
 // src/Api/V1/Example/Action/ExampleDataAction.php (simplified)
 final class ExampleDataAction
@@ -317,7 +317,7 @@ final class ExampleDataAction
 }
 ```
 
-### 2. **Service Usage**
+### 2. **Penggunaan di Service**
 ```php
 // src/Application/Example/ExampleApplicationService.php
 public function list(SearchCriteria $criteria): PaginatedResult
@@ -326,7 +326,7 @@ public function list(SearchCriteria $criteria): PaginatedResult
 }
 ```
 
-### 3. **Repository Usage**
+### 3. **Penggunaan di Repository**
 ```php
 // src/Infrastructure/Common/Persistence/Example/ExampleRepository.php (simplified)
 public function list(SearchCriteria $criteria): PaginatedResult
@@ -367,10 +367,10 @@ public function list(SearchCriteria $criteria): PaginatedResult
 }
 ```
 
-### 4. **Application-Layer DTOs (Commands & Responses)**
+### 4. **DTO di Application Layer (Command & Response)**
 
-Commands carry validated input into the application service; response DTOs carry
-entity data back to the API layer:
+Command membawa input yang sudah divalidasi ke application service; response DTO membawa
+data entity kembali ke API layer:
 
 ```php
 // src/Application/Example/Command/CreateExampleCommand.php
@@ -412,8 +412,8 @@ final readonly class ExampleResponse
 }
 ```
 
-`AnotherExample` adds `example_id`, `origin_id` and `sync_flag` to its command/response
-DTOs (see `CreateAnotherExampleCommand`, `AnotherExampleResponse`,
+`AnotherExample` menambahkan `example_id`, `origin_id` dan `sync_flag` pada command/response
+DTO miliknya (lihat `CreateAnotherExampleCommand`, `AnotherExampleResponse`,
 `AnotherExampleDetailInfo`).
 
 ---
@@ -500,33 +500,33 @@ echo json_encode($dto);
 
 ---
 
-## 📊 Performance Considerations
+## 📊 Pertimbangan Performa
 
-### 1. **Memory Usage**
-- DTOs are lightweight and memory-efficient
-- Use readonly properties to prevent copying
-- Avoid unnecessary object creation
+### 1. **Penggunaan Memori**
+- DTO ringan dan efisien dalam penggunaan memori
+- Gunakan readonly properties untuk mencegah penyalinan
+- Hindari pembuatan objek yang tidak perlu
 
-### 2. **Serialization**
-- Implement efficient toArray() methods
-- Use JSON serialization for API responses
-- Cache serialized data when appropriate
+### 2. **Serialisasi**
+- Implementasikan metode toArray() yang efisien
+- Gunakan serialisasi JSON untuk respons API
+- Cache data hasil serialisasi bila diperlukan
 
-### 3. **Validation**
-- Validate in constructor to fail fast
-- Use built-in PHP functions for validation
-- Avoid complex validation logic in DTOs
+### 3. **Validasi**
+- Validasi di constructor agar fail fast
+- Gunakan fungsi bawaan PHP untuk validasi
+- Hindari logika validasi yang kompleks di DTO
 
 ---
 
-## 🎯 Summary
+## 🎯 Ringkasan
 
-DTOs provide a clean, type-safe way to transfer data between layers in the Yii3 API application. Key benefits include:
+DTO menyediakan cara yang bersih dan type-safe untuk mentransfer data antar layer dalam aplikasi Yii3 API. Manfaat utamanya meliputi:
 
-- **🛡️ Type Safety**: Strong typing prevents runtime errors
-- **🔄 Immutability**: Readonly properties ensure data integrity
-- **🧪 Testability**: Easy to unit test with predictable behavior
-- **📦 Modularity**: Each DTO has a single responsibility
-- **🚀 Performance**: Lightweight and efficient data transfer
+- **🛡️ Type Safety**: Strong typing mencegah runtime error
+- **🔄 Immutability**: Readonly properties memastikan integritas data
+- **🧪 Testability**: Mudah di-unit test dengan perilaku yang dapat diprediksi
+- **📦 Modularity**: Setiap DTO memiliki satu tanggung jawab
+- **🚀 Performance**: Transfer data yang ringan dan efisien
 
-By following the patterns and best practices outlined in this guide, you can build robust, maintainable DTOs for your Yii3 API application! 🚀
+Dengan mengikuti pola dan best practice yang diuraikan dalam panduan ini, Anda dapat membangun DTO yang robust dan mudah dipelihara untuk aplikasi Yii3 API Anda! 🚀

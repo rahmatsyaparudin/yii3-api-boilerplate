@@ -1,29 +1,29 @@
-# Application Parameters Guide
+# Panduan Application Parameters
 
-## 📋 Overview
+## 📋 Gambaran Umum
 
-Application parameters provide centralized configuration management for the Yii3 API application. They come in two forms:
+Application parameters menyediakan manajemen konfigurasi terpusat untuk aplikasi Yii3 API. Ada dua bentuk:
 
-1. **`App\Shared\ApplicationParams`** — a small readonly value object exposing basic application info (name, version, language, environment) to services and actions.
-2. **Params groups in `config/common/params.php`** — the larger set of `app/*` and vendor configuration groups populated from `.env`, consumed mainly inside DI definitions via `$params`.
+1. **`App\Shared\ApplicationParams`** — value object readonly kecil yang mengekspos info dasar aplikasi (name, version, language, environment) ke service dan action.
+2. **Params group di `config/common/params.php`** — kumpulan yang lebih besar berisi grup konfigurasi `app/*` dan vendor yang diisi dari `.env`, dikonsumsi terutama di dalam definisi DI via `$params`.
 
-This component ensures consistent parameter access and type safety across the application.
-
----
-
-## 🏗️ Architecture
-
-### Design Principles
-- **Centralization**: Single source of truth — `config/common/params.php` maps `.env` variables to params groups
-- **Type Safety**: Strong typing with PHP 8+ readonly properties (`ApplicationParams`)
-- **Flexibility**: Environment-specific overrides via `config/environments/{dev,test,prod}/params.php`
-- **Performance**: Efficient parameter access with minimal overhead
+Komponen ini memastikan akses parameter yang konsisten dan type safety di seluruh aplikasi.
 
 ---
 
-## 📁 Component: ApplicationParams
+## 🏗️ Arsitektur
 
-`src/Shared/ApplicationParams.php` is a `final readonly` class wired in `config/common/di/application.php`:
+### Prinsip Desain
+- **Centralization**: Single source of truth — `config/common/params.php` memetakan variabel `.env` ke params group
+- **Type Safety**: Pengetikan kuat dengan properti readonly PHP 8+ (`ApplicationParams`)
+- **Flexibility**: Override spesifik environment via `config/environments/{dev,test,prod}/params.php`
+- **Performance**: Akses parameter efisien dengan overhead minimal
+
+---
+
+## 📁 Komponen: ApplicationParams
+
+`src/Shared/ApplicationParams.php` adalah class `final readonly` yang di-wire di `config/common/di/application.php`:
 
 ```php
 namespace App\Shared;
@@ -40,7 +40,7 @@ final readonly class ApplicationParams
 }
 ```
 
-### DI Definition
+### Definisi DI
 
 ```php
 // config/common/di/application.php
@@ -63,9 +63,9 @@ return [
 ];
 ```
 
-`$params['application']` comes from `config/common/application.php`, which reads `app.config.name`, `app.config.version` and `app.config.language` from `.env`.
+`$params['application']` berasal dari `config/common/application.php`, yang membaca `app.config.name`, `app.config.version` dan `app.config.language` dari `.env`.
 
-### Usage Example
+### Contoh Penggunaan
 
 ```php
 // src/Api/IndexAction.php
@@ -92,11 +92,11 @@ final class IndexAction
 
 ---
 
-## ⚙️ Params Groups (`config/common/params.php`)
+## ⚙️ Params Group (`config/common/params.php`)
 
-Instead of a fat `ApplicationParams` API, the project exposes domain-specific params groups. DI files and config closures read them via `$params['group']['key']`:
+Alih-alih API `ApplicationParams` yang gemuk, proyek ini mengekspos params group spesifik domain. File DI dan closure config membacanya via `$params['group']['key']`:
 
-| Group | Keys | Source (.env) |
+| Group | Keys | Sumber (.env) |
 |-------|------|---------------|
 | `application` | `name`, `version`, `language` | `app.config.*` |
 | `yiisoft/aliases` | `aliases` (from `common/aliases.php`) | — |
@@ -118,13 +118,13 @@ Instead of a fat `ApplicationParams` API, the project exposes domain-specific pa
 | `app/monitoring` | `provider`, `log_file`, `request_id_header`, `logging`, `metrics`, `error_monitoring` | (hardcoded) |
 | `app/enter-md` | `baseUrl`, `secret`, `algorithm`, `serviceUsername` | `app.md.*` |
 
-JSON-encoded env values (e.g. `app.cors.allowedOrigins=["http://example.com:3000"]`) are decoded at the top of `params.php`.
+Nilai env ber-encode JSON (mis. `app.cors.allowedOrigins=["http://example.com:3000"]`) di-decode di bagian atas `params.php`.
 
-### Environment Overrides
+### Environment Override
 
-Per-environment overrides live in `config/environments/{dev,test,prod}/params.php` (e.g. `dev/params.php` sets `traceLink` for IDE links in the error renderer). They are merged by `config/configuration.php` based on `APP_ENV` (valid values: `dev`, `test`, `prod` — enforced by `App\Environment`).
+Override per environment berada di `config/environments/{dev,test,prod}/params.php` (mis. `dev/params.php` mengatur `traceLink` untuk link IDE di error renderer). File-file ini digabung oleh `config/configuration.php` berdasarkan `APP_ENV` (nilai valid: `dev`, `test`, `prod` — ditegakkan oleh `App\Environment`).
 
-### Environment Detection
+### Deteksi Environment
 
 ```php
 use App\Environment;
@@ -137,9 +137,9 @@ Environment::appDebug();
 
 ---
 
-## 🔧 Integration Examples
+## 🔧 Contoh Integrasi
 
-### Action Usage
+### Penggunaan di Action
 ```php
 final class IndexAction
 {
@@ -155,7 +155,7 @@ final class IndexAction
 }
 ```
 
-### DI Definition Usage
+### Penggunaan di Definisi DI
 ```php
 // Params groups are consumed inside DI definitions, not via ApplicationParams
 return [
@@ -171,7 +171,7 @@ return [
 ];
 ```
 
-### Service Usage
+### Penggunaan di Service
 ```php
 final class ExampleService
 {
@@ -190,9 +190,9 @@ final class ExampleService
 
 ---
 
-## 🚀 Best Practices
+## 🚀 Praktik Terbaik
 
-### Parameter Access
+### Akses Parameter
 ```php
 // ✅ Inject ApplicationParams for app info (name/version/language/environment)
 $version = $this->params->version;
@@ -206,13 +206,13 @@ if (Environment::isDev()) {
 }
 ```
 
-### Configuration
+### Konfigurasi
 ```php
 // ✅ Environment-based: .env → params.php → $params groups
 // ✅ Per-environment overrides: config/environments/{dev,test,prod}/params.php
 ```
 
-### Adding a New Params Group
+### Menambahkan Params Group Baru
 ```php
 // 1. Map env vars in config/common/params.php
 'app/my-feature' => [
@@ -227,24 +227,24 @@ MyMiddleware::class => static fn () => new MyMiddleware(
 
 ---
 
-## 📊 Performance Considerations
+## 📊 Pertimbangan Performa
 
-- **Initialization**: `params.php` is evaluated once by yiisoft/config and merged into the container
-- **Memory Usage**: `ApplicationParams` is a single readonly instance shared via DI
-- **Access Speed**: Direct property access with minimal overhead
-- **Configuration**: Environment variables loaded once at startup (`src/bootstrap.php` loads `.env`)
+- **Initialization**: `params.php` dievaluasi sekali oleh yiisoft/config dan digabung ke dalam container
+- **Penggunaan Memori**: `ApplicationParams` adalah instance readonly tunggal yang dibagikan via DI
+- **Kecepatan Akses**: Akses properti langsung dengan overhead minimal
+- **Konfigurasi**: Variabel environment dimuat sekali saat startup (`src/bootstrap.php` memuat `.env`)
 
 ---
 
-## 🎯 Summary
+## 🎯 Ringkasan
 
-Application parameters provide centralized, type-safe configuration management with key benefits:
+Application parameters menyediakan manajemen konfigurasi terpusat dan type-safe dengan manfaat utama:
 
-- **🎯 Centralization**: Single source of truth in `config/common/params.php`
-- **🛡️ Type Safety**: `App\Shared\ApplicationParams` readonly properties prevent configuration errors
-- **🔄 Immutability**: Readonly properties ensure consistency
-- **🌐 Environment Support**: `APP_ENV` + `environments/*/params.php` for environment-specific configuration
-- **📦 Integration**: Seamless DI integration through `$params` groups
-- **⚡ Performance**: Fast access with minimal overhead
+- **🎯 Centralization**: Single source of truth di `config/common/params.php`
+- **🛡️ Type Safety**: Properti readonly `App\Shared\ApplicationParams` mencegah kesalahan konfigurasi
+- **🔄 Immutability**: Properti readonly memastikan konsistensi
+- **🌐 Environment Support**: `APP_ENV` + `environments/*/params.php` untuk konfigurasi spesifik environment
+- **📦 Integration**: Integrasi DI yang mulus melalui `$params` group
+- **⚡ Performance**: Akses cepat dengan overhead minimal
 
-By following these patterns, you can build robust, maintainable configuration management for your Yii3 API application! 🚀
+Dengan mengikuti pola-pola ini, Anda dapat membangun manajemen konfigurasi yang robust dan mudah dipelihara untuk aplikasi Yii3 API Anda! 🚀

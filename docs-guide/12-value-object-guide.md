@@ -1,14 +1,14 @@
-# Value Objects Guide
+# Panduan Value Object
 
-## 📋 Overview
+## 📋 Gambaran Umum
 
-Value Objects provide immutable, type-safe representations of domain concepts with built-in validation. In this Yii3 API application, Value Objects ensure data integrity and prevent invalid states.
+Value Object menyediakan representasi konsep domain yang immutable dan type-safe dengan validasi bawaan. Pada aplikasi Yii3 API ini, Value Object memastikan integritas data dan mencegah state yang tidak valid.
 
 ---
 
-## 🏗️ Value Object Architecture
+## 🏗️ Arsitektur Value Object
 
-### Directory Structure
+### Struktur Direktori
 
 ```
 src/Shared/Core/ValueObject/
@@ -27,38 +27,38 @@ src/Domain/Shared/Core/Enum/
 └── SyncDirection.php      # Sync direction enum (NONE/MASTER_TO_ORIGIN/ORIGIN_TO_MASTER/BIDIRECTIONAL)
 ```
 
-### Design Principles
+### Prinsip Desain
 
 #### **1. **Immutability**
-- Readonly properties prevent modification
-- No setter methods
-- Safe sharing across the application
+- Properti readonly mencegah modifikasi
+- Tidak ada method setter
+- Aman dibagikan ke seluruh aplikasi
 
 #### **2. **Type Safety**
-- Strong typing with PHP 8+ features
-- Validation in constructors
-- Compile-time error detection
+- Strong typing dengan fitur PHP 8+
+- Validasi di constructor
+- Deteksi error pada compile-time
 
 #### **3. **Value Semantics**
-- Equality based on values, not identity
-- No side effects
-- Predictable behavior
+- Kesetaraan berdasarkan nilai, bukan identitas
+- Tidak ada side effect
+- Perilaku yang dapat diprediksi
 
 #### **4. **Validation**
-- Built-in validation logic
-- Fail-fast construction
-- Meaningful error messages
+- Logika validasi bawaan
+- Konstruksi fail-fast
+- Pesan error yang bermakna
 
 ---
 
-## 📁 Value Object Components
+## 📁 Komponen Value Object
 
 ### 1. Message
 
-**Purpose**: Translation message value object with localization support.
-Carries a translation `key`, `params`, and an optional `domain` (message file:
-`error`, `success`, `validation`, `app`). The translator resolves it inside
-`ResponseFactory` and the HTTP exceptions.
+**Tujuan**: Value object pesan terjemahan dengan dukungan lokalisasi.
+Membawa `key` terjemahan, `params`, dan `domain` opsional (file pesan:
+`error`, `success`, `validation`, `app`). Translator me-resolve-nya di dalam
+`ResponseFactory` dan HTTP exception.
 
 ```php
 <?php
@@ -101,7 +101,7 @@ final readonly class Message
 }
 ```
 
-**Usage Example**:
+**Contoh Penggunaan**:
 ```php
 // Simple message (domain defaults to 'success' in ResponseFactory::success,
 // 'error' in ResponseFactory::fail, or the exception's default)
@@ -137,8 +137,8 @@ return $this->responseFactory->success(
 
 ### 2. LockVersion
 
-**Purpose**: Optimistic-locking version stored in the `lock_version` column.
-Entities expose it via `getLockVersion()` (provided by the `Identifiable` trait).
+**Tujuan**: Versi optimistic-locking yang disimpan di kolom `lock_version`.
+Entity mengeksposnya melalui `getLockVersion()` (disediakan oleh trait `Identifiable`).
 
 ```php
 use App\Domain\Shared\Core\ValueObject\LockVersion;
@@ -155,16 +155,16 @@ $version->equals($other);        // value comparison
 $version->isGreaterThan($other);
 ```
 
-Repositories verify/increment it through the `ManagesPersistence` trait
-(`verifyLockVersion()`, `upgradeEntityLockVersion()`), driven by the
-`app/optimisticLock` params and `LockVersionConfig` (`src/Shared/Core/ValueObject/`).
+Repository memverifikasi/menambahnya melalui trait `ManagesPersistence`
+(`verifyLockVersion()`, `upgradeEntityLockVersion()`), yang digerakkan oleh
+params `app/optimisticLock` dan `LockVersionConfig` (`src/Shared/Core/ValueObject/`).
 
 ---
 
 ### 3. SyncMdb
 
-**Purpose**: MongoDB sync marker for the `sync_mdb` column —
-`null` = synced, `1` = pending.
+**Tujuan**: Penanda sinkronisasi MongoDB untuk kolom `sync_mdb` —
+`null` = tersinkron, `1` = pending.
 
 ```php
 use App\Domain\Shared\Core\ValueObject\SyncMdb;
@@ -183,15 +183,15 @@ $syncMdb->isNull();        // same as isSynced()
 $syncMdb->equals($other);
 ```
 
-The `HasMongoDBSync` repository trait sets `SyncMdb::pending()` when the MongoDB
-write fails and `SyncMdb::synced()` when it succeeds.
+Trait repository `HasMongoDBSync` mengatur `SyncMdb::pending()` saat penulisan
+MongoDB gagal dan `SyncMdb::synced()` saat berhasil.
 
 ---
 
-### 4. SyncFlag (+ SyncStatus / SyncDirection enums)
+### 4. SyncFlag (+ enum SyncStatus / SyncDirection)
 
-**Purpose**: Master/origin sync state for entities such as `AnotherExample`
-(columns `origin_id` + `sync_flag`). Replaces the former `SyncSlave` value object.
+**Tujuan**: State sinkronisasi master/origin untuk entity seperti `AnotherExample`
+(kolom `origin_id` + `sync_flag`). Menggantikan value object `SyncSlave` lama.
 
 ```php
 use App\Domain\Shared\Core\ValueObject\SyncFlag;
@@ -238,7 +238,7 @@ $flag->toDbArray();            // origin_id + sync_flag only (for persistence)
 $flag->equals($other);
 ```
 
-The enums (both in `App\Domain\Shared\Core\Enum`):
+Kedua enum (keduanya di `App\Domain\Shared\Core\Enum`):
 
 ```php
 // Pure enum — DB value for the sync_flag column
@@ -257,17 +257,17 @@ SyncDirection::fromValue(3);            // SyncDirection::BIDIRECTIONAL (throws 
 $direction->label();                    // 'Master to Origin', ...
 ```
 
-In application code, build `SyncFlag` through `SyncFlagFactory`
-(`src/Application/Shared/Core/Factory/SyncFlagFactory.php`), which accepts raw
-values and also offers `buildPayload()`, `buildSyncLog()`, `mergeIntoDetailInfo()`,
-`shouldPushToOrigin()` / `shouldPushToMaster()` helpers.
+Dalam kode aplikasi, bangun `SyncFlag` melalui `SyncFlagFactory`
+(`src/Application/Shared/Core/Factory/SyncFlagFactory.php`), yang menerima nilai
+mentah dan juga menawarkan helper `buildPayload()`, `buildSyncLog()`, `mergeIntoDetailInfo()`,
+`shouldPushToOrigin()` / `shouldPushToMaster()`.
 
 ---
 
 ### 5. ResourceStatus
 
-**Purpose**: Rich status value object wrapping the `RecordStatus` enum —
-encapsulates state checks and transition rules instead of raw integers.
+**Tujuan**: Value object status yang kaya yang membungkus enum `RecordStatus` —
+mengenkapsulasi pemeriksaan state dan aturan transisi alih-alih integer mentah.
 
 ```php
 use App\Domain\Shared\Core\ValueObject\ResourceStatus;
@@ -300,8 +300,8 @@ $status->toArray();        // ['value' => ..., 'name' => ..., 'label' => ...]
 
 ### 6. DetailInfo
 
-**Purpose**: Generic JSON `detail_info` payload with built-in `change_log`
-audit fields (created/updated/deleted/restored/approved/rejected at+by).
+**Tujuan**: Payload JSON `detail_info` generik dengan field audit `change_log`
+bawaan (created/updated/deleted/restored/approved/rejected at+by).
 
 ```php
 use App\Domain\Shared\Core\ValueObject\DetailInfo;
@@ -331,9 +331,9 @@ $detailInfo->toJson();
 
 ---
 
-## 🔧 Custom Value Object Examples
+## 🔧 Contoh Value Object Kustom
 
-### 1. Email Value Object
+### 1. Value Object Email
 
 ```php
 <?php
@@ -396,7 +396,7 @@ final readonly class Email
 }
 ```
 
-### 2. Money Value Object
+### 2. Value Object Money
 
 ```php
 <?php
@@ -494,7 +494,7 @@ final readonly class Money
 }
 ```
 
-### 3. Address Value Object
+### 3. Value Object Address
 
 ```php
 <?php
@@ -565,9 +565,9 @@ final readonly class Address
 
 ---
 
-## 🔧 Integration Patterns
+## 🔧 Pola Integrasi
 
-### 1. **Entity Integration**
+### 1. **Integrasi Entity**
 ```php
 // src/Domain/AnotherExample/Entity/AnotherExample.php (simplified) —
 // entities hold value objects, not raw column values
@@ -607,7 +607,7 @@ final class AnotherExample
 }
 ```
 
-### 2. **Service Integration**
+### 2. **Integrasi Service**
 ```php
 // src/Application/AnotherExample/AnotherExampleApplicationService.php (simplified)
 public function create(CreateAnotherExampleCommand $command): AnotherExampleResponse
@@ -636,7 +636,7 @@ public function create(CreateAnotherExampleCommand $command): AnotherExampleResp
 }
 ```
 
-### 3. **Action Integration**
+### 3. **Integrasi Action**
 ```php
 // src/Api/V1/AnotherExample/Action/AnotherExampleCreateAction.php (simplified)
 public function __invoke(ServerRequestInterface $request): ResponseInterface
@@ -673,7 +673,7 @@ public function __invoke(ServerRequestInterface $request): ResponseInterface
 
 ---
 
-## 🚀 Best Practices
+## 🚀 Praktik Terbaik
 
 ### 1. **Immutability**
 ```php
@@ -736,34 +736,34 @@ public function equals(Email $other): bool
 
 ---
 
-## 📊 Performance Considerations
+## 📊 Pertimbangan Performa
 
-### 1. **Memory Usage**
-- Value objects are lightweight
-- Readonly properties prevent copying
-- Avoid large objects in value objects
+### 1. **Penggunaan Memori**
+- Value object ringan
+- Properti readonly mencegah penyalinan
+- Hindari objek besar dalam value object
 
-### 2. **Construction Overhead**
-- Validation adds minimal overhead
-- Fail-fast prevents invalid states
-- Cache frequently used objects
+### 2. **Overhead Konstruksi**
+- Validasi menambah overhead minimal
+- Fail-fast mencegah state tidak valid
+- Cache objek yang sering digunakan
 
-### 3. **Comparison Performance**
-- Value comparison is fast
-- Use built-in comparison when possible
-- Avoid expensive operations in equals()
+### 3. **Performa Perbandingan**
+- Perbandingan nilai cepat
+- Gunakan perbandingan bawaan jika memungkinkan
+- Hindari operasi mahal di equals()
 
 ---
 
-## 🎯 Summary
+## 🎯 Ringkasan
 
-Value Objects provide immutable, type-safe representations of domain concepts in the Yii3 API application. Key benefits include:
+Value Object menyediakan representasi konsep domain yang immutable dan type-safe dalam aplikasi Yii3 API. Manfaat utamanya meliputi:
 
-- **🛡️ Type Safety**: Strong typing prevents invalid states
-- **🔄 Immutability**: Readonly properties ensure data integrity
-- **✅ Validation**: Built-in validation in constructors
-- **🧪 Testability**: Easy to unit test with predictable behavior
-- **📦 Encapsulation**: Data and behavior together
-- **🚀 Performance**: Efficient memory usage and comparison
+- **🛡️ Type Safety**: Strong typing mencegah state tidak valid
+- **🔄 Immutability**: Properti readonly memastikan integritas data
+- **✅ Validation**: Validasi bawaan di constructor
+- **🧪 Testability**: Mudah di-unit test dengan perilaku yang dapat diprediksi
+- **📦 Encapsulation**: Data dan perilaku bersama-sama
+- **🚀 Performance**: Penggunaan memori dan perbandingan yang efisien
 
-By following the patterns and best practices outlined in this guide, you can build robust, maintainable value objects for your Yii3 API application! 🚀
+Dengan mengikuti pola dan praktik terbaik yang diuraikan dalam panduan ini, Anda dapat membangun value object yang kuat dan mudah dipelihara untuk aplikasi Yii3 API Anda! 🚀
