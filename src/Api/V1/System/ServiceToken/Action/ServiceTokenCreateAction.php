@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Api\V1\System\Token\Action;
+namespace App\Api\V1\System\ServiceToken\Action;
 
 // Application Layer
 use App\Api\Shared\ResponseFactory;
 // API Layer
-use App\Api\V1\System\Token\Validation\ServiceTokenInputValidator;
-use App\Application\System\Token\ServiceTokenApplicationService;
+use App\Api\V1\System\ServiceToken\Validation\ServiceTokenInputValidator;
+use App\Application\System\ServiceToken\ServiceTokenApplicationService;
 // Shared Layer
 use App\Shared\Common\Context\ValidationContext;
 use App\Shared\Core\ValueObject\Message;

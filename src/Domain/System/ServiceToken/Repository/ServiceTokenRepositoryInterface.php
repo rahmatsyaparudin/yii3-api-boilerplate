@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\System\Token\Repository;
+namespace App\Domain\System\ServiceToken\Repository;
 
 // Domain Layer
-use App\Domain\System\Token\Entity\ServiceToken;
+use App\Domain\System\ServiceToken\Entity\ServiceToken;
 // Shared Layer
 use App\Shared\Core\Dto\PaginatedResult;
 use App\Shared\Core\Dto\SearchCriteria;

@@ -55,6 +55,98 @@
                             "path": ["api", "v1", "another-example", "create"]
                         }
                     }
+                },
+                {
+                    "name": "System",
+                    "item": [
+                        {
+                            "name": "ServiceToken - Issue (Create)",
+                            "request": {
+                                "method": "POST",
+                                "description": "Terbitkan service token baru (environment Local).\n\nPermission: system.service-token.create. Butuh Bearer token valid — request ini dilakukan user internal yang sudah login (SSO/JWT) untuk menerbitkan token bagi sistem eksternal.\n\nPENTING: plaintext token hanya muncul sekali di data.token — yang disimpan di DB hanya SHA-256-nya. Simpan baik-baik, lalu set ke variable {{bearer-token}} untuk request machine-to-machine selanjutnya.\n\nField: username (wajib, unique — identitas service, bukan username penerbit), name (wajib), abilities (opsional, array string), whitelist_host (opsional, default [] = allow all; dukung wildcard 192.168.1.* / *.pos.local), expires_at (opsional, Y-m-d atau Y-m-d H:i:s; kosong = tidak pernah expired).\n\nFitur ini opt-in: butuh app.service_token.enabled=true di .env.",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"username\": \"pos_cabang_a\",\n    \"name\": \"Aplikasi Kasir Cabang A\",\n    \"abilities\": [\"read:products\", \"write:transactions\"],\n    \"whitelist_host\": [],\n    \"expires_at\": \"\"\n}",
+                                    "options": { "raw": { "language": "json" } }
+                                },
+                                "url": {
+                                    "raw": "{{url-local}}/api/v1/system/service-token/create",
+                                    "host": ["{{url-local}}"],
+                                    "path": ["api", "v1", "system", "service-token", "create"]
+                                }
+                            }
+                        },
+                        {
+                            "name": "ServiceToken - List (Data)",
+                            "request": {
+                                "method": "POST",
+                                "description": "Daftar service token dengan paginasi (environment Local).\n\nPermission: system.service-token.list. Hash token tidak pernah ditampilkan di list/view.\n\nFilter exact: id, user_id, status. Filter LIKE: username, name. Sortable: id, user_id, username, name, last_used_at, expires_at, created_at, status.",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"filter\": {\n        \"username\": \"pos\",\n        \"status\": 1\n    },\n    \"page\": 1,\n    \"page_size\": 20,\n    \"sort\": {\n        \"by\": \"id\",\n        \"dir\": \"asc\"\n    }\n}",
+                                    "options": { "raw": { "language": "json" } }
+                                },
+                                "url": {
+                                    "raw": "{{url-local}}/api/v1/system/service-token/data",
+                                    "host": ["{{url-local}}"],
+                                    "path": ["api", "v1", "system", "service-token", "data"]
+                                }
+                            }
+                        },
+                        {
+                            "name": "ServiceToken - View",
+                            "request": {
+                                "method": "GET",
+                                "description": "Detail satu service token by id (environment Local).\n\nPermission: system.service-token.view. Ganti {id} di URL dengan id token.",
+                                "url": {
+                                    "raw": "{{url-local}}/api/v1/system/service-token/1",
+                                    "host": ["{{url-local}}"],
+                                    "path": ["api", "v1", "system", "service-token", "1"]
+                                }
+                            }
+                        },
+                        {
+                            "name": "ServiceToken - Update / Rotate",
+                            "request": {
+                                "method": "PUT",
+                                "description": "Update service token (environment Local).\n\nPermission: system.service-token.update. Ganti {id} di URL dengan id token.\n\n- username bisa di-rename (tetap unique, duplikat → 409).\n- regenerate: true me-rotate secret — bearer lama langsung mati, plaintext baru dikembalikan sekali di data.token.\n- status: 1 active, 0 inactive.\n- expires_at kosong tidak meng-clear expiry (field kosong = tidak berubah).",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"username\": \"pos_cabang_a\",\n    \"name\": \"Aplikasi Kasir Cabang A\",\n    \"abilities\": [\"read:products\"],\n    \"whitelist_host\": [],\n    \"expires_at\": \"\",\n    \"regenerate\": false,\n    \"status\": 1\n}",
+                                    "options": { "raw": { "language": "json" } }
+                                },
+                                "url": {
+                                    "raw": "{{url-local}}/api/v1/system/service-token/1",
+                                    "host": ["{{url-local}}"],
+                                    "path": ["api", "v1", "system", "service-token", "1"]
+                                }
+                            }
+                        },
+                        {
+                            "name": "ServiceToken - Revoke (Delete)",
+                            "request": {
+                                "method": "DELETE",
+                                "description": "Revoke service token (soft delete, environment Local).\n\nPermission: system.service-token.delete. Ganti {id} di URL dengan id token. Efek langsung — bearer token berhenti berfungsi pada request berikutnya (tidak ada caching lookup).",
+                                "url": {
+                                    "raw": "{{url-local}}/api/v1/system/service-token/1",
+                                    "host": ["{{url-local}}"],
+                                    "path": ["api", "v1", "system", "service-token", "1"]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Cache - Purge",
+                            "request": {
+                                "method": "POST",
+                                "description": "Purge semua cache yang tergenerate (environment Local).\n\nPermission: system.cache.purge.\n\nMembersihkan semua store cache yang mungkin terisi: PSR-16 cache (binding project), Yii cache (getOrSet wrapper), FileCache di @runtime/cache (termasuk DB schema cache), Redis (flushDB pada database terkonfigurasi — hanya bila redis.default.enabled=true), OPcache (bila extension aktif), dan realpath/stat cache.\n\nResponse data.results melaporkan status per store: purged, skipped (tidak terpasang/disabled — bukan error), atau failed (pesan di detail).",
+                                "url": {
+                                    "raw": "{{url-local}}/api/v1/system/cache/purge",
+                                    "host": ["{{url-local}}"],
+                                    "path": ["api", "v1", "system", "cache", "purge"]
+                                }
+                            }
+                        }
+                    ]
                 }
             ]
         },
@@ -101,6 +193,98 @@
                             "path": ["api", "v1", "another-example", "create"]
                         }
                     }
+                },
+                {
+                    "name": "System",
+                    "item": [
+                        {
+                            "name": "ServiceToken - Issue (Create)",
+                            "request": {
+                                "method": "POST",
+                                "description": "Terbitkan service token baru (environment Dev).\n\nPermission: system.service-token.create. Butuh Bearer token valid yang diterbitkan untuk environment Dev.\n\nPENTING: plaintext token hanya muncul sekali di data.token — yang disimpan di DB hanya SHA-256-nya.\n\nFitur ini opt-in: butuh app.service_token.enabled=true di .env environment Dev.",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"username\": \"pos_cabang_a\",\n    \"name\": \"Aplikasi Kasir Cabang A\",\n    \"abilities\": [\"read:products\", \"write:transactions\"],\n    \"whitelist_host\": [],\n    \"expires_at\": \"\"\n}",
+                                    "options": { "raw": { "language": "json" } }
+                                },
+                                "url": {
+                                    "raw": "{{url-dev}}/api/v1/system/service-token/create",
+                                    "host": ["{{url-dev}}"],
+                                    "path": ["api", "v1", "system", "service-token", "create"]
+                                }
+                            }
+                        },
+                        {
+                            "name": "ServiceToken - List (Data)",
+                            "request": {
+                                "method": "POST",
+                                "description": "Daftar service token dengan paginasi (environment Dev).\n\nPermission: system.service-token.list. Hash token tidak pernah ditampilkan di list/view.\n\nFilter exact: id, user_id, status. Filter LIKE: username, name. Sortable: id, user_id, username, name, last_used_at, expires_at, created_at, status.",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"filter\": {\n        \"username\": \"pos\",\n        \"status\": 1\n    },\n    \"page\": 1,\n    \"page_size\": 20,\n    \"sort\": {\n        \"by\": \"id\",\n        \"dir\": \"asc\"\n    }\n}",
+                                    "options": { "raw": { "language": "json" } }
+                                },
+                                "url": {
+                                    "raw": "{{url-dev}}/api/v1/system/service-token/data",
+                                    "host": ["{{url-dev}}"],
+                                    "path": ["api", "v1", "system", "service-token", "data"]
+                                }
+                            }
+                        },
+                        {
+                            "name": "ServiceToken - View",
+                            "request": {
+                                "method": "GET",
+                                "description": "Detail satu service token by id (environment Dev).\n\nPermission: system.service-token.view. Ganti {id} di URL dengan id token.",
+                                "url": {
+                                    "raw": "{{url-dev}}/api/v1/system/service-token/1",
+                                    "host": ["{{url-dev}}"],
+                                    "path": ["api", "v1", "system", "service-token", "1"]
+                                }
+                            }
+                        },
+                        {
+                            "name": "ServiceToken - Update / Rotate",
+                            "request": {
+                                "method": "PUT",
+                                "description": "Update service token (environment Dev).\n\nPermission: system.service-token.update. Ganti {id} di URL dengan id token.\n\n- username bisa di-rename (tetap unique, duplikat → 409).\n- regenerate: true me-rotate secret — bearer lama langsung mati, plaintext baru dikembalikan sekali di data.token.\n- status: 1 active, 0 inactive.",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"username\": \"pos_cabang_a\",\n    \"name\": \"Aplikasi Kasir Cabang A\",\n    \"abilities\": [\"read:products\"],\n    \"whitelist_host\": [],\n    \"expires_at\": \"\",\n    \"regenerate\": false,\n    \"status\": 1\n}",
+                                    "options": { "raw": { "language": "json" } }
+                                },
+                                "url": {
+                                    "raw": "{{url-dev}}/api/v1/system/service-token/1",
+                                    "host": ["{{url-dev}}"],
+                                    "path": ["api", "v1", "system", "service-token", "1"]
+                                }
+                            }
+                        },
+                        {
+                            "name": "ServiceToken - Revoke (Delete)",
+                            "request": {
+                                "method": "DELETE",
+                                "description": "Revoke service token (soft delete, environment Dev).\n\nPermission: system.service-token.delete. Ganti {id} di URL dengan id token. Efek langsung — bearer token berhenti berfungsi pada request berikutnya.",
+                                "url": {
+                                    "raw": "{{url-dev}}/api/v1/system/service-token/1",
+                                    "host": ["{{url-dev}}"],
+                                    "path": ["api", "v1", "system", "service-token", "1"]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Cache - Purge",
+                            "request": {
+                                "method": "POST",
+                                "description": "Purge semua cache yang tergenerate (environment Dev).\n\nPermission: system.cache.purge.\n\nMembersihkan semua store cache: PSR-16 cache, Yii cache, FileCache @runtime/cache (termasuk DB schema cache), Redis (flushDB — hanya bila enabled), OPcache, dan realpath/stat cache.\n\nResponse data.results melaporkan status per store: purged, skipped, atau failed (pesan di detail).",
+                                "url": {
+                                    "raw": "{{url-dev}}/api/v1/system/cache/purge",
+                                    "host": ["{{url-dev}}"],
+                                    "path": ["api", "v1", "system", "cache", "purge"]
+                                }
+                            }
+                        }
+                    ]
                 }
             ]
         }

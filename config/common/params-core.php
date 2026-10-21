@@ -50,7 +50,7 @@ return [
         'charset'  => $dbCharset,
     ],
     'yiisoft/cache-redis' => [
-        'enabled'  => \filter_var($_ENV['redis.default.enabled'] ?? true, FILTER_VALIDATE_BOOLEAN),
+        'enabled'  => \filter_var($_ENV['redis.default.enabled'] ?? false, FILTER_VALIDATE_BOOLEAN),
         'host'     => $_ENV['redis.default.host'] ?? '127.0.0.1',
         'port'     => (int) ($_ENV['redis.default.port'] ?? 6379),
         'database' => (int) ($_ENV['redis.default.db'] ?? 0),
@@ -114,6 +114,15 @@ return [
         // Opaque bearer tokens via service_tokens table. Off by default —
         // the middleware short-circuits straight to JwtMiddleware.
         'enabled' => \filter_var($_ENV['app.service_token.enabled'] ?? false, FILTER_VALIDATE_BOOLEAN),
+    ],
+    'app/cache' => [
+        // DatabaseCache — managed cache for data read from the database.
+        // driver: auto (Redis when redis.default.enabled, else FileCache),
+        // redis, file, or psr (the project-bound PSR-16 store).
+        'enabled'    => \filter_var($_ENV['app.cache.enabled'] ?? true, FILTER_VALIDATE_BOOLEAN),
+        'driver'     => $_ENV['app.cache.driver'] ?? 'auto',
+        'defaultTtl' => (int) ($_ENV['app.cache.default_ttl'] ?? 3600),
+        'keyPrefix'  => $_ENV['app.cache.key_prefix'] ?? 'app',
     ],
     'app/trusted_hosts' => [
         'allowedHosts' => $trustedHosts,

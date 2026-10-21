@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\System\Token;
+namespace App\Application\System\ServiceToken;
 
 // Application Layer
 use App\Application\Shared\Core\Factory\DetailInfoFactory;
@@ -10,10 +10,10 @@ use App\Application\Shared\Core\Factory\DetailInfoFactory;
 use App\Domain\Shared\Core\Contract\ActorInterface;
 use App\Domain\Shared\Core\Contract\DateTimeProviderInterface;
 use App\Domain\Shared\Core\ValueObject\ResourceStatus;
-use App\Domain\System\Token\Entity\ServiceToken;
-use App\Domain\System\Token\Repository\ServiceTokenRepositoryInterface;
+use App\Domain\System\ServiceToken\Entity\ServiceToken;
+use App\Domain\System\ServiceToken\Repository\ServiceTokenRepositoryInterface;
 // Infrastructure Layer
-use App\Application\System\Token\Dto\ServiceTokenResponse;
+use App\Application\System\ServiceToken\Dto\ServiceTokenResponse;
 use App\Infrastructure\Core\Security\Actor;
 use App\Infrastructure\Core\Security\CurrentUser;
 // Shared Layer

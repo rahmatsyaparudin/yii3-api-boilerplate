@@ -52,9 +52,15 @@ class SkeletonInstaller
 
         // Copy API Shared classes from vendor
         $this->copyApiSharedClasses();
-        
+
+        // Copy the skeleton-managed System module (service token, cache purge)
+        $this->copySystemModule();
+
         // Copy Config files from vendor
         $this->copyConfigFiles();
+
+        // Sync skeleton-managed blocks inside project-owned config files
+        $this->syncManagedBlocks();
         
         // Copy Message files from vendor
         $this->copyMessageFiles();
@@ -78,7 +84,7 @@ class SkeletonInstaller
         echo "\n🎯 Shared classes copied to src/Shared/\n";
         echo "📁 Directories created: Core/{Dto, Enums, ErrorHandler, Exception, Query, Request, Security, Utility, Validation, ValueObject}, Common/Context\n";
         echo "🏗️  Infrastructure classes copied to src/Infrastructure/\n";
-        echo "📁 Directories created: Core/{Audit, Clock, Concerns, Database, Monitoring, RateLimit, Security, Seeder, Time}, Common/Persistence\n";
+        echo "📁 Directories created: Core/{Audit, Cache, Clock, Concerns, Database, Monitoring, RateLimit, Security, Seeder, Time}, Common/Persistence\n";
         echo "🖼️  Presentation classes copied to src/Presentation/\n";
         echo "📁 Directories created: Core/Http/Middleware, Common\n";
         echo "🧠 Domain Shared classes copied to src/Domain/Shared/\n";
@@ -259,6 +265,7 @@ class SkeletonInstaller
         // Create all required subdirectories
         $infrastructureDirs = [
             'Core/Audit',
+            'Core/Cache',
             'Core/Clock',
             'Core/Concerns',
             'Core/Database',
@@ -289,6 +296,101 @@ class SkeletonInstaller
                 $this->copyDirectory($currentInfrastructurePath, $targetInfrastructurePath);
                 echo "✅ Copied existing Infrastructure classes\n";
             }
+        }
+    }
+
+    /**
+     * Sync the skeleton-managed System module — service token management
+     * and the cache purge endpoint. Unlike the Example modules (copied
+     * once via skeleton:copy-examples), System is feature code that is
+     * synced wholesale on every skeleton:update, like Core. Consumers
+     * should treat these paths as frozen: customize via permissions and
+     * params, not by editing the module files.
+     */
+    private function copySystemModule(): void
+    {
+        $subtrees = [
+            '/src/Api/V1/System',
+            '/src/Application/System',
+            '/src/Domain/System',
+        ];
+
+        foreach ($subtrees as $subtree) {
+            $source = $this->vendorPath . $subtree;
+            $target = $this->projectRoot . $subtree;
+
+            if (!is_dir($source) || $source === $target) {
+                continue;
+            }
+
+            $this->copyDirectory($source, $target);
+            echo "✅ Synced System module: {$subtree}\n";
+        }
+    }
+
+    /**
+     * Sync skeleton-managed marker blocks inside project-owned config
+     * files (routes.php, access.php). Templates live in
+     * scripts/managed/*.block.php (synced like every other script):
+     * markers present → block replaced; absent → block inserted before
+     * the anchor; anchor missing → manual hint is printed.
+     */
+    private function syncManagedBlocks(): void
+    {
+        require_once __DIR__ . '/managed/ManagedBlockSync.php';
+
+        $managedDir = is_dir($this->vendorPath . '/scripts/managed')
+            ? $this->vendorPath . '/scripts/managed'
+            : __DIR__ . '/managed';
+
+        $blocks = [
+            [
+                'template' => 'routes-system.block.php',
+                'target'   => '/config/common/routes.php',
+                'anchor'   => '/^[ \t]*\),[ \t]*\r?\n[ \t]*\];[ \t]*$/m',
+                'hint'     => "inside Group::create('/v1')->routes(...)",
+            ],
+            [
+                'template' => 'access-system.block.php',
+                'target'   => '/config/common/access.php',
+                'anchor'   => '/^[ \t]*\];[ \t]*$/m',
+                'hint'     => 'before the closing ]; of the returned array',
+            ],
+        ];
+
+        foreach ($blocks as $block) {
+            $templateFile = $managedDir . '/' . $block['template'];
+            $targetFile   = $this->projectRoot . $block['target'];
+
+            if (!is_file($templateFile)) {
+                echo "⚠️  Managed template missing: scripts/managed/{$block['template']} — skipped\n";
+                continue;
+            }
+
+            if (!is_file($targetFile)) {
+                echo "⚠️  {$block['target']} not found — add the managed block manually\n";
+                continue;
+            }
+
+            $result = ManagedBlockSync::sync(
+                (string) file_get_contents($targetFile),
+                (string) file_get_contents($templateFile),
+                $block['anchor'],
+            );
+
+            if ($result['action'] === ManagedBlockSync::UNCHANGED) {
+                echo "⏭️  Managed block up-to-date: {$block['target']}\n";
+                continue;
+            }
+
+            if ($result['action'] === ManagedBlockSync::MISSING_ANCHOR) {
+                echo "⚠️  Could not place managed block in {$block['target']} ({$block['hint']}) — add it manually\n";
+                continue;
+            }
+
+            file_put_contents($targetFile, $result['content']);
+            $verb = $result['action'] === ManagedBlockSync::INSERTED ? 'Inserted' : 'Updated';
+            echo "✅ {$verb} managed block: {$block['target']}\n";
         }
     }
 

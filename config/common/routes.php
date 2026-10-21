@@ -15,7 +15,6 @@ use App\Presentation\Core\Http\Middleware\RequestParamsMiddleware;
 // Api Layer
 use App\Api\V1\Example\Action as ExampleV1;
 use App\Api\V1\AnotherExample\Action as AnotherExampleV1;
-use App\Api\V1\System\Token\Action as ServiceTokenV1;
 
 // @var array $params
 
@@ -83,27 +82,34 @@ return [
                 ->action(AnotherExampleV1\AnotherExampleRestoreAction::class)
                 ->name('v1/another-example/restore')
                 ->defaults(['permission' => 'another-example.restore']),
-
-            // System — Service Token Routes
-            Route::post('/system/service-token/data')
-                ->action(ServiceTokenV1\ServiceTokenDataAction::class)
+            // === SKELETON MANAGED ROUTES — do not edit between markers ===
+            // System module routes (service token, cache purge). Synced by
+            // `composer skeleton:update`; FQCN is used so the block is
+            // self-contained and needs no `use` statements in this file.
+            \Yiisoft\Router\Route::post('/system/service-token/data')
+                ->action(\App\Api\V1\System\ServiceToken\Action\ServiceTokenDataAction::class)
                 ->name('v1/system/service-token/data')
                 ->defaults(['permission' => 'system.service-token.list']),
-            Route::get('/system/service-token/{id:\d+}')
-                ->action(ServiceTokenV1\ServiceTokenViewAction::class)
+            \Yiisoft\Router\Route::get('/system/service-token/{id:\d+}')
+                ->action(\App\Api\V1\System\ServiceToken\Action\ServiceTokenViewAction::class)
                 ->name('v1/system/service-token/view')
                 ->defaults(['permission' => 'system.service-token.view']),
-            Route::post('/system/service-token/create')
-                ->action(ServiceTokenV1\ServiceTokenCreateAction::class)
+            \Yiisoft\Router\Route::post('/system/service-token/create')
+                ->action(\App\Api\V1\System\ServiceToken\Action\ServiceTokenCreateAction::class)
                 ->name('v1/system/service-token/create')
                 ->defaults(['permission' => 'system.service-token.create']),
-            Route::put('/system/service-token/{id:\d+}')
-                ->action(ServiceTokenV1\ServiceTokenUpdateAction::class)
+            \Yiisoft\Router\Route::put('/system/service-token/{id:\d+}')
+                ->action(\App\Api\V1\System\ServiceToken\Action\ServiceTokenUpdateAction::class)
                 ->name('v1/system/service-token/update')
                 ->defaults(['permission' => 'system.service-token.update']),
-            Route::delete('/system/service-token/{id:\d+}')
-                ->action(ServiceTokenV1\ServiceTokenDeleteAction::class)
+            \Yiisoft\Router\Route::delete('/system/service-token/{id:\d+}')
+                ->action(\App\Api\V1\System\ServiceToken\Action\ServiceTokenDeleteAction::class)
                 ->name('v1/system/service-token/delete')
                 ->defaults(['permission' => 'system.service-token.delete']),
+            \Yiisoft\Router\Route::post('/system/cache/purge')
+                ->action(\App\Api\V1\System\Cache\Action\CachePurgeAction::class)
+                ->name('v1/system/cache/purge')
+                ->defaults(['permission' => 'system.cache.purge']),
+            // === END SKELETON MANAGED ROUTES ===
         ),
 ];

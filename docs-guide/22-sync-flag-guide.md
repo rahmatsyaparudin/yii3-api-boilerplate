@@ -197,3 +197,102 @@ Skema sekarang cukup untuk **point-to-point A ↔ B**. Untuk kebutuhan lebih kom
 - **Broadcast / multi-hop** → tabel `sync_queue` (satu record → banyak baris antrian per tujuan) atau kolom `store_id_origin` + `store_id_destination`.
 - **Korelasi lintas store** (id lokal beda-beda: A=100, B=200, cloud=300) → `uuid` per record, atau registry `(store_id, table, local_id)` di cloud.
 - **Provenance/kepemilikan** → field `doc_role` (`LOCAL`/`INTERSTORE`/`COPY`): hanya `LOCAL` yang boleh di-edit user; copy bersifat read-only kecuali oleh sync applier; agregasi dedupe by `uuid`.
+
+## Referensi API
+
+### `SyncFlag` — `src/Domain/Shared/Core/ValueObject/SyncFlag.php`
+
+Value object untuk mengelola atribut `origin_id`, `sync_flag`, dan arah
+sinkronisasi.
+
+- `origin_id` : integer, id origin tempat record berasal atau dituju. Default `null`.
+- `sync_flag` : smallint, `null` = synced, `1` = not synced. Default `1`.
+
+**Factory method**
+
+- `SyncFlag::create(?int $originId = null, SyncStatus $status = SyncStatus::NOT_SYNCED, ?SyncDirection $direction = null)`
+- `SyncFlag::fromArray(array $data)`
+- `SyncFlag::fromEntity(object $entity)`
+- `SyncFlag::masterToOrigin(?int $originId = null)`
+- `SyncFlag::originToMaster(int $originId)`
+- `SyncFlag::bidirectional(int $originId)`
+- `SyncFlag::synced()`
+
+**Method baca & predikat**
+
+- `getOriginId()`, `getSyncStatus()`, `getSyncFlag()` (nilai db `null`/`1`), `getDirection()` (`SyncDirection`)
+- `isPending()`, `isSynced()`
+- `isMasterToOrigin()`, `isOriginToMaster()`, `isBidirectional()`
+- `needsSyncToOrigin()`, `needsSyncToMaster()`
+
+**Mutasi immutable**
+
+- `markForSync()` — tandai record harus disync (`sync_flag = 1`)
+- `markSynced()` — tandai record sudah selesai disync (`sync_flag = null`)
+- `withOriginId(?int $originId)` — ganti origin id
+- `withDirection(SyncDirection $direction)` — ganti arah
+
+**Serialisasi**
+
+- `toArray()` — output `origin_id`, `sync_flag`, `direction`
+- `toDbArray()` — output hanya `origin_id` dan `sync_flag`
+- `equals(SyncFlag $other)` — bandingkan dua value object
+
+### `SyncStatus` — `App\Domain\Shared\Core\Enum\SyncStatus` (pure enum)
+
+- `SYNCED` — db value `null`
+- `NOT_SYNCED` — db value `1`
+- `dbValue()` / `fromDbValue(?int $value)` — konversi nilai kolom `sync_flag`; `fromDbValue` throw `BadRequestException` bila nilai tidak valid
+
+### `SyncDirection` — `App\Domain\Shared\Core\Enum\SyncDirection` (backed int)
+
+- `NONE = 0`
+- `MASTER_TO_ORIGIN = 1`
+- `ORIGIN_TO_MASTER = 2`
+- `BIDIRECTIONAL = 3`
+- `SyncDirection::fromValue(int $value)` — throw `BadRequestException` bila nilai tidak valid
+
+### `SyncFlagFactory` — `src/Application/Shared/Core/Factory/SyncFlagFactory.php`
+
+Factory layer untuk membuat dan mengolah `SyncFlag` dari berbagai sumber, plus helper payload & log.
+
+**Factory dari input**
+
+- `create(?int $originId = null, ?int $syncFlag = 1, ?int $direction = null)`
+- `fromRequest(array $data)`
+- `fromRecord(array $row)`
+- `fromEntity(object $entity)`
+
+**Preset arah sinkronisasi**
+
+- `masterToOrigin(?int $originId = null)`
+- `originToMaster(int $originId)`
+- `bidirectional(int $originId)`
+- `synced()`
+
+**Status sync**
+
+- `markForSync(SyncFlag $syncFlag)`
+- `markSynced(SyncFlag $syncFlag)`
+
+**Predicate push**
+
+- `shouldPushToOrigin(SyncFlag $syncFlag)`
+- `shouldPushToMaster(SyncFlag $syncFlag)`
+
+**Helper payload & log**
+
+- `buildPayload(SyncFlag $syncFlag, string $table, int $recordId, string $operation, array $data = [])`
+- `buildMasterToOriginPayload(...)`
+- `buildOriginToMasterPayload(...)`
+- `mergeIntoDetailInfo(SyncFlag $syncFlag, array $detailInfo = [])`
+- `buildSyncLog(SyncFlag $syncFlag, string $table, int $recordId, string $operation)`
+
+### Integrasi Validator
+
+Message key untuk validasi `sync_flag` (dipakai oleh
+`SyncStatus::fromDbValue()` dan `SyncDirection::fromValue()` saat
+menerima nilai di luar rentang yang diizinkan):
+
+- `validation.sync_flag.invalid_value`
+- `validation.sync_flag.invalid_direction`

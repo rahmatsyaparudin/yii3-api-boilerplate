@@ -7,8 +7,8 @@ namespace App\Infrastructure\Common\Persistence\System;
 // Domain Layer
 use App\Domain\Shared\Core\ValueObject\DetailInfo;
 use App\Domain\Shared\Core\ValueObject\ResourceStatus;
-use App\Domain\System\Token\Entity\ServiceToken;
-use App\Domain\System\Token\Repository\ServiceTokenRepositoryInterface;
+use App\Domain\System\ServiceToken\Entity\ServiceToken;
+use App\Domain\System\ServiceToken\Repository\ServiceTokenRepositoryInterface;
 // Infrastructure Layer
 use App\Infrastructure\Core\Concerns\HasCoreFeatures;
 use App\Infrastructure\Core\Concerns\ManagesPersistence;

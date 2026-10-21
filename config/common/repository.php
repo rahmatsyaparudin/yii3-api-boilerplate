@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\AnotherExample\Repository\AnotherExampleRepositoryInterface;
 use App\Domain\Example\Repository\ExampleRepositoryInterface;
-use App\Domain\System\Token\Repository\ServiceTokenRepositoryInterface;
+use App\Domain\System\ServiceToken\Repository\ServiceTokenRepositoryInterface;
 use App\Infrastructure\Common\Persistence\AnotherExample\AnotherExampleRepository;
 use App\Infrastructure\Common\Persistence\Example\ExampleRepository;
 use App\Infrastructure\Common\Persistence\System\ServiceTokenRepository;

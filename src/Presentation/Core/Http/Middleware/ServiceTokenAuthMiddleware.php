@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Presentation\Core\Http\Middleware;
 
-use App\Application\System\Token\ServiceTokenApplicationService;
+use App\Application\System\ServiceToken\ServiceTokenApplicationService;
 use App\Infrastructure\Core\Security\CurrentUser;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;

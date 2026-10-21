@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 // Application Layer
-use App\Application\System\Token\ServiceTokenApplicationService;
+use App\Application\System\ServiceToken\ServiceTokenApplicationService;
 // Infrastructure Layer
 use App\Infrastructure\Core\Monitoring\ErrorMonitoringMiddleware;
 use App\Infrastructure\Core\Monitoring\MetricsMiddleware;

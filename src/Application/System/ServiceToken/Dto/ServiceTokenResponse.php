@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Application\System\Token\Dto;
+namespace App\Application\System\ServiceToken\Dto;
 
-use App\Domain\System\Token\Entity\ServiceToken;
+use App\Domain\System\ServiceToken\Entity\ServiceToken;
 
 /**
  * Service Token API response.

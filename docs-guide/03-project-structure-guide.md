@@ -117,7 +117,10 @@ src/
 │       │   └── 📁 Validation/ - Validasi input
 │       │       └── 📄 AnotherExampleInputValidator.php - Validator input
 │       └── 📁 System/ - API modul System
-│           └── 📁 Token/ - Endpoint Service Token
+│           ├── 📁 Cache/ - Endpoint Cache
+│           │   └── 📁 Action/ - Action cache
+│           │       └── 📄 CachePurgeAction.php - Purge semua store cache
+│           └── 📁 ServiceToken/ - Endpoint Service Token
 │               ├── 📁 Action/ - Action service token
 │               │   ├── 📄 ServiceTokenCreateAction.php - Issue token (plaintext tampil sekali)
 │               │   ├── 📄 ServiceTokenDataAction.php - List token
@@ -144,7 +147,9 @@ src/
 │   │       ├── 📄 AnotherExampleDetailInfo.php - DTO detail_info (embed parent)
 │   │       └── 📄 AnotherExampleResponse.php - Response DTO
 │   ├── 📁 System/ - Modul System
-│   │   └── 📁 Token/ - Service Token
+│   │   ├── 📁 Cache/ - Cache purge
+│   │   │   └── 📄 CacheApplicationService.php - Purge semua store cache
+│   │   └── 📁 ServiceToken/ - Service Token
 │   │       ├── 📄 ServiceTokenApplicationService.php - Issue/rotasi/revoke + authenticate()
 │   │       └── 📁 Dto/ - Data transfer object
 │   │           └── 📄 ServiceTokenResponse.php - Response DTO service token
@@ -177,7 +182,7 @@ src/
 │   │   └── 📁 Service/ - Domain service
 │   │       └── 📄 AnotherExampleDomainService.php - Domain service
 │   ├── 📁 System/ - Bounded context System
-│   │   └── 📁 Token/ - Service Token
+│   │   └── 📁 ServiceToken/ - Service Token
 │   │       ├── 📁 Entity/ - Domain entity
 │   │       │   └── 📄 ServiceToken.php - Entity service token (hanya hash SHA-256)
 │   │       └── 📁 Repository/ - Kontrak repository
@@ -214,6 +219,8 @@ src/
 │   ├── 📁 Core/ - Core infrastructure
 │   │   ├── 📁 Audit/ - Implementasi audit
 │   │   │   └── 📄 DatabaseAuditService.php - Service audit database
+│   │   ├── 📁 Cache/ - Managed cache
+│   │   │   └── 📄 DatabaseCache.php - remember/refresh/forget atas PSR-16
 │   │   ├── 📁 Clock/ - Manajemen waktu
 │   │   │   └── 📄 SystemClock.php - Implementasi system clock
 │   │   ├── 📁 Concerns/ - Infrastructure concern

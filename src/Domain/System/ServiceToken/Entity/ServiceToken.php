@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\System\Token\Entity;
+namespace App\Domain\System\ServiceToken\Entity;
 
 // Domain Layer
 use App\Domain\Shared\Core\Concerns\Entity\Descriptive;

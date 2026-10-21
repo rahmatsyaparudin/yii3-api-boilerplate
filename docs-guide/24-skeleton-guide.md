@@ -127,12 +127,14 @@ src/
 └── Infrastructure/Common/Persistence/Example/  # Example repositories
 ```
 
-### System — Service Token Structure
+### System — Service Token & Cache Structure
 ```
 src/
-├── Api/V1/System/Token/          # Service Token endpoints (/v1/system/service-token/*)
-├── Application/System/Token/     # Issue/rotate/revoke + authenticate()
-├── Domain/System/Token/          # ServiceToken entity + repository contract
+├── Api/V1/System/ServiceToken/   # Service Token endpoints (/v1/system/service-token/*)
+├── Api/V1/System/Cache/          # Cache purge endpoint (/v1/system/cache/purge)
+├── Application/System/ServiceToken/  # Issue/rotate/revoke + authenticate()
+├── Application/System/Cache/     # CacheApplicationService — purgeAll()
+├── Domain/System/ServiceToken/   # ServiceToken entity + repository contract
 ├── Infrastructure/Common/Persistence/System/  # ServiceTokenRepository
 ├── Migration/ServiceToken/       # service_tokens table (migrate:module serviceToken)
 └── Presentation/Core/Http/Middleware/ServiceTokenAuthMiddleware.php  # Bearer dispatcher
@@ -192,6 +194,21 @@ shown below.
 Note: the level of each log entry is derived automatically from the HTTP status
 code (`>=500` → error, `>=400` → warning, otherwise info); `log_level` then
 filters out entries below the configured minimum.
+
+`DatabaseCache` (`App\Infrastructure\Core\Cache\DatabaseCache`) dikontrol lewat
+key `app.cache.*` — semua opsional, default dari `config/common/params-core.php`:
+
+| Key | Default | Description |
+| --- | --- | --- |
+| `app.cache.enabled` | `true` | `false` → semua operasi cache pass-through |
+| `app.cache.driver` | `auto` | `auto` \| `redis` \| `file` \| `psr` |
+| `app.cache.default_ttl` | `3600` | TTL default (detik) |
+| `app.cache.key_prefix` | `app` | Prefix semua cache key |
+| `redis.default.enabled` | `false` | Nyalakan agar `driver=auto` memilih RedisCache |
+| `redis.default.host` | `127.0.0.1` | Host Redis (client Predis) |
+| `redis.default.port` | `6379` | Port Redis |
+| `redis.default.db` | `0` | Logical database index |
+| `redis.default.password` | — | Password Redis (opsional) |
 
 ## Manual Setup
 

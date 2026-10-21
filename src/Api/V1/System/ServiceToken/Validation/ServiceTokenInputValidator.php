@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Api\V1\System\Token\Validation;
+namespace App\Api\V1\System\ServiceToken\Validation;
 
 // Shared Layer
 use App\Shared\Common\Context\ValidationContext;
