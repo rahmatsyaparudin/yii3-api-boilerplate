@@ -37,6 +37,12 @@ final class ColumnContract
     public const MYSQL_TIMESTAMP_AUTO_UPDATE = 'DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP';
 
     /**
+     * MySQL table-level options clause — charset, collation, and engine
+     * for CREATE TABLE statements.
+     */
+    public const MYSQL_TABLE_OPTIONS = 'CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci ENGINE=InnoDB';
+
+    /**
      * Default value for `status` columns.
      *
      * Defaults to the conventional draft-first workflow; pass another
