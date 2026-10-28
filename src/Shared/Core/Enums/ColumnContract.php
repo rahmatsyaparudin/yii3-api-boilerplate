@@ -40,7 +40,7 @@ final class ColumnContract
      * MySQL table-level options clause — charset, collation, and engine
      * for CREATE TABLE statements.
      */
-    public const MYSQL_TABLE_OPTIONS = 'CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci ENGINE=InnoDB';
+    public const MYSQL_INNODB_COLLATION = 'CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci ENGINE=InnoDB';
 
     /**
      * Default value for `status` columns.
