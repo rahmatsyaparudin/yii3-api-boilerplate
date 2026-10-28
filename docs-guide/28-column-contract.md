@@ -17,11 +17,11 @@ $b->createTable(self::TABLE_NAME, [
     'id'          => $cb::integer()->notNull()->extra(ColumnContract::PG_PRIMARY_KEY_IDENTITY),
     'name'        => $cb::string(255)->notNull(),
     'status'      => $cb::smallint()->notNull()->defaultValue(ColumnContract::statusDefault())->comment(ColumnContract::statusComment()),
-    'detail_info' => $cb::json()->notNull()->defaultValue(ColumnContract::DETAIL_INFO_DEFAULT)->comment(ColumnContract::detailInfoComment()),
-    'origin_id'    => $cb::integer()->null()->comment(ColumnContract::originIdComment()),
-    'sync_flag'    => $cb::smallint()->null()->defaultValue(ColumnContract::SYNC_FLAG_DEFAULT)->comment(ColumnContract::syncFlagComment()),
-    'sync_mdb'     => $cb::smallint()->null()->comment(ColumnContract::syncMdbComment()),
-    'lock_version' => $cb::integer()->notNull()->defaultValue(ColumnContract::LOCK_VERSION_DEFAULT)->comment(ColumnContract::lockVersionComment()),
+    'detail_info' => $cb::json()->notNull()->defaultValue(ColumnContract::DETAIL_INFO_DEFAULT)->comment(ColumnContract::DETAIL_INFO_COMMENT),
+    'origin_id'    => $cb::integer()->null()->comment(ColumnContract::ORIGIN_ID_COMMENT),
+    'sync_flag'    => $cb::smallint()->null()->defaultValue(ColumnContract::SYNC_FLAG_DEFAULT)->comment(ColumnContract::SYNC_FLAG_COMMENT),
+    'sync_mdb'     => $cb::smallint()->null()->comment(ColumnContract::SYNC_MDB_COMMENT),
+    'lock_version' => $cb::integer()->notNull()->defaultValue(ColumnContract::LOCK_VERSION_DEFAULT)->comment(ColumnContract::LOCK_VERSION_COMMENT),
 ]);
 ```
 
@@ -41,12 +41,12 @@ $b->createTable(self::TABLE_NAME, [
 
 | Method | Teks comment |
 |---|---|
-| `statusComment()` | Legend status dari `RecordStatus::describe()` — `"0: Inactive, 1: Active, 2: Draft, ..."`. Selalu sinkron dengan enum. |
-| `detailInfoComment()` | Struktur `change_log` + catatan key spesifik modul. |
-| `originIdComment()` | `'origin instance id where the record comes from or goes to'` |
-| `syncFlagComment()` | `'null: synced, 1: not synced'` |
-| `syncMdbComment()` | `'null: sync to MDB, 1: not sync to MDB'` |
-| `lockVersionComment()` | `'Optimistic locking version'` |
+| `statusComment()` | Legend status dari `RecordStatus::describe()` — `"0: Inactive, 1: Active, 2: Draft, ..."`. Selalu sinkron dengan enum. Tetap method karena hasilnya di-generate. |
+| `DETAIL_INFO_COMMENT` | Struktur `change_log` + catatan key spesifik modul. |
+| `ORIGIN_ID_COMMENT` | `'origin instance id where the record comes from or goes to'` |
+| `SYNC_FLAG_COMMENT` | `'null: synced, 1: not synced'` |
+| `SYNC_MDB_COMMENT` | `'null: sync to MDB, 1: not sync to MDB'` |
+| `LOCK_VERSION_COMMENT` | `'Optimistic locking version'` |
 
 ### Menyimpang dari konvensi
 

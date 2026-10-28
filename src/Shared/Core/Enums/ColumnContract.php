@@ -14,7 +14,7 @@ namespace App\Shared\Core\Enums;
  * @example
  * // In migration
  * 'status'      => $cb::smallint()->notNull()->defaultValue(ColumnContract::statusDefault())->comment(ColumnContract::statusComment()),
- * 'detail_info' => $cb::json()->notNull()->defaultValue(ColumnContract::DETAIL_INFO_DEFAULT)->comment(ColumnContract::detailInfoComment()),
+ * 'detail_info' => $cb::json()->notNull()->defaultValue(ColumnContract::DETAIL_INFO_DEFAULT)->comment(ColumnContract::DETAIL_INFO_COMMENT),
  * @example
  * // When a column deliberately deviates from the convention, pick the status
  * 'status' => $cb::smallint()->notNull()->defaultValue(ColumnContract::statusDefault('active'))->comment(ColumnContract::statusComment()),
@@ -98,52 +98,40 @@ final class ColumnContract
     // -------------------------------------------------------------------------
 
     /**
+     * Standard comment for `detail_info` columns.
+     */
+    public const DETAIL_INFO_COMMENT = 'JSON detail info — change_log{created_at, created_by, updated_at, updated_by, deleted_at, deleted_by} + module-specific keys';
+
+    /**
+     * Standard comment for `origin_id` columns.
+     */
+    public const ORIGIN_ID_COMMENT = 'origin instance id where the record comes from or goes to';
+
+    /**
+     * Standard comment for `sync_flag` columns.
+     */
+    public const SYNC_FLAG_COMMENT = 'null: synced, 1: not synced';
+
+    /**
+     * Standard comment for `sync_mdb` columns.
+     */
+    public const SYNC_MDB_COMMENT = 'null: sync to MDB, 1: not sync to MDB';
+
+    /**
+     * Standard comment for `lock_version` columns.
+     */
+    public const LOCK_VERSION_COMMENT = 'Optimistic locking version';
+
+    /**
      * Standard comment for `status` columns.
+     *
+     * Kept as a method — the legend is generated from RecordStatus and
+     * cannot be a const expression.
      *
      * @return string Status legend, e.g. "0: Inactive, 1: Active, ..."
      */
     public static function statusComment(): string
     {
         return RecordStatus::describe();
-    }
-
-    /**
-     * Standard comment for `detail_info` columns.
-     */
-    public static function detailInfoComment(): string
-    {
-        return 'JSON detail info — change_log{created_at, created_by, updated_at, updated_by, deleted_at, deleted_by} + module-specific keys';
-    }
-
-    /**
-     * Standard comment for `origin_id` columns.
-     */
-    public static function originIdComment(): string
-    {
-        return 'origin instance id where the record comes from or goes to';
-    }
-
-    /**
-     * Standard comment for `sync_flag` columns.
-     */
-    public static function syncFlagComment(): string
-    {
-        return 'null: synced, 1: not synced';
-    }
-
-    /**
-     * Standard comment for `sync_mdb` columns.
-     */
-    public static function syncMdbComment(): string
-    {
-        return 'null: sync to MDB, 1: not sync to MDB';
-    }
-
-    /**
-     * Standard comment for `lock_version` columns.
-     */
-    public static function lockVersionComment(): string
-    {
-        return 'Optimistic locking version';
     }
 }

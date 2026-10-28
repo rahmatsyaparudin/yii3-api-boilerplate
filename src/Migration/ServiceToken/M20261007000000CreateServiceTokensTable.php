@@ -39,7 +39,7 @@ final class M20261007000000CreateServiceTokensTable implements RevertibleMigrati
             'last_used_at'   => $cb::datetime()->comment('Last successful authentication'),
             'expires_at'     => $cb::datetime()->comment('Expiry; NULL = never'),
             'status'         => $cb::smallint()->notNull()->defaultValue(ColumnContract::statusDefault('active'))->comment(ColumnContract::statusComment()),
-            'detail_info'    => $cb::json()->comment(ColumnContract::detailInfoComment()),
+            'detail_info'    => $cb::json()->comment(ColumnContract::DETAIL_INFO_COMMENT),
             'created_at'     => $cb::datetime(),
         ]);
 
