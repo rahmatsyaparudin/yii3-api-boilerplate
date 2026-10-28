@@ -244,6 +244,28 @@ enum RecordStatus: int
     }
 
     /**
+     * Describe all status values as a human-readable string.
+     *
+     * Returns a string listing every status as "value: Label" pairs,
+     * suitable for database column comments or API documentation.
+     *
+     * @return string Status values with labels, e.g. "0: Inactive, 1: Active, ..."
+     *
+     * @example
+     * // In migration
+     * 'status' => $cb::smallint()->notNull()->comment(RecordStatus::describe())
+     */
+    public static function describe(): string
+    {
+        $pairs = [];
+        foreach (self::list() as $value => $label) {
+            $pairs[] = "{$value}: {$label}";
+        }
+
+        return implode(', ', $pairs);
+    }
+
+    /**
      * Get searchable status values.
      *
      * Returns an array of status values that can be searched/exposed

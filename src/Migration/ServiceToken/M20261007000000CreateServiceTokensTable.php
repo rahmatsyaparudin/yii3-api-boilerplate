@@ -38,7 +38,7 @@ final class M20261007000000CreateServiceTokensTable implements RevertibleMigrati
             'whitelist_host' => $cb::json()->comment('Allowed client hosts/IPs; empty = allow all'),
             'last_used_at'   => $cb::datetime()->comment('Last successful authentication'),
             'expires_at'     => $cb::datetime()->comment('Expiry; NULL = never'),
-            'status'         => $cb::smallint()->notNull()->defaultValue(RecordStatus::ACTIVE->value),
+            'status'         => $cb::smallint()->notNull()->defaultValue(RecordStatus::ACTIVE->value)->comment(RecordStatus::describe()),
             'detail_info'    => $cb::json(),
             'created_at'     => $cb::datetime(),
         ]);
