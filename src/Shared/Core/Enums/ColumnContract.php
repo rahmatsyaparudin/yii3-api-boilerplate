@@ -14,7 +14,7 @@ namespace App\Shared\Core\Enums;
  * @example
  * // In migration
  * 'status'      => $cb::smallint()->notNull()->defaultValue(ColumnContract::statusDefault())->comment(ColumnContract::statusComment()),
- * 'detail_info' => $cb::json()->notNull()->defaultValue(ColumnContract::DETAIL_INFO_DEFAULT)->comment(ColumnContract::DETAIL_INFO_COMMENT),
+ * 'detail_info' => $cb::json()->notNull()->defaultValue(ColumnContract::DETAILINFO_DEFAULT)->comment(ColumnContract::DETAILINFO_COMMENT),
  * @example
  * // When a column deliberately deviates from the convention, pick the status
  * 'status' => $cb::smallint()->notNull()->defaultValue(ColumnContract::statusDefault('active'))->comment(ColumnContract::statusComment()),
@@ -40,7 +40,7 @@ final class ColumnContract
      * MySQL table-level options clause — charset, collation, and engine
      * for CREATE TABLE statements.
      */
-    public const MYSQL_INNODB_COLLATION = 'CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci ENGINE=InnoDB';
+    public const INNODB_COLLATION_UTF8MB4 = 'CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci ENGINE=InnoDB';
 
     /**
      * Default value for `status` columns.
@@ -72,7 +72,7 @@ final class ColumnContract
      * Mirrors the empty change_log shape owned by the ChangeLogged concern;
      * DetailInfoFactory populates real values on every write.
      */
-    public const DETAIL_INFO_DEFAULT = [
+    public const DETAILINFO_DEFAULT = [
         'change_log' => [
             'created_at' => null,
             'created_by' => null,
@@ -100,7 +100,7 @@ final class ColumnContract
     /**
      * Standard comment for `detail_info` columns.
      */
-    public const DETAIL_INFO_COMMENT = 'JSON detail info — change_log{created_at, created_by, updated_at, updated_by, deleted_at, deleted_by} + module-specific keys';
+    public const DETAILINFO_COMMENT = 'JSON detail info — change_log{created_at, created_by, updated_at, updated_by, deleted_at, deleted_by} + module-specific keys';
 
     /**
      * Standard comment for `origin_id` columns.

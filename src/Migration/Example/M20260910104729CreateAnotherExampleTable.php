@@ -35,7 +35,7 @@ final class M20260910104729CreateAnotherExampleTable implements RevertibleMigrat
             'name'        => $cb::string(255)->notNull(),
             'example_id'  => $cb::integer()->notNull(),
             'status'      => $cb::smallint()->notNull()->defaultValue(ColumnContract::statusDefault())->comment(ColumnContract::statusComment()),
-            'detail_info' => $cb::json()->notNull()->defaultValue(ColumnContract::DETAIL_INFO_DEFAULT)->comment(ColumnContract::DETAIL_INFO_COMMENT),
+            'detail_info' => $cb::json()->notNull()->defaultValue(ColumnContract::DETAILINFO_DEFAULT)->comment(ColumnContract::DETAILINFO_COMMENT),
             'origin_id'    => $cb::integer()->null()->comment(ColumnContract::ORIGIN_ID_COMMENT),
             'sync_flag'    => $cb::smallint()->null()->defaultValue(ColumnContract::SYNC_FLAG_DEFAULT)->comment(ColumnContract::SYNC_FLAG_COMMENT),
             'sync_mdb'     => $cb::smallint()->null()->comment(ColumnContract::SYNC_MDB_COMMENT),

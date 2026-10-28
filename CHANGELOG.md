@@ -3,7 +3,7 @@
 ## [1.2.0] - 2026-10-28
 
 ### Added
-- `src/Shared/Core/Enums/ColumnContract.php`: single contract for conventional column defaults and comments — `PG_PRIMARY_KEY_IDENTITY`, `MYSQL_TIMESTAMP_AUTO_UPDATE`, `MYSQL_INNODB_COLLATION`, `DETAIL_INFO_DEFAULT`, `SYNC_FLAG_DEFAULT`, `LOCK_VERSION_DEFAULT` default constants, `DETAIL_INFO_COMMENT`, `ORIGIN_ID_COMMENT`, `SYNC_FLAG_COMMENT`, `SYNC_MDB_COMMENT`, `LOCK_VERSION_COMMENT` comment constants, plus `statusDefault('draft'|'active'|…)` and `statusComment()` methods. `statusDefault()` resolves status names case-insensitively and throws `InvalidArgumentException` on unknown names.
+- `src/Shared/Core/Enums/ColumnContract.php`: single contract for conventional column defaults and comments — `PG_PRIMARY_KEY_IDENTITY`, `MYSQL_TIMESTAMP_AUTO_UPDATE`, `INNODB_COLLATION_UTF8MB4`, `DETAILINFO_DEFAULT`, `SYNC_FLAG_DEFAULT`, `LOCK_VERSION_DEFAULT` default constants, `DETAILINFO_COMMENT`, `ORIGIN_ID_COMMENT`, `SYNC_FLAG_COMMENT`, `SYNC_MDB_COMMENT`, `LOCK_VERSION_COMMENT` comment constants, plus `statusDefault('draft'|'active'|…)` and `statusComment()` methods. `statusDefault()` resolves status names case-insensitively and throws `InvalidArgumentException` on unknown names.
 - `RecordStatus::describe()`: returns every status as `"value: Label"` pairs (e.g. `"0: Inactive, 1: Active, ..."`) built from `list()`/`label()` — the source of `ColumnContract::statusComment()`.
 - `docs-guide/28-column-contract.md`: usage guide for `ColumnContract`.
 

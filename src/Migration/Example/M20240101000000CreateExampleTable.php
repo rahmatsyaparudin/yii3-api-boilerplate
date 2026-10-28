@@ -34,7 +34,7 @@ final class M20240101000000CreateExampleTable implements RevertibleMigrationInte
             'id'          => $cb::integer()->notNull()->extra(ColumnContract::PG_PRIMARY_KEY_IDENTITY),
             'name'        => $cb::string(255)->notNull(),
             'status'      => $cb::smallint()->notNull()->defaultValue(ColumnContract::statusDefault())->comment(ColumnContract::statusComment()),
-            'detail_info' => $cb::json()->notNull()->defaultValue(ColumnContract::DETAIL_INFO_DEFAULT)->comment(ColumnContract::DETAIL_INFO_COMMENT),
+            'detail_info' => $cb::json()->notNull()->defaultValue(ColumnContract::DETAILINFO_DEFAULT)->comment(ColumnContract::DETAILINFO_COMMENT),
             'sync_mdb'     => $cb::smallint()->null()->comment(ColumnContract::SYNC_MDB_COMMENT),
             'lock_version' => $cb::integer()->notNull()->defaultValue(ColumnContract::LOCK_VERSION_DEFAULT)->comment(ColumnContract::LOCK_VERSION_COMMENT),
         ]);
