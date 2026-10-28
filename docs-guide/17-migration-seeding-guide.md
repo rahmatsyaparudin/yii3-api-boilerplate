@@ -182,6 +182,28 @@ Setiap folder modul harus dipetakan ke sebuah koneksi di `config/common/migratio
 ./yii migrate:module auditable --db=audit
 ```
 
+> **Catatan:** `migrate:module` hanya bisa *apply* — tidak ada mode `down`.
+> Untuk revert migration milik satu modul, gunakan `migrate:down` dengan
+> `--namespace` atau `--path`:
+
+```bash
+# Revert N migration terakhir milik satu modul (default limit = 1)
+./yii migrate:down --namespace="App\Migration\ServiceToken"
+./yii migrate:down --namespace="App\Migration\ServiceToken" --limit=2
+
+# Revert semua migration milik satu modul
+./yii migrate:down --namespace="App\Migration\ServiceToken" --all
+
+# Alternatif: pakai path folder modul
+./yii migrate:down --path=src/Migration/ServiceToken --all
+```
+
+Namespace mengikuti `App\Migration\<Module>` (`Example`, `Auditable`,
+`ServiceToken`, dst.). Karena `migrate:down` membaca tabel riwayat
+`{{%migration}}`, pastikan perintah dijalankan terhadap koneksi database
+yang sama dengan saat migration-nya di-apply — untuk modul non-default
+(mis. `Auditable` → `audit`), cek `moduleConnections` dulu.
+
 #### 3. **Manajemen Migration**
 ```bash
 # Tampilkan riwayat migration
