@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.0] - 2026-10-28
+
+### Added
+- `src/Shared/Core/Enums/ColumnContract.php`: single contract for conventional column defaults and comments — `PG_PRIMARY_KEY_IDENTITY`, `DETAIL_INFO_DEFAULT`, `SYNC_FLAG_DEFAULT`, `LOCK_VERSION_DEFAULT` constants plus `statusDefault('draft'|'active'|…)` and `statusComment()` / `detailInfoComment()` / `originIdComment()` / `syncFlagComment()` / `syncMdbComment()` / `lockVersionComment()` methods. `statusDefault()` resolves status names case-insensitively and throws `InvalidArgumentException` on unknown names.
+- `RecordStatus::describe()`: returns every status as `"value: Label"` pairs (e.g. `"0: Inactive, 1: Active, ..."`) built from `list()`/`label()` — the source of `ColumnContract::statusComment()`.
+- `docs-guide/28-column-contract.md`: usage guide for `ColumnContract`.
+
+### Changed
+- All migrations now reference `ColumnContract` for conventional columns: `id` (`->extra(ColumnContract::PG_PRIMARY_KEY_IDENTITY)`), `status`, `detail_info`, `origin_id`, `sync_flag`, `sync_mdb`, `lock_version` — replacing inline literal defaults and comments.
+
 ## [Unreleased] - 2026-09-11
 
 ### Added
