@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.1] - 2026-11-11
+
+### Fixed
+- `src/Shared/Core/Query/QueryConditionApplier.php`: `andLike()`/`orLike()` no longer pass the raw `'ilike'` operator to `andWhere()` — `'ilike'` is not registered in yiisoft/db `conditionClasses`, so it fell back to `SimpleBuilder` and bound the value as-is (`ILIKE 'x'`, exact match, 0 rows). Conditions now always route through `like`/`not like` so `LikeBuilder` wraps `%value%` and escapes wildcards; case-insensitivity is expressed via the `caseSensitive` operand (pgsql emits `ILIKE`, other drivers keep default collation). New private `normalizeLikeOperator()` helper; LIKE-related docblock examples corrected to raw values.
+- `filterByLike()` default `autoWrap` changed `true` → `false` — manual `'%'.$value.'%'` wrapping was escaped into literals (`LIKE '%\%x\%%'`, never matched). Raw values are passed through; the builder wraps and escapes.
+- `src/Infrastructure/Common/Persistence/System/ServiceTokenRepository.php`: `list()` calls `filterByLike()` with `autoWrap: false` + `db: $this->db` (resolves `ilike` on pgsql); `count()` cast to `(int)`. `username`/`name` LIKE filters match again.
+- Side effect fixed: `orLike` calls in `ExampleRepository`/`AnotherExampleRepository` previously produced exact-match `ILIKE 'x'` — now `ILIKE '%x%'`.
+
 ## [1.2.0] - 2026-10-28
 
 ### Added

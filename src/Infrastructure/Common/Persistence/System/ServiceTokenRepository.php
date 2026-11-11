@@ -81,16 +81,20 @@ final class ServiceTokenRepository implements ServiceTokenRepositoryInterface, C
             ]
         );
 
+        // Yii query builder sudah auto-wrap LIKE '%value%' — jangan
+        // tambahkan '%' manual (akan di-escape jadi literal).
         $this->queryConditionApplier->filterByLike(
             query: $query,
             filters: $filter,
             allowedColumns: [
                 'username',
                 'name',
-            ]
+            ],
+            autoWrap: false,
+            db: $this->db,
         );
 
-        $total = (clone $query)->count();
+        $total = (int) (clone $query)->count();
 
         $query->orderBy($criteria->getOrderClause())
             ->limit($criteria->pageSize)

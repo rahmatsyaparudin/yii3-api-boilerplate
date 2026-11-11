@@ -170,7 +170,11 @@ final class QueryConditionApplier
      * @param array                   $allowedColumns Whitelisted column names
      * @param string|null             $operator       The LIKE operator ('like' or 'ilike'). When null,
      *                                                it is resolved from $db ('ilike' for pgsql, 'like' otherwise)
-     * @param bool                    $autoWrap       Whether to wrap the value with '%' if it does not already contain '%'
+     * @param bool                    $autoWrap       Whether to wrap the value with '%' if it does not already contain '%'.
+     *                                                Defaults to false: yiisoft/db already wraps in Contains mode and
+     *                                                escapes literal '%'/'_' — manual wrapping produces 'LIKE %\%..\%%'
+     *                                                which never matches. Keep false unless the connection's LikeBuilder
+     *                                                is configured with escape disabled
      * @param ConnectionInterface|null $db            Connection used to resolve the operator when $operator is null. Defaults to the injected connection; pass another connection for multi-database queries
      */
     public function filterByLike(
@@ -178,7 +182,7 @@ final class QueryConditionApplier
         array $filters,
         array $allowedColumns,
         ?string $operator = null,
-        bool $autoWrap = true,
+        bool $autoWrap = false,
         ?ConnectionInterface $db = null,
     ): Query {
         $whitelisted = \array_intersect_key($filters, \array_flip($allowedColumns));
@@ -316,8 +320,10 @@ final class QueryConditionApplier
      *
      * @example
      * // Case-insensitive text search
+     * // Pass raw values — the query builder wraps '%value%' and escapes
+     * // wildcards itself; pre-wrapped '%' would be escaped into literals
      * $query = new Query();
-     * $conditions = ['name' => '%john%', 'email' => '%@example%'];
+     * $conditions = ['name' => 'john', 'email' => '@example'];
      * $query = $this->queryConditionApplier->andLike($query, 'ilike', $conditions);
      * @example
      * // Case-sensitive text search
@@ -331,8 +337,8 @@ final class QueryConditionApplier
      *     query: $query,
      *     operator: 'ilike',
      *     conditions: [
-     *         'name' => "%{$searchTerm}%",
-     *         'description' => "%{$searchTerm}%"
+     *         'name' => $searchTerm,
+     *         'description' => $searchTerm
      *     ]
      * );
      */
@@ -343,10 +349,11 @@ final class QueryConditionApplier
         ?ConnectionInterface $db = null,
     ): Query {
         $operator = self::resolveLikeOperator($operator, $db ?? $this->db);
+        [$conditionOperator, $caseSensitive] = self::normalizeLikeOperator($operator);
 
         foreach ($conditions as $column => $value) {
             if (self::isFilled($value)) {
-                $query->andWhere([$operator, $column, $value]);
+                $query->andWhere([$conditionOperator, $column, $value, 'caseSensitive' => $caseSensitive]);
             }
         }
 
@@ -371,9 +378,9 @@ final class QueryConditionApplier
      * // Multi-field text search
      * $query = new Query();
      * $conditions = [
-     *     'name' => '%john%',
-     *     'email' => '%@example%',
-     *     'username' => '%john%'
+     *     'name' => 'john',
+     *     'email' => '@example',
+     *     'username' => 'john'
      * ];
      * $query = $this->queryConditionApplier->orLike($query, 'ilike', $conditions);
      * // Generates: AND (name LIKE '%john%' OR email LIKE '%@example%' OR username LIKE '%john%')
@@ -383,15 +390,15 @@ final class QueryConditionApplier
      * $searchTerms = ['product', 'description', 'tags'];
      * $orConditions = [];
      * foreach ($searchTerms as $term) {
-     *     $orConditions[$term] = "%$term%";
+     *     $orConditions[$term] = $searchQuery;
      * }
      * $query = $this->queryConditionApplier->orLike($query, 'ilike', $orConditions);
      * @example
      * // Advanced search with multiple operators
      * $query = $this->createQuery();
      * $query = $this->queryConditionApplier->orLike($query, 'ilike', [
-     *     'title' => '%search%',
-     *     'content' => '%search%'
+     *     'title' => 'search',
+     *     'content' => 'search'
      * ]);
      */
     public function orLike(
@@ -401,12 +408,13 @@ final class QueryConditionApplier
         ?ConnectionInterface $db = null,
     ): Query {
         $operator = self::resolveLikeOperator($operator, $db ?? $this->db);
+        [$conditionOperator, $caseSensitive] = self::normalizeLikeOperator($operator);
 
         $or = [];
 
         foreach ($conditions as $column => $value) {
             if (self::isFilled($value)) {
-                $or[] = [$operator, $column, $value];
+                $or[] = [$conditionOperator, $column, $value, 'caseSensitive' => $caseSensitive];
             }
         }
 
@@ -601,6 +609,26 @@ final class QueryConditionApplier
         }
 
         return $db !== null && $db->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+    }
+
+    /**
+     * Normalize a resolved LIKE operator for condition-array syntax.
+     *
+     * yiisoft/db only registers 'like'/'not like' in conditionClasses — an
+     * 'ilike' operator would fall back to SimpleBuilder and bind the raw
+     * pattern as-is (no '%value%' wrap, no wildcard escaping). Routing
+     * everything through 'like'/'not like' lets LikeBuilder wrap and escape
+     * the value; case-insensitivity is expressed via 'caseSensitive', which
+     * the pgsql LikeBuilder turns into ILIKE and other drivers ignore.
+     *
+     * @return array{0: string, 1: bool|null} [condition operator, caseSensitive]
+     */
+    private static function normalizeLikeOperator(string $operator): array
+    {
+        return [
+            \str_starts_with($operator, 'not') ? 'not like' : 'like',
+            \str_ends_with($operator, 'ilike') ? false : null,
+        ];
     }
 
     /**
