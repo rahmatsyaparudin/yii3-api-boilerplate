@@ -3,6 +3,32 @@
 > Entries not yet assigned a version. Move them into `vX.Y.Z.md` when
 > cutting a release. Migrated from root `CHANGELOG.md` on 2026-11-18.
 
+## Unreleased - 2026-11-18
+
+### Added
+- `src/Shared/Core/Enums/SyncColumns.php`: opt-in column contract for
+  sync-aware tables — `identity()` (`uuid`, `source_store_id`),
+  `routing()` (`origin_id`, `sync_flag`), `locking()` (`doc_role`,
+  `lock_version`), `all()`, and `names()`; spread into
+  `createTable(..., [...SyncColumns::all($cb)])` or looped into
+  `addColumn()` for ALTER migrations.
+- `src/Domain/Shared/Core/Enum/DocRole.php`: string-backed enum —
+  `LOCAL` / `INTERSTORE` / `COPY` — with `fromValue()` (throws
+  `BadRequestException` via `doc_role.invalid_value`) and `label()`.
+- `src/Console/Core/SyncColumnsCommand.php` + `sync:columns` command:
+  - `sync:columns add <table> <Module>` generates an ALTER migration
+    looping `SyncColumns::all($cb)` via `addColumn()` / `dropColumn()`.
+  - `sync:columns inject <file>` inserts `...SyncColumns::all($cb),`
+    plus the `use` statement into an existing create-table migration,
+    verifies `php -l`, and auto-reverts on invalid output (idempotent).
+- Validation message `doc_role.invalid_value` (en + id).
+
+### Changed
+- `config/console/commands.php`: registered `sync:columns`.
+- `docs-guide/22-sync-flag-guide.md`: documented the `SyncColumns`
+  contract, both command modes, and the `uuid` backfill caveat for
+  populated tables.
+
 ## Unreleased - 2026-09-11
 
 ### Added

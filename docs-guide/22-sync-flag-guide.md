@@ -198,6 +198,72 @@ Skema sekarang cukup untuk **point-to-point A ↔ B**. Untuk kebutuhan lebih kom
 - **Korelasi lintas store** (id lokal beda-beda: A=100, B=200, cloud=300) → `uuid` per record, atau registry `(store_id, table, local_id)` di cloud.
 - **Provenance/kepemilikan** → field `doc_role` (`LOCAL`/`INTERSTORE`/`COPY`): hanya `LOCAL` yang boleh di-edit user; copy bersifat read-only kecuali oleh sync applier; agregasi dedupe by `uuid`.
 
+## Injector Kolom Sync (`SyncColumns` + `sync:columns`)
+
+`src/Shared/Core/Enums/SyncColumns.php` adalah kontrak kolom yang bisa
+di-**inject per tabel** (opt-in — tabel yang tidak ikut sync tidak
+menulis apa-apa). Definisi canonical (tipe, default, comment) hidup di
+satu tempat sehingga tabel yang ikut skema tidak menyimpang.
+
+Grup kolom:
+
+| Method | Kolom | Fungsi |
+|--------|-------|--------|
+| `SyncColumns::identity($cb)` | `uuid`, `source_store_id` | Identitas global + provenance penulis asli (anti echo-loop) |
+| `SyncColumns::routing($cb)` | `origin_id`, `sync_flag` | Routing point-to-point (skema SyncFlag yang ada) |
+| `SyncColumns::locking($cb)` | `doc_role`, `lock_version` | Aturan edit (`LOCAL`/`INTERSTORE`/`COPY`) + optimistic locking |
+| `SyncColumns::all($cb)` | gabungan ketiganya | Kasus umum: tabel ikut sync penuh |
+| `SyncColumns::names()` | daftar nama kolom | Untuk `down()` / whitelist select |
+
+**Create table** — spread di dalam `createTable()`:
+
+```php
+$b->createTable(self::TABLE_NAME, [
+    'id'          => $cb::integer()->notNull()->extra(ColumnContract::PG_PRIMARY_KEY_IDENTITY),
+    'name'        => $cb::string(255)->notNull(),
+    'status'      => $cb::smallint()->notNull()->defaultValue(ColumnContract::statusDefault())->comment(ColumnContract::statusComment()),
+    'detail_info' => $cb::json()->notNull()->defaultValue(ColumnContract::DETAILINFO_DEFAULT)->comment(ColumnContract::DETAILINFO_COMMENT),
+    ...SyncColumns::all($cb),
+]);
+```
+
+**Tabel lama (lupa/retrofit)** — generate migration ALTER:
+
+```shell
+./yii sync:columns add orders Example
+```
+
+menghasilkan `src/Migration/Example/M…AddSyncColumnsToOrdersTable.php`
+yang me-loop `SyncColumns::all($cb)` lewat `addColumn()` (dan
+`dropColumn()` di `down()` via `SyncColumns::names()`).
+
+> ⚠️ `uuid` didefinisikan `NOT NULL` + `UNIQUE`. Pada tabel yang sudah
+> berisi data, backfill satu uuid per row dulu (pgsql:
+> `gen_random_uuid()`, mysql: `UUID()`) — tambahkan kolom nullable,
+> isi, baru `SET NOT NULL`.
+
+**Inject ke create-table migration yang sudah ada**:
+
+```shell
+./yii sync:columns inject src/Migration/Example/M…CreateOrdersTable.php
+```
+
+menyisipkan `...SyncColumns::all($cb),` sebagai entry terakhir array
+kolom + `use` statement-nya, lalu mem-verifikasi `php -l` (otomatis
+revert bila hasil patch invalid). Idempotent — file yang sudah berisi
+`SyncColumns::` di-skip.
+
+Catatan: `inject` menaruh `all()` di akhir array; bila tabel sudah punya
+sebagian kolom (mis. `origin_id` lama), key duplikat legal di PHP
+(last-wins, definisinya identik) tapi bisa dirapikan manual.
+
+### `DocRole` (`src/Domain/Shared/Core/Enum/DocRole.php`)
+
+Enum string-backed — `LOCAL` / `INTERSTORE` / `COPY` — dengan
+`fromValue()` (throw `BadRequestException`, key
+`doc_role.invalid_value`) dan `label()`. Default kolom `doc_role`
+adalah `LOCAL`.
+
 ## Referensi API
 
 ### `SyncFlag` — `src/Domain/Shared/Core/ValueObject/SyncFlag.php`

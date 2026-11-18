@@ -135,6 +135,7 @@ return [
     'sync_mdb.invalid_format' => 'Invalid sync_mdb format "{value}". Expected a numeric value or null',
     'sync_flag.invalid_value' => 'Invalid sync_flag value "{value}". Allowed values: {allowed_values}',
     'sync_flag.invalid_direction' => 'Invalid sync direction "{value}". Allowed values: {allowed_values}',
+    'doc_role.invalid_value' => 'Invalid doc_role value "{value}". Allowed values: {allowed_values}',
 
     // Request Prefix
     'request.unknown_parameters' => 'Unknown parameters: {unknown_keys}. Allowed parameters: {allowed_keys}',

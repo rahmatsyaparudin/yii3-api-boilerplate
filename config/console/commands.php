@@ -8,6 +8,7 @@ use App\Environment;
 $commands = [
     'hello'          => Console\Core\HelloCommand::class,
     'migrate:module' => Console\Core\MigrateModuleCommand::class,
+    'sync:columns'   => Console\Core\SyncColumnsCommand::class,
     'seed'           => Console\Core\SeederCommand::class,
 ];
 

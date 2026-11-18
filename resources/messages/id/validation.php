@@ -135,6 +135,7 @@ return [
     'sync_mdb.invalid_format' => 'Format sync_mdb "{value}" tidak valid. Harus berupa angka atau null',
     'sync_flag.invalid_value' => 'Nilai sync_flag "{value}" tidak valid. Nilai yang diizinkan: {allowed_values}',
     'sync_flag.invalid_direction' => 'Arah sinkronisasi "{value}" tidak valid. Nilai yang diizinkan: {allowed_values}',
+    'doc_role.invalid_value' => 'Nilai doc_role "{value}" tidak valid. Nilai yang diizinkan: {allowed_values}',
 
     // Request Prefix
     'request.unknown_parameters' => 'Parameter tidak dikenal: {unknown_keys}. Parameter yang diizinkan: {allowed_keys}',
