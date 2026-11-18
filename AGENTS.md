@@ -1,5 +1,14 @@
 # Agent & Contributor Rules
 
+<!-- skeleton-source-only:start -->
+> **This is the skeleton SOURCE repository.** The protected/frozen rules
+> below apply to consumer projects that receive this code via
+> `composer skeleton:update`. In this repo `Core/` directories, frozen
+> presenters, `config/common/di/`, and the message files are all
+> editable — changes made here are what get synced downstream. Nested
+> `AGENTS.md` files still describe the consumer-facing rules.
+<!-- skeleton-source-only:end -->
+
 ## Protected paths — DO NOT MODIFY
 
 Any `Core/` directory under `src/`, `src/Api/Shared/Presenter/`, the

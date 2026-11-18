@@ -661,6 +661,33 @@ class SkeletonInstaller
             return;
         }
 
+        // Copy root-level files (e.g. AGENTS.md) — language dirs are handled below.
+        // app.php is project-specific, do not overwrite.
+        $rootFiles = new DirectoryIterator($sourcePath);
+        foreach ($rootFiles as $fileInfo) {
+            if ($fileInfo->isDot() || $fileInfo->isDir()) {
+                continue;
+            }
+
+            $file = $fileInfo->getFilename();
+            if ($file === 'app.php') {
+                continue;
+            }
+
+            $sourceFile = $sourcePath . '/' . $file;
+            $targetFile = $targetMessagesPath . '/' . $file;
+
+            if ($sourceFile === $targetFile) {
+                continue;
+            }
+
+            file_put_contents(
+                $targetFile,
+                self::stripSourceOnlyBlocks((string) file_get_contents($sourceFile))
+            );
+            echo "✅ Copied message file: resources/messages/{$file}\n";
+        }
+
         $languages = new DirectoryIterator($sourcePath);
         foreach ($languages as $langInfo) {
             if ($langInfo->isDot() || !$langInfo->isDir()) {
@@ -695,7 +722,9 @@ class SkeletonInstaller
                 }
 
                 if (file_exists($sourceFile)) {
-                    $content = file_get_contents($sourceFile);
+                    $content = self::stripSourceOnlyBlocks(
+                        (string) file_get_contents($sourceFile)
+                    );
                     file_put_contents($targetFile, $content);
                     echo "✅ Copied message file: resources/messages/{$lang}/{$file}\n";
                 }
@@ -856,18 +885,43 @@ class SkeletonInstaller
         $agentsSource = $this->vendorPath . '/AGENTS.md';
         $agentsTarget = $this->projectRoot . '/AGENTS.md';
         if (file_exists($agentsSource)) {
+            $agentsContent = self::stripSourceOnlyBlocks(
+                (string) file_get_contents($agentsSource)
+            );
             if (!file_exists($agentsTarget)) {
-                copy($agentsSource, $agentsTarget);
+                file_put_contents($agentsTarget, $agentsContent);
                 echo "✅ Copied AGENTS.md\n";
             } elseif (!str_contains((string) file_get_contents($agentsTarget), 'Protected paths')) {
                 file_put_contents(
                     $agentsTarget,
-                    "\n\n" . (string) file_get_contents($agentsSource),
+                    "\n\n" . $agentsContent,
                     FILE_APPEND
                 );
                 echo "✅ Appended protected-paths rules to existing AGENTS.md\n";
             }
         }
+    }
+
+    /**
+     * Remove skeleton-source-only blocks from copied files.
+     *
+     * Sections wrapped in `<!-- skeleton-source-only:start -->` …
+     * `<!-- skeleton-source-only:end -->` describe the skeleton source
+     * repository itself (e.g. "Core/ is editable here") and must never
+     * reach consumer projects — the frozen rules they annotate apply
+     * there verbatim.
+     */
+    private static function stripSourceOnlyBlocks(string $content): string
+    {
+        if (!str_contains($content, '<!-- skeleton-source-only:start -->')) {
+            return $content;
+        }
+
+        return (string) preg_replace(
+            '/\n?<!-- skeleton-source-only:start -->.*?<!-- skeleton-source-only:end -->\n?/s',
+            "\n",
+            $content
+        );
     }
 
     private function updateComposerJson(): void
@@ -938,7 +992,7 @@ class SkeletonInstaller
 
     private function copyDirectory(string $source, string $target): void
     {
-        if (!is_dir($source)) {
+        if (!is_dir($source) || $source === $target) {
             return;
         }
         
@@ -963,8 +1017,8 @@ class SkeletonInstaller
                     continue;
                 }
                 
-                // Copy file as-is without replacements
-                $content = file_get_contents($sourcePath);
+                // Copy file as-is, minus skeleton-source-only marker blocks
+                $content = self::stripSourceOnlyBlocks((string) file_get_contents($sourcePath));
                 
                 // Ensure target directory exists
                 $targetDir = dirname($targetPath);

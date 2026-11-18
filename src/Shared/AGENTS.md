@@ -1,5 +1,11 @@
 # `src/Shared/` rules
 
+<!-- skeleton-source-only:start -->
+> **Source repo** — rules below apply to consumer projects synced via
+> `composer skeleton:update`. In this skeleton source repo, `Core/` is
+> editable; changes made here are what ship downstream.
+<!-- skeleton-source-only:end -->
+
 - `Core/` is **frozen code** — don't add your code here, don't edit, rename,
   move, or delete anything inside it.
 - Put shared helpers, base classes, and utilities in `Common/` instead.
