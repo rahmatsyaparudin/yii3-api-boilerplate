@@ -1,36 +1,9 @@
-# Changelog
+# Unreleased
 
-## [1.2.2] - 2026-11-18
+> Entries not yet assigned a version. Move them into `vX.Y.Z.md` when
+> cutting a release. Migrated from root `CHANGELOG.md` on 2026-11-18.
 
-### Added
-- `skeleton-source-only` marker blocks in all 10 `AGENTS.md` files — identifies this repo as the skeleton source where `Core/` is editable; the frozen rules beneath apply to consumer projects only.
-
-### Changed
-- `scripts/skeleton-update.php`: new `stripSourceOnlyBlocks()` helper removes `<!-- skeleton-source-only:start/end -->` sections in every copy path (`copyProtectionFiles`, `copyDirectory`, `copyMessageFiles`) so consumers receive consumer-facing rules verbatim.
-
-### Fixed
-- `copyMessageFiles()` now copies root-level files under `resources/messages/` (e.g. `AGENTS.md`) — previously skipped since the loop only iterated language subdirectories. `app.php` remains protected.
-- `copyDirectory()` no-ops when `source === target`, preventing in-place stripping if the installer runs inside the source repo.
-
-## [1.2.1] - 2026-11-11
-
-### Fixed
-- `src/Shared/Core/Query/QueryConditionApplier.php`: `andLike()`/`orLike()` no longer pass the raw `'ilike'` operator to `andWhere()` — `'ilike'` is not registered in yiisoft/db `conditionClasses`, so it fell back to `SimpleBuilder` and bound the value as-is (`ILIKE 'x'`, exact match, 0 rows). Conditions now always route through `like`/`not like` so `LikeBuilder` wraps `%value%` and escapes wildcards; case-insensitivity is expressed via the `caseSensitive` operand (pgsql emits `ILIKE`, other drivers keep default collation). New private `normalizeLikeOperator()` helper; LIKE-related docblock examples corrected to raw values.
-- `filterByLike()` default `autoWrap` changed `true` → `false` — manual `'%'.$value.'%'` wrapping was escaped into literals (`LIKE '%\%x\%%'`, never matched). Raw values are passed through; the builder wraps and escapes.
-- `src/Infrastructure/Common/Persistence/System/ServiceTokenRepository.php`: `list()` calls `filterByLike()` with `autoWrap: false` + `db: $this->db` (resolves `ilike` on pgsql); `count()` cast to `(int)`. `username`/`name` LIKE filters match again.
-- Side effect fixed: `orLike` calls in `ExampleRepository`/`AnotherExampleRepository` previously produced exact-match `ILIKE 'x'` — now `ILIKE '%x%'`.
-
-## [1.2.0] - 2026-10-28
-
-### Added
-- `src/Shared/Core/Enums/ColumnContract.php`: single contract for conventional column defaults and comments — `PG_PRIMARY_KEY_IDENTITY`, `MYSQL_TIMESTAMP_AUTO_UPDATE`, `INNODB_COLLATION_UTF8MB4`, `DETAILINFO_DEFAULT`, `SYNC_FLAG_DEFAULT`, `LOCK_VERSION_DEFAULT` default constants, `DETAILINFO_COMMENT`, `ORIGIN_ID_COMMENT`, `SYNC_FLAG_COMMENT`, `SYNC_MDB_COMMENT`, `LOCK_VERSION_COMMENT` comment constants, plus `statusDefault('draft'|'active'|…)` and `statusComment()` methods. `statusDefault()` resolves status names case-insensitively and throws `InvalidArgumentException` on unknown names.
-- `RecordStatus::describe()`: returns every status as `"value: Label"` pairs (e.g. `"0: Inactive, 1: Active, ..."`) built from `list()`/`label()` — the source of `ColumnContract::statusComment()`.
-- `docs-guide/28-column-contract.md`: usage guide for `ColumnContract`.
-
-### Changed
-- All migrations now reference `ColumnContract` for conventional columns: `id` (`->extra(ColumnContract::PG_PRIMARY_KEY_IDENTITY)`), `status`, `detail_info`, `origin_id`, `sync_flag`, `sync_mdb`, `lock_version` — replacing inline literal defaults and comments.
-
-## [Unreleased] - 2026-09-11
+## Unreleased - 2026-09-11
 
 ### Added
 - `src/Domain/Shared/Core/Enum/SyncStatus.php`: pure enum for `sync_flag` status — `SYNCED` (db `null`), `NOT_SYNCED` (db `1`) — with `dbValue()`/`fromDbValue()`/`label()`/`isSynced()`/`isPending()`; `fromDbValue()` throws `BadRequestException` on invalid values.
@@ -62,7 +35,7 @@
 1. If `another_example` was already migrated, revert and re-run `M20260910104729CreateAnotherExampleTable` (or add an `ALTER TABLE` migration) to get the `origin_id`/`sync_flag` columns.
 2. Run `composer dump-autoload` so the new enum/value-object classes are registered.
 
-## [Unreleased] - 2026-08-27
+## Unreleased - 2026-08-27
 
 ### Added
 - `src/Shared/Utility/FieldMapper.php`: new utility for row field mapping (rename keys, convert zero/'0' values to null).
