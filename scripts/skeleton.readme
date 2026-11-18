@@ -10,6 +10,42 @@
 > Versi mengikuti `changelog/` (semver app): `v1.0.0` baseline,
 > `v1.1.0` Service Token, `v1.2.0` Cache + managed sync.
 
+## v1.2.2
+
+### Diperbaiki
+- **`skeleton:update` menyalin `resources/messages/AGENTS.md`** — file
+  rules root folder messages sebelumnya ter-skip (loop hanya membaca
+  subdirectory bahasa); kini file root-level ikut tersalin, `app.php`
+  tetap dilindungi.
+- **`copyDirectory` no-op saat `source === target`** — mencegah
+  copy-strip in-place bila installer dijalankan di dalam repo sumber.
+
+### Ditambahkan
+- **Marker `skeleton-source-only` di semua `AGENTS.md`** — blok
+  `<!-- skeleton-source-only:start/end -->` menandai repo sumber
+  skeleton (`Core/` editable di sana). Blok di-strip otomatis oleh
+  `stripSourceOnlyBlocks()` di semua jalur copy, jadi project konsumen
+  hanya menerima rules frozen yang berlaku untuk mereka.
+
+## v1.2.1
+
+### Diperbaiki
+- **Filter LIKE/ILIKE tidak pernah match** — `QueryConditionApplier`
+  `andLike()`/`orLike()` mengoper operator `'ilike'` mentah ke
+  `andWhere()`; `'ilike'` tidak terdaftar di `conditionClasses`
+  yiisoft/db sehingga jatuh ke `SimpleBuilder` (value di-bind apa
+  adanya → `ILIKE 'x'` exact-match). Semua kondisi kini lewat
+  `like`/`not like` + operand `caseSensitive` — `LikeBuilder` yang wrap
+  `%value%` dan escape wildcard; pgsql emit `ILIKE`. Default
+  `filterByLike()` `autoWrap` `true` → `false` (wrap manual di-escape
+  jadi literal `%\%x\%%`). `ServiceTokenRepository::list()` memakai
+  `autoWrap: false` + `db:`.
+
+### Catatan untuk project konsumen
+- Jangan lagi mengoper pola `'%term%'` ke `andLike`/`orLike`/
+  `filterByLike` — `%` akan di-escape menjadi literal. Oper value
+  mentah; builder yang membungkus sekaligus meng-escape wildcard.
+
 ## v1.2.0
 
 ### Ditambahkan

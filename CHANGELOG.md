@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.2] - 2026-11-18
+
+### Added
+- `skeleton-source-only` marker blocks in all 10 `AGENTS.md` files — identifies this repo as the skeleton source where `Core/` is editable; the frozen rules beneath apply to consumer projects only.
+
+### Changed
+- `scripts/skeleton-update.php`: new `stripSourceOnlyBlocks()` helper removes `<!-- skeleton-source-only:start/end -->` sections in every copy path (`copyProtectionFiles`, `copyDirectory`, `copyMessageFiles`) so consumers receive consumer-facing rules verbatim.
+
+### Fixed
+- `copyMessageFiles()` now copies root-level files under `resources/messages/` (e.g. `AGENTS.md`) — previously skipped since the loop only iterated language subdirectories. `app.php` remains protected.
+- `copyDirectory()` no-ops when `source === target`, preventing in-place stripping if the installer runs inside the source repo.
+
 ## [1.2.1] - 2026-11-11
 
 ### Fixed
