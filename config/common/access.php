@@ -57,6 +57,18 @@ return [
     'another-example.delete'  => $isKasir,
     'another-example.restore' => $isSuperAdmin,
 
+    // SyncExample Access Rules
+    'sync-example.index' => static fn (Actor $actor): bool => true,
+    'sync-example.data'  => [
+        $isSuperAdmin,
+        $isKasir,
+    ],
+    'sync-example.view'    => $isKasir,
+    'sync-example.create'  => $isKasir,
+    'sync-example.update'  => $isKasir,
+    'sync-example.delete'  => $isKasir,
+    'sync-example.restore' => $isSuperAdmin,
+
     // === SKELETON MANAGED PERMISSIONS — do not edit between markers ===
     // System module permissions. Synced by `composer skeleton:update`;
     // FQCN is used so the block is self-contained and needs no `use`

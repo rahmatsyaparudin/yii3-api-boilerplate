@@ -75,6 +75,11 @@ return [
         'language'       => $_ENV['app.config.language'] ?? 'en',
         'allow_god_mode' => \filter_var($_ENV['app.config.allow_god_mode'] ?? true, FILTER_VALIDATE_BOOLEAN),
     ],
+    'app/sync' => [
+        // Store/instance identity for sync provenance (`source_store_id`).
+        // 0 = cloud/master hub; >0 = origin/store id.
+        'store_id' => (int) ($_ENV['app.sync.store_id'] ?? 0),
+    ],
     'app/optimisticLock' => [
         'enabled'        => \filter_var($_ENV['app.optimistic_lock.enabled'] ?? true, FILTER_VALIDATE_BOOLEAN),
         'disabledValues' => $disabledValues,

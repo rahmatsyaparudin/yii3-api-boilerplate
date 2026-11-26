@@ -3,46 +3,20 @@
 > Entries not yet assigned a version. Move them into `vX.Y.Z.md` when
 > cutting a release. Migrated from root `CHANGELOG.md` on 2026-11-18.
 
-## Unreleased - 2026-11-18
-
-### Added
-- `src/Shared/Core/Enums/SyncColumns.php`: opt-in column contract for
-  sync-aware tables — `identity()` (`uuid`, `source_store_id`),
-  `routing()` (`origin_id`, `sync_flag`), `locking()` (`doc_role`,
-  `lock_version`), `all()`, and `names()`; spread into
-  `createTable(..., [...SyncColumns::all($cb)])` or looped into
-  `addColumn()` for ALTER migrations.
-- `src/Domain/Shared/Core/Enum/DocRole.php`: string-backed enum —
-  `LOCAL` / `INTERSTORE` / `COPY` — with `fromValue()` (throws
-  `BadRequestException` via `doc_role.invalid_value`) and `label()`.
-- `src/Console/Core/SyncColumnsCommand.php` + `sync:columns` command:
-  - `sync:columns add <table> <Module>` generates an ALTER migration
-    looping `SyncColumns::all($cb)` via `addColumn()` / `dropColumn()`.
-  - `sync:columns inject <file>` inserts `...SyncColumns::all($cb),`
-    plus the `use` statement into an existing create-table migration,
-    verifies `php -l`, and auto-reverts on invalid output (idempotent).
-- Validation message `doc_role.invalid_value` (en + id).
-
-### Changed
-- `config/console/commands.php`: registered `sync:columns`.
-- `docs-guide/22-sync-flag-guide.md`: documented the `SyncColumns`
-  contract, both command modes, and the `uuid` backfill caveat for
-  populated tables.
-
 ## Unreleased - 2026-09-11
 
 ### Added
-- `src/Domain/Shared/Core/Enum/SyncStatus.php`: pure enum for `sync_flag` status — `SYNCED` (db `null`), `NOT_SYNCED` (db `1`) — with `dbValue()`/`fromDbValue()`/`label()`/`isSynced()`/`isPending()`; `fromDbValue()` throws `BadRequestException` on invalid values.
-- `src/Domain/Shared/Core/Enum/SyncDirection.php`: backed int enum — `NONE` (0), `MASTER_TO_ORIGIN` (1), `ORIGIN_TO_MASTER` (2), `BIDIRECTIONAL` (3) — with `fromValue()`/`label()`; `fromValue()` throws `BadRequestException` on invalid values.
+- `src/Domain/Shared/Core/Enum/SyncStatus.php`: pure enum for `sync_flag` status Ã¢â‚¬â€ `SYNCED` (db `null`), `NOT_SYNCED` (db `1`) Ã¢â‚¬â€ with `dbValue()`/`fromDbValue()`/`label()`/`isSynced()`/`isPending()`; `fromDbValue()` throws `BadRequestException` on invalid values.
+- `src/Domain/Shared/Core/Enum/SyncDirection.php`: backed int enum Ã¢â‚¬â€ `NONE` (0), `MASTER_TO_ORIGIN` (1), `ORIGIN_TO_MASTER` (2), `BIDIRECTIONAL` (3) Ã¢â‚¬â€ with `fromValue()`/`label()`; `fromValue()` throws `BadRequestException` on invalid values.
 - `src/Domain/Shared/Core/ValueObject/SyncFlag.php`: immutable value object managing `origin_id` / `sync_flag` columns plus sync direction (replaces `SyncSlave`). `origin_id` defaults to `null`, `sync_flag` defaults to `1` (not synced).
 - `src/Application/Shared/Core/Factory/SyncFlagFactory.php`: application-layer factory wrapping `SyncFlag` with actor/timestamp-aware queue payload and sync log builders (replaces `SyncSlaveFactory`).
 - `SyncFlag::fromEntity()` supports entities exposing `getSyncFlagValue()` (raw `?int`), `getSyncFlag()` returning `SyncFlag` VO or raw int, and `getSyncDirection()` returning `SyncDirection` or int.
 - `another_example` table: new `origin_id` (integer, nullable) and `sync_flag` (smallint, nullable, default `1`) columns.
-- AnotherExample module: `SyncFlag` wired end-to-end — entity property + accessors, repository persistence/hydration and list filtering, create command/action, input validation (`origin_id` optional int, `sync_flag` optional int in `[1]`), response DTO fields, MongoDB schema fields, seeder fixture arg.
+- AnotherExample module: `SyncFlag` wired end-to-end Ã¢â‚¬â€ entity property + accessors, repository persistence/hydration and list filtering, create command/action, input validation (`origin_id` optional int, `sync_flag` optional int in `[1]`), response DTO fields, MongoDB schema fields, seeder fixture arg.
 - Validation messages `sync_flag.invalid_value` and `sync_flag.invalid_direction` (en + id).
 
 ### Changed
-- Renamed `SyncSlave` module to `SyncFlag`: `slave_id` → `origin_id`, `sync_slave` → `sync_flag` (`null` = synced, `1` = not synced).
+- Renamed `SyncSlave` module to `SyncFlag`: `slave_id` Ã¢â€ â€™ `origin_id`, `sync_slave` Ã¢â€ â€™ `sync_flag` (`null` = synced, `1` = not synced).
 - `AppConstants`: `SYNC_SLAVE`/`SLAVE_ID` constants replaced by `SYNC_FLAG = 'sync_flag'` and `ORIGIN_ID = 'origin_id'`.
 - Direction terminology changed from master/slave to master/origin (`masterToOrigin()`, `originToMaster()`, `needsSyncToOrigin()`, `shouldPushToOrigin()`, etc.).
 - `SyncFlagFactory::create()`/`resolveDirection()` now work with `SyncStatus`/`SyncDirection` enums; `resolveDirection()` returns `SyncDirection`.

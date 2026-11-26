@@ -15,6 +15,7 @@ use App\Presentation\Core\Http\Middleware\RequestParamsMiddleware;
 // Api Layer
 use App\Api\V1\Example\Action as ExampleV1;
 use App\Api\V1\AnotherExample\Action as AnotherExampleV1;
+use App\Api\V1\SyncExample\Action as SyncExampleV1;
 
 // @var array $params
 
@@ -82,6 +83,37 @@ return [
                 ->action(AnotherExampleV1\AnotherExampleRestoreAction::class)
                 ->name('v1/another-example/restore')
                 ->defaults(['permission' => 'another-example.restore']),
+
+            // SyncExample Routes
+            Route::get('/sync-example')
+                ->action(SyncExampleV1\SyncExampleDataAction::class)
+                ->name('v1/sync-example/index')
+                ->defaults(['permission' => 'sync-example.index']),
+            Route::post('/sync-example/data')
+                ->action(SyncExampleV1\SyncExampleDataAction::class)
+                ->name('v1/sync-example/data')
+                ->defaults(['permission' => 'sync-example.data']),
+            Route::get('/sync-example/{id:\d+}')
+                ->action(SyncExampleV1\SyncExampleViewAction::class)
+                ->name('v1/sync-example/view')
+                ->defaults(['permission' => 'sync-example.view']),
+            Route::post('/sync-example/create')
+                ->action(SyncExampleV1\SyncExampleCreateAction::class)
+                ->name('v1/sync-example/create')
+                ->defaults(['permission' => 'sync-example.create']),
+            Route::put('/sync-example/{id:\d+}')
+                ->action(SyncExampleV1\SyncExampleUpdateAction::class)
+                ->name('v1/sync-example/update')
+                ->defaults(['permission' => 'sync-example.update']),
+            Route::delete('/sync-example/{id:\d+}')
+                ->action(SyncExampleV1\SyncExampleDeleteAction::class)
+                ->name('v1/sync-example/delete')
+                ->defaults(['permission' => 'sync-example.delete']),
+            Route::post('/sync-example/{id:\d+}/restore')
+                ->action(SyncExampleV1\SyncExampleRestoreAction::class)
+                ->name('v1/sync-example/restore')
+                ->defaults(['permission' => 'sync-example.restore']),
+
             // === SKELETON MANAGED ROUTES — do not edit between markers ===
             // System module routes (service token, cache purge). Synced by
             // `composer skeleton:update`; FQCN is used so the block is

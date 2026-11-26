@@ -71,6 +71,24 @@ final class AppConstants
     public const ORIGIN_ID = 'origin_id';
 
     /**
+     * Global record identifier field name
+     * Used for correlating the same record across stores (local ids differ).
+     */
+    public const UUID = 'uuid';
+
+    /**
+     * Source store identifier field name
+     * Used for tracking the store that originally wrote the record (provenance).
+     */
+    public const SOURCE_STORE_ID = 'source_store_id';
+
+    /**
+     * Document role field name
+     * Used for provenance/editability rules (LOCAL/INTERSTORE/COPY).
+     */
+    public const DOC_ROLE = 'doc_role';
+
+    /**
      * Master identifier field name
      * Used for identifying master records in distributed systems.
      */

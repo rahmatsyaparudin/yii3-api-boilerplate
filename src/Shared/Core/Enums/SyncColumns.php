@@ -17,19 +17,31 @@ use Yiisoft\Db\Schema\Column\ColumnInterface;
  * `createTable()`. Definitions stay canonical in one place so synced
  * tables cannot silently diverge.
  *
+ * Canonical column order for a synced table (after business columns and
+ * `detail_info`):
+ *
+ *     detail_info → lock_version → sync_mdb → sync_flag → origin_id
+ *                 → source_store_id → uuid → doc_role
+ *
+ * `all()` emits exactly that tail block (sans `detail_info`, which is a
+ * regular table column written manually before the spread).
+ *
  * Column groups:
  * - identity() : uuid + source_store_id — global record identity and
  *                provenance. Required for every table that syncs.
- * - routing()  : origin_id + sync_flag — point-to-point delivery hint
+ * - routing()  : sync_flag + origin_id — point-to-point delivery hint
  *                (the existing SyncFlag scheme).
- * - locking()  : doc_role + lock_version — edit-permission provenance
- *                and optimistic locking / conflict detection.
- * - all()      : the full set.
+ * - locking()  : lock_version + doc_role — optimistic locking and
+ *                edit-permission provenance.
+ * - mongodb()  : sync_mdb — MongoDB mirror flag.
+ * - all()      : the full set, in canonical order.
  *
  * @example
  * $b->createTable(self::TABLE_NAME, [
- *     'id'   => $cb::integer()->notNull()->extra(ColumnContract::PG_PRIMARY_KEY_IDENTITY),
- *     'name' => $cb::string(255)->notNull(),
+ *     'id'          => $cb::integer()->notNull()->extra(ColumnContract::PG_PRIMARY_KEY_IDENTITY),
+ *     'name'        => $cb::string(255)->notNull(),
+ *     'status'      => $cb::smallint()->notNull()->defaultValue(ColumnContract::statusDefault())->comment(ColumnContract::statusComment()),
+ *     'detail_info' => $cb::json()->notNull()->defaultValue(ColumnContract::DETAILINFO_DEFAULT)->comment(ColumnContract::DETAILINFO_COMMENT),
  *     ...SyncColumns::all($cb),
  * ]);
  * @example
@@ -59,6 +71,21 @@ final class SyncColumns
     public const DOC_ROLE_COMMENT = "document role — 'LOCAL' user-editable, 'INTERSTORE' received via sync, 'COPY' sync-managed read-only";
 
     /**
+     * Canonical tail order for {@see all()}.
+     *
+     * @var list<string>
+     */
+    private const ORDER = [
+        'lock_version',
+        'sync_mdb',
+        'sync_flag',
+        'origin_id',
+        'source_store_id',
+        'uuid',
+        'doc_role',
+    ];
+
+    /**
      * Global identity group: `uuid` + `source_store_id`.
      *
      * @param string $cb Class-string returned by `MigrationBuilder::columnBuilder()`
@@ -74,7 +101,7 @@ final class SyncColumns
     }
 
     /**
-     * Routing group: `origin_id` + `sync_flag` (existing SyncFlag scheme).
+     * Routing group: `sync_flag` + `origin_id` (existing SyncFlag scheme).
      *
      * @param string $cb Class-string returned by `MigrationBuilder::columnBuilder()`
      *
@@ -83,13 +110,13 @@ final class SyncColumns
     public static function routing(string $cb): array
     {
         return [
-            'origin_id' => $cb::integer()->null()->comment(ColumnContract::ORIGIN_ID_COMMENT),
             'sync_flag' => $cb::smallint()->null()->defaultValue(ColumnContract::SYNC_FLAG_DEFAULT)->comment(ColumnContract::SYNC_FLAG_COMMENT),
+            'origin_id' => $cb::integer()->null()->comment(ColumnContract::ORIGIN_ID_COMMENT),
         ];
     }
 
     /**
-     * Locking group: `doc_role` + `lock_version`.
+     * Locking group: `lock_version` + `doc_role`.
      *
      * @param string $cb Class-string returned by `MigrationBuilder::columnBuilder()`
      *
@@ -98,13 +125,27 @@ final class SyncColumns
     public static function locking(string $cb): array
     {
         return [
-            'doc_role'     => $cb::string(16)->notNull()->defaultValue(DocRole::LOCAL->value)->comment(self::DOC_ROLE_COMMENT),
             'lock_version' => $cb::integer()->notNull()->defaultValue(ColumnContract::LOCK_VERSION_DEFAULT)->comment(ColumnContract::LOCK_VERSION_COMMENT),
+            'doc_role'     => $cb::string(16)->notNull()->defaultValue(DocRole::LOCAL->value)->comment(self::DOC_ROLE_COMMENT),
         ];
     }
 
     /**
-     * The full sync column set.
+     * MongoDB mirror group: `sync_mdb`.
+     *
+     * @param string $cb Class-string returned by `MigrationBuilder::columnBuilder()`
+     *
+     * @return array<string, ColumnInterface>
+     */
+    public static function mongodb(string $cb): array
+    {
+        return [
+            'sync_mdb' => $cb::smallint()->null()->comment(ColumnContract::SYNC_MDB_COMMENT),
+        ];
+    }
+
+    /**
+     * The full sync column set, in canonical order.
      *
      * @param string $cb Class-string returned by `MigrationBuilder::columnBuilder()`
      *
@@ -112,28 +153,27 @@ final class SyncColumns
      */
     public static function all(string $cb): array
     {
-        return [
-            ...self::identity($cb),
-            ...self::routing($cb),
-            ...self::locking($cb),
-        ];
+        $defs = self::locking($cb)
+            + self::mongodb($cb)
+            + self::routing($cb)
+            + self::identity($cb);
+
+        $ordered = [];
+        foreach (self::ORDER as $name) {
+            $ordered[$name] = $defs[$name];
+        }
+
+        return $ordered;
     }
 
     /**
-     * Every column name managed by {@see all()} — handy for `down()`
-     * migrations and `SELECT`/filter whitelists.
+     * Every column name managed by {@see all()}, in canonical order —
+     * handy for `down()` migrations and `SELECT`/filter whitelists.
      *
      * @return list<string>
      */
     public static function names(): array
     {
-        return [
-            'uuid',
-            'source_store_id',
-            'origin_id',
-            'sync_flag',
-            'doc_role',
-            'lock_version',
-        ];
+        return self::ORDER;
     }
 }

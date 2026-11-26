@@ -210,10 +210,19 @@ Grup kolom:
 | Method | Kolom | Fungsi |
 |--------|-------|--------|
 | `SyncColumns::identity($cb)` | `uuid`, `source_store_id` | Identitas global + provenance penulis asli (anti echo-loop) |
-| `SyncColumns::routing($cb)` | `origin_id`, `sync_flag` | Routing point-to-point (skema SyncFlag yang ada) |
-| `SyncColumns::locking($cb)` | `doc_role`, `lock_version` | Aturan edit (`LOCAL`/`INTERSTORE`/`COPY`) + optimistic locking |
-| `SyncColumns::all($cb)` | gabungan ketiganya | Kasus umum: tabel ikut sync penuh |
+| `SyncColumns::routing($cb)` | `sync_flag`, `origin_id` | Routing point-to-point (skema SyncFlag yang ada) |
+| `SyncColumns::locking($cb)` | `lock_version`, `doc_role` | Optimistic locking + aturan edit (`LOCAL`/`INTERSTORE`/`COPY`) |
+| `SyncColumns::mongodb($cb)` | `sync_mdb` | Flag mirror MongoDB |
+| `SyncColumns::all($cb)` | gabungan semuanya | Kasus umum: tabel ikut sync penuh |
 | `SyncColumns::names()` | daftar nama kolom | Untuk `down()` / whitelist select |
+
+**Urutan canonical tail** — `all()` selalu mengembalikan kolom dalam
+urutan baku (tulis `detail_info` manual sebelum spread):
+
+```
+detail_info → lock_version → sync_mdb → sync_flag → origin_id
+            → source_store_id → uuid → doc_role
+```
 
 **Create table** — spread di dalam `createTable()`:
 
@@ -263,6 +272,85 @@ Enum string-backed — `LOCAL` / `INTERSTORE` / `COPY` — dengan
 `fromValue()` (throw `BadRequestException`, key
 `doc_role.invalid_value`) dan `label()`. Default kolom `doc_role`
 adalah `LOCAL`.
+
+## Identity & Provenance (`SyncIdentity` + `SyncIdentityFactory`)
+
+`SyncIdentity` (`src/Domain/Shared/Core/ValueObject/SyncIdentity.php`)
+adalah VO immutable untuk kolom identitas sync — `uuid`,
+`source_store_id`, `doc_role`:
+
+```php
+use App\Domain\Shared\Core\ValueObject\SyncIdentity;
+
+$identity = SyncIdentity::local(sourceStoreId: 5);   // uuid auto-generate, doc_role=LOCAL
+$identity = SyncIdentity::copy($uuid, 5);            // hasil apply dari store #5
+$identity = SyncIdentity::fromArray($row);
+$identity = SyncIdentity::fromEntity($entity);       // getUuid/getSourceStoreId/getDocRole(Value)
+
+$identity->isEditableByUser();   // hanya LOCAL
+$identity->isOwnedBy(5);         // anti echo-loop di applier
+$identity->toDbArray();          // uuid + source_store_id + doc_role
+SyncIdentity::newUuid();         // uuid v4 (random_bytes, tanpa library)
+SyncIdentity::isValidUuid($str);
+```
+
+`SyncIdentityFactory`
+(`src/Application/Shared/Core/Factory/SyncIdentityFactory.php`)
+mengambil id store instance ini dari params `app/sync`
+(env `app.sync.store_id`; `0` = cloud/master, `>0` = id store):
+
+```php
+$identity = $this->syncIdentityFactory->create();      // uuid + source_store_id = store ini
+$identity = $this->syncIdentityFactory->local();
+$identity = $this->syncIdentityFactory->incomingCopy($uuid, $sourceStoreId);
+$this->syncIdentityFactory->isOwnRecord($identity);    // skip di applier
+$this->syncIdentityFactory->assertEditableByUser($identity); // throw doc_role.not_editable
+```
+
+## Outbox (`sync_queue` + `SyncOutboxFactory`)
+
+Migration `src/Migration/Sync/M20261126000000CreateSyncQueueTable.php`
+membuat tabel `sync_queue` — satu record bisnis → satu baris per
+tujuan (`destination_store_id = null` = broadcast). Baris ditulis oleh
+repository/service **di transaksi yang sama** dengan record bisnisnya
+(outbox pattern), lewat `SyncOutboxFactory`:
+
+```php
+$rows = $this->syncOutboxFactory->buildRows(
+    table: 'example',
+    identity: $identity,
+    syncFlag: $sync,
+    operation: 'INSERT',
+    destinationStoreIds: [5, 7],   // atau [] + broadcast:true
+    payload: $command->data,
+);
+// $repo->insertRows('sync_queue', $rows) dalam transaksi yang sama
+```
+
+Status baris dikelola `SyncQueueStatus` (`PENDING=1`, `SENT=2`,
+`ACKED=3`, `FAILED=4`); `attempts`/`last_error` untuk retry.
+
+Relasi dengan skema lama: `sync_flag`/`origin_id` di record tetap jalan
+untuk point-to-point murah dan sebagai cache denormalized "pending?";
+`sync_queue` yang authoritative untuk multi-tujuan, retry, dan audit.
+
+## Modul Referensi: `SyncExample`
+
+Modul `sync_example` adalah referensi implementasi end-to-end skema baru
+(pasangan `another_example` yang mereferensikan skema lama):
+
+- Migration `src/Migration/Sync/M20261126000001CreateSyncExampleTable.php`
+  memakai `...SyncColumns::all($cb)` (urutan canonical).
+- Entity membawa dua VO: `SyncFlag` (skema lama) + `SyncIdentity` (baru).
+- `create()` men-stamp `SyncIdentityFactory->create()` (uuid +
+  `source_store_id` dari `app.sync.store_id`) lalu menulis record +
+  baris `sync_queue` dalam **satu transaksi** via
+  `repository->insertWithOutbox()`.
+- `update()`/`delete()` memanggil
+  `syncIdentityFactory->assertEditableByUser()` — record `COPY`/
+  `INTERSTORE` ditolak dengan `doc_role.not_editable`.
+- Repository menyediakan `findByUuid()` — pola lookup applier.
+- Routes `/v1/sync-example/*`, permission `sync-example.*`.
 
 ## Referensi API
 

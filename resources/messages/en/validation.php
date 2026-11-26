@@ -136,6 +136,8 @@ return [
     'sync_flag.invalid_value' => 'Invalid sync_flag value "{value}". Allowed values: {allowed_values}',
     'sync_flag.invalid_direction' => 'Invalid sync direction "{value}". Allowed values: {allowed_values}',
     'doc_role.invalid_value' => 'Invalid doc_role value "{value}". Allowed values: {allowed_values}',
+    'doc_role.not_editable' => 'Record is not editable in this store (doc_role={doc_role}). Only LOCAL records can be edited by users',
+    'sync_queue.invalid_status' => 'Invalid sync_queue status "{value}". Allowed values: {allowed_values}',
 
     // Request Prefix
     'request.unknown_parameters' => 'Unknown parameters: {unknown_keys}. Allowed parameters: {allowed_keys}',

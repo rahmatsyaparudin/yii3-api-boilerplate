@@ -10,6 +10,53 @@
 > Versi mengikuti `changelog/` (semver app): `v1.0.0` baseline,
 > `v1.1.0` Service Token, `v1.2.0` Cache + managed sync.
 
+## v1.3.0
+
+### Ditambahkan
+- **Fondasi sync v2 (opt-in, backward compatible)** — kolom `uuid`,
+  `source_store_id`, `doc_role` di samping `origin_id`/`sync_flag` yang
+  tetap jalan:
+  - `SyncColumns` (`src/Shared/Core/Enums/`) — kontrak kolom yang
+    di-inject per tabel via `...SyncColumns::all($cb)`; grup granular
+    `identity()`/`routing()`/`locking()`/`mongodb()`; `all()` emit
+    canonical tail `lock_version → sync_mdb → sync_flag → origin_id →
+    source_store_id → uuid → doc_role`.
+  - `sync:columns` command (`src/Console/Core/`) —
+    `add <table> <Module>` generate ALTER migration; `inject <file>`
+    menyisipkan spread ke migration `createTable` existing (verifikasi
+    `php -l`, auto-revert, idempotent).
+  - `DocRole` + `SyncQueueStatus` enums, `SyncIdentity` VO (uuid v4
+    auto-generate via `random_bytes`, `isEditableByUser()`,
+    `isOwnedBy()` anti echo-loop), `SyncIdentityFactory` (stamp
+    `source_store_id` dari `app.sync.store_id` + `assertEditableByUser()`),
+    `SyncOutboxFactory` (builder baris `sync_queue`, broadcast via
+    `destination_store_id = null`).
+  - Migration `sync_queue` (`src/Migration/Sync/`) — outbox satu baris
+    per record per tujuan dengan status/retry/ack.
+- **Modul `SyncExample`** — referensi end-to-end skema baru (pasangan
+  `another_example` = skema lama): `create()` tulis record + queue
+  dalam 1 transaksi (`insertWithOutbox`), `update()`/`delete()` guard
+  `doc_role`, `findByUuid()` untuk applier. Ikut `skeleton:copy-examples`.
+- `app.sync.store_id` di `.env.example` + params `app/sync`
+  (`0` = cloud/master, `>0` = id store).
+- Message keys `doc_role.invalid_value`, `doc_role.not_editable`,
+  `sync_queue.invalid_status` (en + id).
+- Docs: `docs-guide/22-sync-flag-guide.md` — injector contract,
+  command, outbox pattern, modul referensi.
+
+### Catatan untuk project konsumen
+- Yang tersalin otomatis via `skeleton:update`: Core VO/factory/enum/
+  command, params `app/sync`, messages, DI binding `service-di.php`.
+  Modul `SyncExample` + migration lewat `skeleton:copy-examples`;
+  route/permission `sync-example.*` harus disalin manual dari
+  `config/common/{routes,access}.php` (tidak auto-sync).
+- Set `app.sync.store_id` per instance (`0` = cloud/master).
+- Tabel existing **tidak berubah** — opt-in per tabel via
+  `yii sync:columns add` atau spread `SyncColumns::all()` pada
+  `createTable` baru; backfill `uuid` untuk tabel yang sudah berisi.
+- Jalankan migration `Sync` untuk membuat `sync_queue` (+`sync_example`
+  bila memakai contohnya).
+
 ## v1.2.2
 
 ### Diperbaiki
